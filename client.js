@@ -90,6 +90,10 @@ window.__ModuleLoader__.load({
         'eac.pillLocked': '未授权',
         'eac.pillRequired': '已开启强制',
         'eac.pillCompat': '兼容期',
+        'eac.pillUnknown': '授权策略未确认',
+        'eac.pollFailed': '领取授权失败（{reason}），正在自动重试；无需重新授权。',
+        'eac.saveFailed': '授权已完成，但本机无法保存登录记录。请检查 DSH_HOME 目录权限；修复后将自动重试。',
+        'eac.cancel': '取消此次登录',
         'eac.pillUnverified': '网关暂不可达',
         'eac.intro': 'EAC 渠道的对话在服务器侧校验授权：用 GitHub 登录，并给 {repo} 点一个 Star，即可解锁。登录在浏览器里完成，无需复制粘贴；取消 Star 后授权会自动失效。',
         'eac.login': '使用 GitHub 登录',
@@ -101,7 +105,6 @@ window.__ModuleLoader__.load({
         'eac.needStar': '已用 @{login} 登录，但还没有 star 仓库；请先 Star，再在授权页点「我已 star，重新检查」。',
         'eac.expired': '这次登录等待超时了，请重新发起。',
         'eac.sessionExpired': '登录链接已失效（服务器不再认识它），请重新发起 GitHub 登录。',
-        'eac.gatewayFlaky': '暂时连不上授权网关，正在自动重试……',
         'eac.openManually': '浏览器没有自动打开，请手动访问下面的地址完成授权。',
         'eac.startFailed': '无法发起登录（{reason}）。',
         'eac.loggedIn': '已授权：@{login} · 上次复查 {when}',
@@ -313,7 +316,7 @@ window.__ModuleLoader__.load({
         'chan.title': '白嫖模型接入',
         'chan.sub': '把各家的免费额度接进来：登录一次，模型就出现在对话框的模型选择器里。凭据只写入本机凭据库，页面永远拿不到明文。',
         'chan.pack.failed': '渠道包未挂载：{reason}（免费车道与 EAC 不受影响）',
-        'chan.pack.hint': '渠道包由本插件内置（vendor/jet-hub），随插件一起升级。',
+        'chan.pack.hint': '渠道包由本插件内置（vendor/channel-pack），随插件一起升级。',
         'chan.state.on': '已接入',
         'chan.state.off': '未接入',
         'chan.state.closed': '已关闭',
@@ -445,6 +448,184 @@ window.__ModuleLoader__.load({
         'chan.auto.ran': '今日已自动签到',
         'chan.auto.off': '今日尚未签到',
         'chan.auto.last': '上次结果：{result}',
+        'nav.tab.aggregate': '聚合渠道',
+        'nav.tab.saver': '省 Token',
+        'nav.tab.routing': '路由',
+        'agg.title': '聚合渠道',
+        'agg.sub': '把第三方 OpenAI 兼容端点接进同一条模型清单：写入本机的 Key 只以指纹回显，保存后清单与模型选择器一起更新。',
+        'agg.registryCount': '注册表 {n} 家',
+        'agg.configuredCount': '已配置 {n} 家',
+        'agg.addProvider': '添加提供商',
+        'agg.addTitle': '选择提供商',
+        'agg.addHint': '可按分类、协议与认证方式筛选。标了「不可驱动」的提供商需要交互式登录或云侧凭据，本车道不会调用它们。',
+        'agg.search': '搜索名称或 ID',
+        'agg.filterCategory': '分类',
+        'agg.filterFormat': '协议',
+        'agg.filterAuth': '认证',
+        'agg.filterAll': '全部',
+        'agg.showing': '显示 {shown} / {total} 家',
+        'agg.noMatch': '没有匹配的提供商。',
+        'agg.notUsable': '不可驱动',
+        'agg.notUsableWhy': '本车道不会调用它：认证方式是「{kind}」，需要交互式登录或云侧凭据，只能由宿主自己接管。',
+        'agg.credential': '获取 Key',
+        'agg.modelCount': '{n} 个模型',
+        'agg.select': '配置',
+        'agg.configuredTitle': '已配置的提供商',
+        'agg.configuredHint': '保存后立即生效：清单与模型选择器一起更新。',
+        'agg.empty': '还没有接入任何聚合提供商',
+        'agg.emptyHint': '这一页把第三方端点接进模型清单：聚合站、免费额度池、本机推理服务都行。填入 Key 与可选的 Base URL，它们的模型就会出现在模型选择器里，也能成为降级链的一环。',
+        'agg.filterEmpty': '没有符合筛选条件的已配置提供商。',
+        'agg.contributes': '当前贡献 {n} 个模型',
+        'agg.contributesNone': '当前未贡献任何模型',
+        'agg.hasKey': '已存 Key {hint}',
+        'agg.noKey': '未存 Key',
+        'agg.enabled': '启用',
+        'agg.disabled': '已停用',
+        'agg.key': 'API Key',
+        'agg.keyPlaceholder': '粘贴新的 API Key（留空则保持不变）',
+        'agg.keyKeep': '留空保持当前 Key 不变；要删除请用下面的清除按钮。',
+        'agg.keyClear': '清除已保存的 Key',
+        'agg.keyClearWarn': '清除后该提供商立即停止贡献模型，直到重新填入 Key。',
+        'agg.baseUrl': 'Base URL',
+        'agg.baseUrlHint': '留空则使用注册表默认值。',
+        'agg.baseUrlDefault': '注册表默认：{url}',
+        'agg.baseUrlEnv': '也可用环境变量 {env} 覆盖',
+        'agg.models': '模型覆盖',
+        'agg.modelsHint': '逗号或换行分隔的模型 ID；留空则用它自己声明的清单。',
+        'agg.modelsPlaceholder': 'model-a, model-b',
+        'agg.test': '测试',
+        'agg.testing': '测试中…',
+        'agg.testOk': '验证通过',
+        'agg.testFailed': '验证失败',
+        'agg.testUnverified': '无法验证',
+        'agg.testUnverifiedWhy': '该提供商不提供模型列表接口，验证它要花掉一次真实生成——这里不做。',
+        'agg.testAt': '最近测试 {when}',
+        'agg.neverTested': '尚未测试',
+        'agg.discover': '发现模型',
+        'agg.discovering': '发现中…',
+        'agg.discovered': '发现 {n} 个模型',
+        'agg.discoveredNone': '该提供商不提供模型列表。',
+        'agg.discoveredUse': '填入模型覆盖',
+        'agg.save': '保存',
+        'agg.saving': '保存中…',
+        'agg.add': '添加',
+        'agg.remove': '移除',
+        'agg.removeConfirm': '确认移除',
+        'agg.removeWarn': '移除后它贡献的模型立即从清单消失，已保存的 Key 一并删除。',
+        'agg.cancel': '取消',
+        'agg.saved': '已保存',
+        'agg.savedBody': '{name} 的配置已保存。',
+        'agg.removedBody': '{name} 已移除。',
+        'agg.failed': '操作失败',
+        'agg.loadFailed': '无法读取提供商注册表',
+        'agg.category.apikey': 'API Key',
+        'agg.category.free': '完全免费',
+        'agg.category.freeTier': '免费额度',
+        'agg.category.local': '本机',
+        'agg.category.oauth': 'OAuth',
+        'agg.auth.apiKey': 'API Key',
+        'agg.auth.none': '免认证',
+        'agg.auth.oauth': 'OAuth 登录',
+        'agg.auth.adc': '云侧凭据',
+        'saver.title': '省 Token',
+        'saver.sub': '在请求离开本机之前压缩它：工具输出重编码、提示词瘦身，以及五个不占用上游请求的本地应答。',
+        'saver.master': '启用 Token 压缩',
+        'saver.masterHint': '关掉后所有压缩立即停止，请求按原样发出；下面的设置保留。',
+        'saver.rtk': 'RTK 工具输出压缩',
+        'saver.rtkWhat': '压缩的是工具结果：git diff / status / log、grep、find、ls、tree、构建日志、带行号的文件转储，以及重复的日志行。',
+        'saver.rtkSafety': '安全边界：报错的工具结果原样保留，小体积内容不碰，替换只在新文本更小且非空时发生——压缩结果永远不会比原文更大。',
+        'saver.promptTitle': '提示词压缩',
+        'saver.promptHint': '在系统提示里追加一条写作指令。这是唯一能减少输出 Token 的压缩，因为它改变的是模型怎么写。',
+        'saver.caveman': 'Caveman',
+        'saver.cavemanWhat': '电报体回复：去掉客套与重复解释，只留结论与代码。',
+        'saver.ponytail': 'Ponytail',
+        'saver.ponytailWhat': 'YAGNI 最小实现：只写被要求的那一件事，不主动加抽象、配置与兜底。',
+        'saver.voiceWarn': '注意：这两族会改变助手的说话方式，并且会留在你的对话记录里。默认关闭。',
+        'saver.localTitle': '本地应答',
+        'saver.localHint': '这五类请求的答案就在请求体里，转发出去只是白花一次上游额度与一个来回。',
+        'saver.local.enabled': '启用本地应答',
+        'saver.local.quota': '额度探测',
+        'saver.local.quotaHint': '回答「额度检查」这类探针，返回一句固定答复。',
+        'saver.local.prefix': '命令前缀',
+        'saver.local.prefixHint': '回答权限提示要的命令前缀，从 shell 命令里解析。',
+        'saver.local.title': '会话标题',
+        'saver.local.titleHint': '回答标题生成请求，返回固定标题。',
+        'saver.local.suggestion': '建议模式',
+        'saver.local.suggestionHint': '回答建议模式的空转回合，不产生上游请求。',
+        'saver.local.filepath': '文件路径提取',
+        'saver.local.filepathHint': '从命令与输出里解析出文件路径，返回结构化结果。',
+        'saver.dashTitle': '节省统计',
+        'saver.dashHint': '按字节统计本机实际发生的压缩，只写入本机。',
+        'saver.bytesBefore': '压缩前',
+        'saver.bytesAfter': '压缩后',
+        'saver.bytesSaved': '节省字节',
+        'saver.percent': '节省比例',
+        'saver.blocks': '压缩块数',
+        'saver.calls': '统计调用',
+        'saver.promptCalls': '提示词注入',
+        'saver.noData': '还没有可统计的请求。发起一次对话后，这里显示的是真实压缩字节数，不是估算。',
+        'saver.report': '统计口径',
+        'saver.saved': '已保存',
+        'saver.savedBody': 'Token 压缩设置已保存。',
+        'saver.failed': '保存失败',
+        'saver.loadFailed': '无法读取 Token 压缩设置',
+        'saver.level.off': '关闭',
+        'saver.level.lite': '轻',
+        'saver.level.full': '全',
+        'saver.level.ultra': '极',
+        'saver.level.wenyanLite': '文言·轻',
+        'saver.level.wenyan': '文言',
+        'saver.level.wenyanUltra': '文言·极',
+        'routing.title': '路由',
+        'routing.sub': '把若干模型串成一条降级链：链上第一个失败就换下一个，对调用方始终只有一个模型 ID。',
+        'routing.chains': '已存链路',
+        'routing.chainsHint': '链路按输入顺序保存；引用当前不可用模型的链路会原样保留，车道恢复后自己回来。',
+        'routing.empty': '还没有降级链',
+        'routing.emptyHint': '一条链就是一个虚拟模型：在模型选择器里选它，请求按顺序尝试链上的每个真实模型。用来兜住某个车道临时不可用的时段。',
+        'routing.newChain': '新建链路',
+        'routing.name': '名称',
+        'routing.namePlaceholder': '例如：先免费后协付',
+        'routing.strategy': '策略',
+        'routing.strategy.fallback': '顺序降级',
+        'routing.strategy.roundRobin': '轮询',
+        'routing.stickyLimit': '轮询粘滞次数',
+        'routing.stickyHint': '轮询时同一个模型连续用多少次再换下一个。',
+        'routing.members': '成员（按顺序）',
+        'routing.addMember': '添加成员',
+        'routing.memberEmpty': '还没有成员——点「添加成员」从清单里挑一个。',
+        'routing.moveUp': '上移',
+        'routing.moveDown': '下移',
+        'routing.removeMember': '移除',
+        'routing.pickModel': '选择模型',
+        'routing.searchModel': '搜索模型 ID 或名称',
+        'routing.noModel': '没有匹配的模型。',
+        'routing.usable': '可用',
+        'routing.notUsable': '当前不可用',
+        'routing.missing': '不在清单中的成员：{ids}',
+        'routing.notUsableWhy': '链路原样保存，不会因为某条车道今天关闭而被改写；这些 ID 回到清单里它就自己恢复。如果是拼写错误，编辑链路改正即可。',
+        'routing.resolved': '解析为',
+        'routing.memberCount': '{n} 个成员',
+        'routing.save': '保存链路',
+        'routing.saved': '已保存',
+        'routing.savedBody': '链路已保存。',
+        'routing.failed': '保存失败',
+        'routing.loadFailed': '无法读取链路设置',
+        'routing.cancel': '取消',
+        'routing.edit': '编辑',
+        'routing.delete': '删除',
+        'routing.deleteConfirm': '确认删除',
+        'routing.deleteWarn': '删除后这个模型 ID 立即从清单消失，正在引用它的客户端会拿到 404。',
+        'routing.enabled': '启用',
+        'routing.channel.free': '免费车道',
+        'routing.channel.eac': 'EAC 协付',
+        'routing.channel.kilo': 'Kilo',
+        'routing.channel.aggregate': '聚合',
+        'routing.channel.combo': '链路',
+        'gw.clientsTitle': '接入客户端',
+        'gw.clientsHint': '免费车道转发端口（在「免费模型」页的「本地转发」里开关）的接入配方：地址与 Key 按实际绑定的端口与真实密钥生成。',
+        'gw.clientsOff': '转发端口未启用',
+        'gw.clientsOffHint': '先到「免费模型」页的「本地转发」打开端口，这里才会给出可用的地址与配方。',
+        'gw.clientsModels': '可转发模型 {n} 个',
       },
       en: {
         'meta.title': 'Our Free Model',
@@ -530,6 +711,10 @@ window.__ModuleLoader__.load({
         'eac.pillLocked': 'not authorized',
         'eac.pillRequired': 'enforced',
         'eac.pillCompat': 'grace period',
+        'eac.pillUnknown': 'authorization policy unverified',
+        'eac.pollFailed': 'Could not collect authorization ({reason}); retrying automatically. No new sign-in is needed.',
+        'eac.saveFailed': 'Authorization completed, but this machine could not save it. Check DSH_HOME permissions; collection will retry automatically.',
+        'eac.cancel': 'Cancel this sign-in',
         'eac.pillUnverified': 'gateway unreachable',
         'eac.intro': 'EAC turns are checked server-side: sign in with GitHub and star {repo} to unlock them. The browser does the work — nothing to paste — and removing the star revokes access automatically.',
         'eac.login': 'Sign in with GitHub',
@@ -541,7 +726,6 @@ window.__ModuleLoader__.load({
         'eac.needStar': 'Signed in as @{login}, but the repository is not starred yet. Star it, then press "I starred it — check again" on the authorization page.',
         'eac.expired': 'This login attempt timed out; please start again.',
         'eac.sessionExpired': 'The login link is no longer valid (the server does not know it) — please start the GitHub login again.',
-        'eac.gatewayFlaky': 'The authorization gateway is temporarily unreachable; retrying automatically…',
         'eac.openManually': 'The browser did not open automatically — visit the address below to finish.',
         'eac.startFailed': 'Could not start the login ({reason}).',
         'eac.loggedIn': 'Authorized: @{login} · last checked {when}',
@@ -728,7 +912,7 @@ window.__ModuleLoader__.load({
         'chan.title': 'Free channel access',
         'chan.sub': 'Bring each vendor\'s free quota in: sign in once and its models appear in the composer\'s model picker. Credentials are written to the local credential store only — this page never sees them.',
         'chan.pack.failed': 'Channel pack not mounted: {reason} (the free and EAC lanes are unaffected)',
-        'chan.pack.hint': 'The pack ships inside this plugin (vendor/jet-hub) and upgrades with it.',
+        'chan.pack.hint': 'The pack ships inside this plugin (vendor/channel-pack) and upgrades with it.',
         'chan.state.on': 'Connected',
         'chan.state.off': 'Not connected',
         'chan.state.closed': 'Turned off',
@@ -860,6 +1044,184 @@ window.__ModuleLoader__.load({
         'chan.auto.ran': 'Checked in today',
         'chan.auto.off': 'Not checked in today',
         'chan.auto.last': 'Last result: {result}',
+        'nav.tab.aggregate': 'Aggregate',
+        'nav.tab.saver': 'Token savers',
+        'nav.tab.routing': 'Routing',
+        'agg.title': 'Aggregate providers',
+        'agg.sub': 'Bring third-party OpenAI-compatible endpoints into the same model roster: a key written here is echoed back as a fingerprint only, and saving updates the roster and the model picker together.',
+        'agg.registryCount': '{n} in the registry',
+        'agg.configuredCount': '{n} configured',
+        'agg.addProvider': 'Add provider',
+        'agg.addTitle': 'Choose a provider',
+        'agg.addHint': 'Filter by category, wire format and auth kind. A provider marked "not drivable" needs an interactive login or cloud credentials, and this lane never calls it.',
+        'agg.search': 'Search name or id',
+        'agg.filterCategory': 'Category',
+        'agg.filterFormat': 'Format',
+        'agg.filterAuth': 'Auth',
+        'agg.filterAll': 'All',
+        'agg.showing': 'Showing {shown} of {total}',
+        'agg.noMatch': 'No provider matches.',
+        'agg.notUsable': 'Not drivable',
+        'agg.notUsableWhy': 'This lane never calls it: its auth kind is "{kind}", which needs an interactive login or cloud-side credentials, so only the host can take it over.',
+        'agg.credential': 'Get a key',
+        'agg.modelCount': '{n} models',
+        'agg.select': 'Configure',
+        'agg.configuredTitle': 'Configured providers',
+        'agg.configuredHint': 'Changes take effect immediately: saving updates the roster and the model picker together.',
+        'agg.empty': 'No aggregate provider is connected yet',
+        'agg.emptyHint': 'This page brings third-party endpoints into the model roster: an aggregator, a free-tier pool, a local inference server. Fill in a key and an optional base URL and their models appear in the model picker — and can become a link in a fallback chain.',
+        'agg.filterEmpty': 'No configured provider matches the filter.',
+        'agg.contributes': 'Contributes {n} models',
+        'agg.contributesNone': 'Contributes no model right now',
+        'agg.hasKey': 'Key {hint}',
+        'agg.noKey': 'No key stored',
+        'agg.enabled': 'Enabled',
+        'agg.disabled': 'Disabled',
+        'agg.key': 'API key',
+        'agg.keyPlaceholder': 'Paste a new API key (leave empty to keep the current one)',
+        'agg.keyKeep': 'Empty keeps the stored key; use the clear button below to delete it.',
+        'agg.keyClear': 'Clear the stored key',
+        'agg.keyClearWarn': 'Clearing it stops this provider from contributing models until a key is entered again.',
+        'agg.baseUrl': 'Base URL',
+        'agg.baseUrlHint': 'Empty uses the registry default.',
+        'agg.baseUrlDefault': 'Registry default: {url}',
+        'agg.baseUrlEnv': 'Can also be overridden by the {env} environment variable',
+        'agg.models': 'Model override',
+        'agg.modelsHint': 'Model ids separated by commas or newlines; empty uses the list the provider declares.',
+        'agg.modelsPlaceholder': 'model-a, model-b',
+        'agg.test': 'Test',
+        'agg.testing': 'Testing…',
+        'agg.testOk': 'Verified',
+        'agg.testFailed': 'Failed',
+        'agg.testUnverified': 'Not verifiable',
+        'agg.testUnverifiedWhy': 'This provider declares no model listing, so verifying it would cost one real generation — not done here.',
+        'agg.testAt': 'Last test {when}',
+        'agg.neverTested': 'Not tested yet',
+        'agg.discover': 'Discover models',
+        'agg.discovering': 'Discovering…',
+        'agg.discovered': 'Found {n} models',
+        'agg.discoveredNone': 'This provider declares no model listing.',
+        'agg.discoveredUse': 'Use these as the override',
+        'agg.save': 'Save',
+        'agg.saving': 'Saving…',
+        'agg.add': 'Add',
+        'agg.remove': 'Remove',
+        'agg.removeConfirm': 'Confirm removal',
+        'agg.removeWarn': 'Removing it drops its models from the roster immediately and deletes the stored key.',
+        'agg.cancel': 'Cancel',
+        'agg.saved': 'Saved',
+        'agg.savedBody': 'The configuration for {name} is saved.',
+        'agg.removedBody': '{name} was removed.',
+        'agg.failed': 'Action failed',
+        'agg.loadFailed': 'Cannot read the provider registry',
+        'agg.category.apikey': 'API key',
+        'agg.category.free': 'Fully free',
+        'agg.category.freeTier': 'Free tier',
+        'agg.category.local': 'Local',
+        'agg.category.oauth': 'OAuth',
+        'agg.auth.apiKey': 'API key',
+        'agg.auth.none': 'No auth',
+        'agg.auth.oauth': 'OAuth login',
+        'agg.auth.adc': 'Cloud credentials',
+        'saver.title': 'Token savers',
+        'saver.sub': 'Compact a request before it leaves this machine: tool output re-encoded, the prompt slimmed, and five answers produced locally without an upstream call.',
+        'saver.master': 'Enable token compaction',
+        'saver.masterHint': 'Turning this off stops every saver at once and sends requests as written; the settings below are kept.',
+        'saver.rtk': 'RTK tool-output compaction',
+        'saver.rtkWhat': 'What it compacts: tool results — git diff / status / log, grep, find, ls, tree, build logs, numbered file dumps and duplicate log lines.',
+        'saver.rtkSafety': 'Safety rules: an error result is left untouched, small bodies are not touched, and a blob is replaced only when the new text is non-empty and strictly smaller — a compacted result is never larger than the original.',
+        'saver.promptTitle': 'Prompt shaping',
+        'saver.promptHint': 'Appends a writing instruction to the system prompt. It is the only saver that can cut output tokens, because it changes what the model writes.',
+        'saver.caveman': 'Caveman',
+        'saver.cavemanWhat': 'Terse replies: pleasantries and repeated explanation dropped, conclusions and code kept.',
+        'saver.ponytail': 'Ponytail',
+        'saver.ponytailWhat': 'YAGNI-minimal replies: only the one thing that was asked for, no unrequested abstraction, config or fallback.',
+        'saver.voiceWarn': 'Heads-up: both families change how the assistant talks, and that lands in your transcript. Off by default.',
+        'saver.localTitle': 'Local answers',
+        'saver.localHint': 'The answer to these five requests is already in the request body; forwarding one spends a round trip and upstream quota on a question with one right answer.',
+        'saver.local.enabled': 'Enable local answers',
+        'saver.local.quota': 'Quota probe',
+        'saver.local.quotaHint': 'Answers a "quota check" probe with a fixed line.',
+        'saver.local.prefix': 'Command prefix',
+        'saver.local.prefixHint': 'Answers the command prefix behind a permission prompt, parsed from the shell command.',
+        'saver.local.title': 'Session title',
+        'saver.local.titleHint': 'Answers a title-generation request with a fixed title.',
+        'saver.local.suggestion': 'Suggestion mode',
+        'saver.local.suggestionHint': 'Answers a suggestion-mode turn without producing an upstream request.',
+        'saver.local.filepath': 'Filepath extraction',
+        'saver.local.filepathHint': 'Parses the file paths out of a command and its output, and returns them structured.',
+        'saver.dashTitle': 'Savings',
+        'saver.dashHint': 'Bytes actually compacted on this machine, written locally only.',
+        'saver.bytesBefore': 'Before',
+        'saver.bytesAfter': 'After',
+        'saver.bytesSaved': 'Bytes saved',
+        'saver.percent': 'Saved',
+        'saver.blocks': 'Blocks compacted',
+        'saver.calls': 'Calls measured',
+        'saver.promptCalls': 'Prompts shaped',
+        'saver.noData': 'No request measured yet. One conversation later, this shows real compacted bytes rather than an estimate.',
+        'saver.report': 'Reported as',
+        'saver.saved': 'Saved',
+        'saver.savedBody': 'The token-saver settings are saved.',
+        'saver.failed': 'Not saved',
+        'saver.loadFailed': 'Cannot read the token-saver settings',
+        'saver.level.off': 'Off',
+        'saver.level.lite': 'Lite',
+        'saver.level.full': 'Full',
+        'saver.level.ultra': 'Ultra',
+        'saver.level.wenyanLite': 'Classical · lite',
+        'saver.level.wenyan': 'Classical',
+        'saver.level.wenyanUltra': 'Classical · ultra',
+        'routing.title': 'Routing',
+        'routing.sub': 'Chain several models into one fallback chain: when a link refuses, the next one answers, and the caller still sees a single model id.',
+        'routing.chains': 'Stored chains',
+        'routing.chainsHint': 'Chains are stored in the order you entered them; a chain that references a model which is unavailable right now is kept as written and comes back by itself when the lane does.',
+        'routing.empty': 'No fallback chain yet',
+        'routing.emptyHint': 'A chain is a virtual model: pick it in the model picker and the request tries each real model on the chain in order. Use one to cover the hours when a lane is down.',
+        'routing.newChain': 'New chain',
+        'routing.name': 'Name',
+        'routing.namePlaceholder': 'e.g. free first, co-paid second',
+        'routing.strategy': 'Strategy',
+        'routing.strategy.fallback': 'Fallback',
+        'routing.strategy.roundRobin': 'Round-robin',
+        'routing.stickyLimit': 'Round-robin sticky limit',
+        'routing.stickyHint': 'How many calls in a row one model serves before the rotation moves on.',
+        'routing.members': 'Members (in order)',
+        'routing.addMember': 'Add member',
+        'routing.memberEmpty': 'No member yet — press "Add member" to pick one from the roster.',
+        'routing.moveUp': 'Move up',
+        'routing.moveDown': 'Move down',
+        'routing.removeMember': 'Remove',
+        'routing.pickModel': 'Pick a model',
+        'routing.searchModel': 'Search model id or name',
+        'routing.noModel': 'No model matches.',
+        'routing.usable': 'Usable',
+        'routing.notUsable': 'Not usable now',
+        'routing.missing': 'Members not in the roster: {ids}',
+        'routing.notUsableWhy': 'The chain is stored as written and is never rewritten because a lane is closed today; it comes back by itself once those ids are in the roster again. If an id is a typo, edit the chain and fix it.',
+        'routing.resolved': 'Resolves to',
+        'routing.memberCount': '{n} members',
+        'routing.save': 'Save chain',
+        'routing.saved': 'Saved',
+        'routing.savedBody': 'The chain is saved.',
+        'routing.failed': 'Not saved',
+        'routing.loadFailed': 'Cannot read the chain settings',
+        'routing.cancel': 'Cancel',
+        'routing.edit': 'Edit',
+        'routing.delete': 'Delete',
+        'routing.deleteConfirm': 'Confirm delete',
+        'routing.deleteWarn': 'Deleting it drops this model id from the roster immediately; a client still pointing at it gets a 404.',
+        'routing.enabled': 'Enabled',
+        'routing.channel.free': 'Free lane',
+        'routing.channel.eac': 'EAC co-paid',
+        'routing.channel.kilo': 'Kilo',
+        'routing.channel.aggregate': 'Aggregate',
+        'routing.channel.combo': 'Chain',
+        'gw.clientsTitle': 'Connect a client',
+        'gw.clientsHint': 'How the free lane\'s forward port (enabled under "Local forward" on the Free models page) plugs into each client: addresses and keys below are generated from the port that actually bound and the real key.',
+        'gw.clientsOff': 'The forward port is off',
+        'gw.clientsOffHint': 'Enable it under "Local forward" on the Free models page first; only then does this section have a usable address and recipes.',
+        'gw.clientsModels': '{n} servable models',
       },
     }
 
@@ -917,9 +1279,10 @@ window.__ModuleLoader__.load({
 .ofm_cell.l4{background:var(--dsw-alias-state-business-primary);outline-color:transparent}
 .ofm_scale{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--dsw-alias-label-tertiary);margin-left:auto}
 .ofm_scale .ofm_cell{width:10px;height:10px}
-.ofm_seg{display:inline-flex;padding:2px;border-radius:9px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);gap:2px}
+.ofm_seg{display:inline-flex;flex-wrap:wrap;padding:2px;border-radius:9px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);gap:2px}
 .ofm_seg button{border:0;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11.5px;padding:3px 10px;border-radius:7px;cursor:pointer}
 .ofm_seg button[aria-pressed="true"]{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-primary);box-shadow:0 1px 2px rgb(0 0 0 / 12%)}
+.ofm_seg button:disabled{opacity:.45;cursor:default}
 .ofm_svg{display:block;width:100%;height:auto;overflow:visible}
 .ofm_chips{display:flex;gap:5px;flex-wrap:wrap}
 .ofm_chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);cursor:pointer;color:var(--dsw-alias-label-secondary)}
@@ -1095,7 +1458,7 @@ window.__ModuleLoader__.load({
 .ofm_starbtn:hover svg{transform:rotate(-72deg) scale(1.12)}
 .ofm_starbtn::after{content:"";position:absolute;top:0;bottom:0;width:38%;left:-45%;background:linear-gradient(100deg,transparent,rgb(255 255 255 / 34%),transparent);transform:skewX(-18deg);transition:left .55s ease}
 .ofm_starbtn:hover::after{left:112%}
-.ofm_page{display:flex;flex-direction:column;gap:20px;animation:ofmpagein .36s cubic-bezier(.22,.61,.36,1)}
+.ofm_page{display:flex;flex-direction:column;gap:20px;animation:ofmpagein .24s cubic-bezier(.22,.61,.36,1)}
 @keyframes ofmpagein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 /* 毛玻璃表面：只给大块面用 backdrop-filter，小卡片用半透明叠层，滚动更顺 */
 .ofm_glass{background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 68%,transparent);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border:1px solid color-mix(in srgb,var(--dsw-alias-border-l2) 78%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%),0 12px 34px rgb(0 0 0 / 9%)}
@@ -1195,6 +1558,30 @@ window.__ModuleLoader__.load({
 .ofm_poolstats .ofm_stat.hot b{color:var(--dsw-alias-state-error-primary,#ec1313)}
 .ofm_poolmeta{display:flex;gap:8px 18px;align-items:baseline;flex-wrap:wrap;justify-content:space-between}
 @media (max-width:760px){.ofm_tank.xl{width:100%;max-width:340px}.ofm_tab{flex:1 1 auto;text-align:center}}
+/* ── 聚合渠道 / 省 Token / 路由：新页面的表面 ─────────────────────────────
+   动效一律走 150–250ms 的短过渡，不弹跳；reduced-motion 下由文件末尾的
+   媒体查询整体关掉。ofm_rise 用 backwards 而不是 both：动画结束后元素回到
+   样式表里的 transform，卡片的 hover 抬升才不会被动画的终态钉死。 */
+.ofm_rise{animation:ofmrisein .22s cubic-bezier(.22,.61,.36,1) backwards}
+@keyframes ofmrisein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ofm_duo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(272px,100%),1fr));gap:12px;align-items:start}
+.ofm_duo>*{min-width:0}
+.ofm_picklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:8px;max-height:330px;overflow:auto;padding:2px}
+.ofm_pickrow{display:flex;flex-direction:column;gap:5px;align-items:stretch;text-align:left;font:inherit;padding:9px 11px;border-radius:11px;border:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 62%,transparent);color:var(--dsw-alias-label-primary);cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}
+.ofm_pickrow:hover:not(:disabled){border-color:var(--dsw-alias-state-business-primary);transform:translateY(-1px)}
+.ofm_pickrow[aria-pressed="true"]{border-color:var(--dsw-alias-state-business-primary);background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 12%,transparent)}
+.ofm_pickrow:disabled{opacity:.55;cursor:default}
+.ofm_pickhead{display:flex;align-items:center;gap:7px;min-width:0}
+.ofm_pickhead b{font-size:12.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ofm_pickmeta{display:flex;gap:7px;flex-wrap:wrap;font-size:10.5px;color:var(--dsw-alias-label-tertiary);min-width:0}
+.ofm_picknote{font-size:10.5px;line-height:1.5;color:var(--dsw-alias-label-tertiary);overflow-wrap:anywhere}
+.ofm_meter{height:9px;border-radius:99px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);overflow:hidden}
+.ofm_meter i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,color-mix(in srgb,var(--dsw-alias-state-business-primary) 62%,transparent),var(--dsw-alias-state-business-primary));transition:width .55s cubic-bezier(.22,.61,.36,1)}
+.ofm_member{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:10px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 82%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 58%,transparent);font-size:11.5px;transition:border-color .16s ease,background .16s ease}
+.ofm_member .ofm_id{flex:1;min-width:0}
+.ofm_snippet{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.6;padding:9px 11px;border-radius:10px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);white-space:pre;overflow:auto;max-height:230px}
+@media (max-width:600px){.ofm_duo{grid-template-columns:1fr}.ofm_picklist{grid-template-columns:1fr}.ofm_member{flex-wrap:wrap}}
+@media (prefers-reduced-motion:reduce){.ofm_rise,.ofm_page{animation:none}.ofm_pickrow,.ofm_member,.ofm_meter i,.ofm_card,.ofm_kpi,.ofm_chan{transition:none}.ofm_root .ofm_card:hover,.ofm_pickrow:hover:not(:disabled){transform:none}}
 `
 
     // ── helpers ───────────────────────────────────────────────────────────────
@@ -1573,6 +1960,11 @@ window.__ModuleLoader__.load({
       className: 'ofm_switch',
       role: 'switch',
       'aria-checked': props.checked ? 'true' : 'false',
+      // Several call sites already pass `disabled` (the gateway switch does, while
+      // its RPC is in flight) and it was silently dropped, so a switch stayed
+      // clickable through a write it could not survive. Passing it through is what
+      // those call sites meant.
+      disabled: props.disabled === true,
       onClick: props.onChange,
     }, h('i'), props.label === undefined ? null : h('span', null, props.label))
 
@@ -1709,7 +2101,7 @@ window.__ModuleLoader__.load({
           ? h(Fragment, null,
             h('p', { className: 'ofm_note' }, t('eac.lockedNote')),
             eacLogin === undefined ? null : h('div', { className: 'ofm_row' },
-              h(Button, { kind: 'primary', disabled: eacLogin.busy, onClick: eacLogin.login },
+              h(Button, { kind: 'primary', disabled: eacLogin.busy || eacLogin.pending !== null, onClick: eacLogin.login },
                 eacLogin.busy ? t('eac.starting') : t('eac.login'))))
           : null,
         m.availability === 'region-blocked' ? h('p', { className: 'ofm_note' }, t('hint.region'))
@@ -1885,84 +2277,116 @@ window.__ModuleLoader__.load({
     // 登录流（发起、轮询、busy/notice）住在 SettingsPage 级的 hook 里：页头的
     // 未授权按钮、上锁模型卡的「去授权」和这个面板必须共享同一个进行中的会话，
     // 各挂一份轮询会互相抢令牌的领取权。
+    const EAC_LOGIN_TTL = 10 * 60_000
+    const EAC_LOGIN_KEY = `ofm.eac.pending:${API}`
+    function rememberEacLogin(pending) {
+      try {
+        if (pending === null) sessionStorage.removeItem(EAC_LOGIN_KEY)
+        else sessionStorage.setItem(EAC_LOGIN_KEY, JSON.stringify(pending))
+      } catch { /* restricted browser storage: this mounted page can still log in */ }
+    }
+    function restoreEacLogin() {
+      try {
+        const value = JSON.parse(sessionStorage.getItem(EAC_LOGIN_KEY))
+        if (value !== null && /^[A-Za-z0-9_-]{16,64}$/.test(value.link)
+          && typeof value.url === 'string' && /^https?:\/\//.test(value.url)
+          && Number.isFinite(value.startedAt) && value.startedAt <= Date.now()
+          && Date.now() - value.startedAt < EAC_LOGIN_TTL) return value
+      } catch { /* absent or malformed */ }
+      rememberEacLogin(null)
+      return null
+    }
     function useEacLogin({ t, summary, onAuth }) {
       const [busy, setBusy] = useState(false)
       const [notice, setNotice] = useState('')
-      const [pending, setPending] = useState(null)
+      const [pending, setPending] = useState(restoreEacLogin)
       const [copied, setCopied] = useState(false)
-
-      // 授权状态由 SettingsPage 持有（模型卡的锁标记与这个面板必须看到同一个
-      // 判定），这里只负责发起动作与把新判定送回去。
+      const starting = useRef(false)
+      const attempt = useRef(0)
+      const pendingRef = useRef(pending)
+      pendingRef.current = pending
+      const updatePending = value => {
+        pendingRef.current = value
+        rememberEacLogin(value)
+        setPending(value)
+      }
       const refresh = useCallback(() => {
-        api('/eac/status').then(onAuth).catch(() => onAuth({ available: false, authorized: false, login: '' }))
+        api('/eac/status', { timeout: 20_000 }).then(onAuth).catch(() => onAuth({ available: true, authorized: false, login: '', unverified: true }))
       }, [onAuth])
-      // 轮询闭包要用的 summary 每帧都是新对象，放进依赖会让定时器每帧重建、
-      // 密集渲染下永远等不到下一次触发——用 ref 取最新值。
       const latest = useRef(summary)
       latest.current = summary
+      const latestT = useRef(t)
+      latestT.current = t
 
-      // 登录进行中时轮询网关领取令牌：2.5 秒一次，够快也不至于压网关；整轮
-      // 十分钟放弃，与网关保留待领取链接的窗口一致。
+      // Schedule only after completion: slow gateway responses must not create
+      // overlapping collectors. The link survives settings-page remounts.
       useEffect(() => {
         if (pending === null) return undefined
         let alive = true
-        let misses = 0 // 连续失败的次数：第 3 次提示一次，成功后归零
-        const timer = setInterval(async () => {
-          if (Date.now() - pending.startedAt > 10 * 60_000) { setPending(null); setNotice(t('eac.expired')); return }
-          let result
+        let timer
+        const poll = async () => {
+          const t = latestT.current
+          if (!alive) return
+          if (Date.now() - pending.startedAt >= EAC_LOGIN_TTL) {
+            updatePending(null); setNotice(t('eac.expired')); return
+          }
           try {
-            result = await api(`/eac/login/poll?link=${encodeURIComponent(pending.link)}`)
-            if (!alive) return
-            misses = 0
-          } catch {
-            // 网关这一跳可能在重启/抖动（520 那类故障）：不能一声不吭地装作
-            // 还在等授权，提示一句，然后继续轮询等它缓过来。
-            if (alive && ++misses === 3) setNotice(t('eac.gatewayFlaky'))
-            return
+            const result = await api(`/eac/login/poll?link=${encodeURIComponent(pending.link)}`, { timeout: 22_000 })
+            if (!alive || pendingRef.current?.link !== pending.link) return
+            if (result.status === 'ok') {
+              updatePending(null)
+              setNotice(t('eac.done').replace('{login}', result.login ?? ''))
+              refresh(); latest.current?.reload?.()
+              return
+            }
+            if (result.status === 'expired') {
+              updatePending(null); setNotice(t('eac.sessionExpired')); return
+            }
+            if (result.status === 'unstarred') setNotice(t('eac.needStar').replace('{login}', result.login ?? ''))
+            else setNotice('')
+          } catch (error) {
+            if (!alive || pendingRef.current?.link !== pending.link) return
+            const reason = String(error?.message ?? '')
+            // Never render response HTML, URL or credentials as diagnostics.
+            const safe = /^gateway-http-\d{3}$/.test(reason) ? `HTTP ${reason.slice(-3)}`
+              : ['unreachable', 'malformed', 'not-writable', 'cancelled', 'no-lane', 'bad-link', 'timeout'].includes(reason) ? reason : 'unreachable'
+            setNotice(reason === 'not-writable' ? t('eac.saveFailed') : t('eac.pollFailed').replace('{reason}', safe))
           }
-          if (result.status === 'ok') {
-            setPending(null)
-            setNotice(t('eac.done').replace('{login}', result.login ?? ''))
-            refresh()
-            latest.current?.reload?.()
-          } else if (result.status === 'unstarred') {
-            setNotice(t('eac.needStar').replace('{login}', result.login ?? ''))
-          } else if (result.status === 'expired') {
-            // 网关不再认识这个链接（窗口已过或它重启丢了待领条目）：再等也等不到。
-            setPending(null)
-            setNotice(t('eac.sessionExpired'))
-          } else if (result.error !== undefined && ++misses === 3) {
-            // 领取请求到了网关但被拒（网关出错/不可达）：保持轮询，给用户一个交代。
-            setNotice(t('eac.gatewayFlaky'))
-          }
-        }, 2500)
-        return () => { alive = false; clearInterval(timer) }
+          if (alive && pendingRef.current?.link === pending.link) timer = setTimeout(poll, 2500)
+        }
+        timer = setTimeout(poll, 2500)
+        return () => { alive = false; clearTimeout(timer) }
       }, [pending, refresh])
 
+      const cancel = () => { attempt.current++; updatePending(null); setNotice('') }
       const login = async () => {
+        if (starting.current || pendingRef.current !== null) return
+        starting.current = true
+        const current = ++attempt.current
         setBusy(true); setNotice('')
         try {
           const started = await post('/eac/login/start')
+          if (current !== attempt.current) return
           if (started?.error !== undefined) { setNotice(t('eac.startFailed').replace('{reason}', started.error)); return }
-          setPending({ link: started.link, url: started.url, startedAt: Date.now() })
+          updatePending({ link: started.link, url: started.url, startedAt: Date.now() })
           if (started.opened !== true) setNotice(t('eac.openManually'))
         } catch (error) {
-          setNotice(String(error?.message ?? error))
-        } finally { setBusy(false) }
+          if (current === attempt.current) setNotice(t('eac.startFailed').replace('{reason}', 'unreachable'))
+        } finally { starting.current = false; setBusy(false) }
       }
       const logout = async () => {
-        setBusy(true)
+        cancel(); setBusy(true)
         try {
           await post('/eac/logout')
-          setNotice(''); setPending(null); refresh(); latest.current?.reload?.()
-        } catch { /* 本地记录已被后端清除，这里不必再报错 */ } finally { setBusy(false) }
+          refresh(); latest.current?.reload?.()
+        } catch { setNotice(t('eac.startFailed').replace('{reason}', 'unreachable')) } finally { setBusy(false) }
       }
-      return { busy, notice, pending, copied, setCopied, refresh, login, logout }
+      return { busy, notice, pending, copied, setCopied, refresh, login, logout, cancel }
     }
 
     function EacAuth(props) {
       const { t, auth, eacLogin } = props
-      const { busy, notice, pending, copied, setCopied, refresh, login, logout } = eacLogin
+      const { busy, notice, pending, copied, setCopied, refresh, login, logout, cancel } = eacLogin
 
       if (auth === undefined) return h('p', { className: 'ofm_note' }, t('loading'))
       if (auth.available !== true) return h('p', { className: 'ofm_note' }, t('eac.noLane'))
@@ -1972,7 +2396,7 @@ window.__ModuleLoader__.load({
           auth.authorized === true
             ? h(Pill, { strong: true, tone: 'ok' }, t('eac.pillOk'))
             : h(Pill, { strong: true, tone: 'warn' }, t('eac.pillLocked')),
-          auth.required === true ? h(Pill, { tone: 'err' }, t('eac.pillRequired')) : h(Pill, null, t('eac.pillCompat')),
+          auth.required === true ? h(Pill, { tone: 'err' }, t('eac.pillRequired')) : h(Pill, null, auth.required === false ? t('eac.pillCompat') : t('eac.pillUnknown')),
           auth.unverified === true ? h(Pill, { tone: 'warn' }, t('eac.pillUnverified')) : null),
         h('p', { className: 'ofm_note' }, t('eac.intro').replace('{repo}', repo)),
         auth.authorized === true
@@ -1981,12 +2405,13 @@ window.__ModuleLoader__.load({
             h(Button, { disabled: busy, onClick: refresh }, t('eac.recheck')),
             h(Button, { disabled: busy, onClick: logout }, t('eac.logout')))
           : h('div', { className: 'ofm_row' },
-            h(Button, { kind: 'primary', disabled: busy, onClick: login }, busy ? t('eac.starting') : t('eac.login')),
+            h(Button, { kind: 'primary', disabled: busy || pending !== null, onClick: login }, busy ? t('eac.starting') : t('eac.login')),
             h(StarButton, { t, repo })),
         pending !== null
           ? h('div', { className: 'ofm_callout' },
             h('div', null,
               h('div', null, t('eac.waiting')),
+              h(Button, { kind: 'ghost', onClick: cancel }, t('eac.cancel')),
               h('div', { style: { display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 } },
                 h('code', { className: 'ofm_mono', style: { padding: '4px 8px', flex: 1, minWidth: 200, wordBreak: 'break-all' } }, pending.url),
                 h(Button, { kind: 'ghost', onClick: () => copy(pending.url, ok => { if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1600) } }) }, copied ? t('eac.copied') : t('eac.copy')))))
@@ -2519,8 +2944,8 @@ window.__ModuleLoader__.load({
     }
 
     // ── 白嫖模型接入页 ────────────────────────────────────────────────────────
-    // Real channel logos carried over from the upstream Jet Hub client (see
-    // vendor/jet-hub/NOTICE.md) — the same artwork users know from those
+    // Real channel logos carried over from the upstream Channel Pack client (see
+    // vendor/channel-pack/NOTICE.md) — the same artwork users know from those
     // products, embedded so no network fetch is involved. Channels without an
     // entry fall back to their two-letter tile.
     const CHANNEL_ICONS = {
@@ -2538,7 +2963,7 @@ window.__ModuleLoader__.load({
     const BRAND_ICON = 'data:image/jpeg;base64,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'
 
     /**
-     * The fourteen channels the vendored pack serves. Identity is static (it is
+     * The thirteen account channels enabled by OFM. Identity is static (it is
      * the product, not a reading), so the grid renders instantly and only the
      * *state* comes from the pack over RPC. `accent` drives each card's stripe
      * and logo tile; `login` picks the flow the card offers.
@@ -2557,14 +2982,13 @@ window.__ModuleLoader__.load({
       { id: 'minimax', name: 'MiniMax Code', org: 'MiniMax', accent: '#E4007F', note: '设备码 + PKCE，每日签到', login: 'browser' },
       { id: 'zcode', name: 'ZCode', org: '智谱', accent: '#3B6EF6', note: '浏览器登录（需本机可开浏览器）', login: 'browser' },
       { id: 'gemini', name: 'Gemini', org: 'Google Code Assist', accent: '#4285F4', note: '本地回调 OAuth 免费线', login: 'browser' },
-      { id: 'opencode', name: 'OpenCode', org: 'OpenCode Zen', accent: '#F2A65A', note: '账号制 Zen 通道', login: 'browser' },
     ]
 
     /** Channels whose daily credits can be claimed from here. */
     const CREDIT_PROVIDERS = new Set(['codearts', 'buddy', 'workbuddy', 'lobsterai', 'qoder', 'qodercn', 'loomy', 'minimax'])
 
     /**
-     * The host RPC the pack registered at `/api/jet-hub`.
+     * The host RPC the pack registered at `/api/channel-pack`.
      *
      * The pack's own browser half used the shell's connection service; this page
      * does the same instead of proxying through our JSON API, so channel traffic
@@ -2585,7 +3009,7 @@ window.__ModuleLoader__.load({
           const controller = new AbortController()
           const timer = setTimeout(() => controller.abort(), timeoutMs)
           try {
-            const result = await connection.rpc.call('/api', 'jet-hub', { method, payload }, controller.signal)
+            const result = await connection.rpc.call('/api', 'channel-pack', { method, payload }, controller.signal)
             if (result?.ok === true) return result.value
             if (result?.ok === false) throw new Error(result.error?.message ?? result.error?.code ?? 'rpc-failed')
             return result
@@ -3129,7 +3553,11 @@ window.__ModuleLoader__.load({
       const cumulative = ledger.totals ?? ledger.snapshot?.totals ?? {}
       const accounts = ledgerAccountRows(channels)
       const models = ledgerModelRows(channels).sort((a, b) => (b.inputTokens + b.outputTokens) - (a.inputTokens + a.outputTokens))
-      const entries = (ledger.snapshot?.entries ?? []).slice().reverse()
+      // The pack's ring is already newest-first (`token-ledger.ts`: "最近明细
+      // （最新在前）", built with `unshift`), so it is used as served. Reversing it
+      // here put the oldest request at the top of the table — and, behind the log
+      // page's pagination, the request the user just made on the last page.
+      const entries = ledger.snapshot?.entries ?? []
       const tokenTotal = totals.inputTokens + totals.outputTokens
       const cacheBase = totals.inputTokens + totals.cacheReadTokens
 
@@ -3248,7 +3676,8 @@ window.__ModuleLoader__.load({
         const timer = setInterval(() => { void reload() }, 10_000)
         return () => clearInterval(timer)
       }, [auto, reload])
-      const entries = (ledger.snapshot?.entries ?? []).slice().reverse()
+      // Newest first, as the pack serves it — see the note in LedgerPage.
+      const entries = ledger.snapshot?.entries ?? []
       const pages = Math.max(1, Math.ceil(entries.length / pageSize))
       const [page, setPage] = useState(1)
       const safePage = Math.min(page, pages)
@@ -3317,6 +3746,10 @@ window.__ModuleLoader__.load({
       const [relay, setRelay] = useState(undefined)
       const [relayKey, setRelayKey] = useState('')
       const [relayBusy, setRelayBusy] = useState(false)
+      // 免费车道转发端口的接入配方。它和上面这块网关是两条独立监听：这里的地址与
+      // 密钥由宿主按实际绑定的端口生成，端口没开就只给一句说明而不是一堆会骗人的
+      // 配方（未启用时 /clients 回的是占位端口与占位 Key）。
+      const clients = usePanel(() => api('/clients'), [])
 
       const loadGateway = useCallback(async () => {
         if (!available) return
@@ -3414,7 +3847,38 @@ window.__ModuleLoader__.load({
                   onClick: async () => { try { setRelayKey((await post('/chan-gateway/rotate')).key ?? '') } catch (error) { setNotice(String(error?.message ?? error)) } },
                 }, t('gw.rotate'))),
               h('p', { className: 'ofm_note' }, t('gw.relayNote')),
-              h('p', { className: 'ofm_note' }, t('gw.freeLaneNote')))))
+              h('p', { className: 'ofm_note' }, t('gw.freeLaneNote')))),
+        h(Section, { title: t('gw.clientsTitle'), hint: t('gw.clientsHint') },
+          clients.status === 'loading' ? h('div', { className: 'ofm_skel', style: { minHeight: 96 } })
+            : clients.status === 'error'
+              ? h(PanelError, { t, title: t('gw.clientsTitle'), message: clients.error, onRetry: clients.reload })
+              // The recipes are generated from the port that actually bound, so a
+              // listener that is off has nothing honest to print: the route answers
+              // with a placeholder port and a placeholder key, and a pasted
+              // placeholder is a client that silently fails to connect.
+              : clients.data?.running !== true
+                ? h('div', { className: 'ofm_callout ofm_rise' },
+                  h('div', null, h('b', null, t('gw.clientsOff')), h('div', null, t('gw.clientsOffHint'))))
+                : h('div', { className: 'ofm_panel ofm_rise' },
+                  h('div', { className: 'ofm_row' },
+                    h('span', { className: 'ofm_note' }, t('forward.baseUrl')),
+                    h('code', { className: 'ofm_mono' }, clients.data.baseUrl),
+                    h(CopyButton, { t, text: clients.data.baseUrl }),
+                    h('span', { className: 'ofm_note' }, t('gw.clientsModels').replace('{n}', String((clients.data.models ?? []).length)))),
+                  clients.data.lanUrl === '' ? null
+                    : h('div', { className: 'ofm_row' },
+                      h('span', { className: 'ofm_note' }, t('forward.lanUrl')),
+                      h('code', { className: 'ofm_mono' }, clients.data.lanUrl),
+                      h(CopyButton, { t, text: clients.data.lanUrl })),
+                  h('div', { className: 'ofm_duo' }, (clients.data.snippets ?? []).map((snippet, index) => h('div', {
+                    key: snippet.id, className: 'ofm_card ofm_rise',
+                    style: { animationDelay: `${Math.min(index, 8) * 22}ms` },
+                  },
+                  h('div', { className: 'ofm_cardhead' },
+                    h('span', { className: 'ofm_cardname' }, snippet.name),
+                    h('span', { className: 'ofm_tag' }, snippet.language)),
+                  h('pre', { className: 'ofm_snippet' }, snippet.body),
+                  h('div', { className: 'ofm_row' }, h(CopyButton, { t, text: snippet.body }))))))))
     }
 
     /** Shared page hero for the three gateway-console pages. The caller
@@ -3427,6 +3891,877 @@ window.__ModuleLoader__.load({
             h('h2', null, title),
             h('p', { className: 'ofm_pagesub' }, sub)),
           children))
+    }
+
+    // ── 聚合渠道 / 省 Token / 路由 ─────────────────────────────────────────────
+    /**
+     * One panel fetch per page, plus the merge for what a write answers with.
+     *
+     * `useAsync` above re-reads the whole payload after a write. These three
+     * pages must not do that: every control's POST already answers with the state
+     * the host stored, and a re-read would either double the round trips or open a
+     * window where a switch shows what was *clicked* rather than what was saved.
+     * So the payload lives here and the caller merges the POST answer in through
+     * `patch`. The shimmer is for the first answer only — a reload after a write
+     * keeps the current panel on screen instead of collapsing it back.
+     */
+    function usePanel(loader, deps) {
+      const [state, setState] = useState({ status: 'loading', data: undefined, error: '' })
+      const run = useCallback(() => {
+        let alive = true
+        setState(current => ({ status: current.data === undefined ? 'loading' : 'ready', data: current.data, error: '' }))
+        loader()
+          .then(data => { if (alive) setState({ status: 'ready', data, error: '' }) })
+          .catch(error => {
+            if (!alive) return
+            setState(current => current.data === undefined
+              ? { status: 'error', data: undefined, error: String(error?.message ?? error) }
+              : { status: 'ready', data: current.data, error: String(error?.message ?? error) })
+          })
+        return () => { alive = false }
+      }, deps)
+      useEffect(() => run(), [run])
+      const patch = useCallback(update => setState(current => current.data === undefined
+        ? current
+        : { ...current, data: typeof update === 'function' ? update(current.data) : { ...current.data, ...update } }), [])
+      return { ...state, reload: run, patch }
+    }
+
+    /** First-fetch placeholder: three shimmering cards, not one grey line. */
+    function PanelSkeleton() {
+      return h('div', { className: 'ofm_grid', 'aria-hidden': 'true' },
+        h('div', { className: 'ofm_skel' }), h('div', { className: 'ofm_skel' }), h('div', { className: 'ofm_skel' }))
+    }
+
+    /**
+     * A load failure that names what failed and offers the retry.
+     *
+     * The older pages render nothing at all when a route refuses, which reads as
+     * "this plugin has no such feature". Each of the three new pages passes its
+     * own title, because "cannot read the provider registry" and "cannot read the
+     * chain settings" are different sentences to act on.
+     */
+    function PanelError(props) {
+      const { t, title, message, onRetry } = props
+      return h('div', { className: 'ofm_callout ofm_error ofm_rise' },
+        h('div', { style: { flex: 1, minWidth: 0 } },
+          h('b', null, title),
+          h('div', null, message)),
+        h(Button, { kind: 'ghost', onClick: onRetry }, t('retry')))
+    }
+
+    /** Copy-to-clipboard that answers the click, so a copy is never silent. */
+    function CopyButton(props) {
+      const { t, text } = props
+      const [done, setDone] = useState(false)
+      useEffect(() => {
+        if (!done) return
+        const timer = setTimeout(() => setDone(false), 1400)
+        return () => clearTimeout(timer)
+      }, [done])
+      return h(Button, {
+        kind: 'ghost',
+        onClick: () => copy(text, ok => { if (ok) setDone(true) }),
+      }, done ? t('eac.copied') : t('eac.copy'))
+    }
+
+    /** A switch with its one-line explanation underneath. */
+    function ToggleRow(props) {
+      const { label, hint, checked, disabled, onChange } = props
+      return h('div', { className: 'ofm_field' },
+        h(Switch, { checked, label, disabled, onChange }),
+        hint === undefined ? null : h('span', null, hint))
+    }
+
+    // Labels for the ids the host serves. Literal t() calls inside an object
+    // literal rather than a key table, because a key the copy lint cannot see is
+    // a key it reports as unused (the same shape the pool-reason table uses).
+    const AGG_CATEGORY = t => ({
+      apikey: t('agg.category.apikey'),
+      free: t('agg.category.free'),
+      'free-tier': t('agg.category.freeTier'),
+      local: t('agg.category.local'),
+      oauth: t('agg.category.oauth'),
+    })
+    const AGG_AUTH = t => ({
+      apiKey: t('agg.auth.apiKey'),
+      none: t('agg.auth.none'),
+      oauth: t('agg.auth.oauth'),
+      adc: t('agg.auth.adc'),
+    })
+    const SAVER_LEVEL = t => ({
+      off: t('saver.level.off'),
+      lite: t('saver.level.lite'),
+      full: t('saver.level.full'),
+      ultra: t('saver.level.ultra'),
+      'wenyan-lite': t('saver.level.wenyanLite'),
+      wenyan: t('saver.level.wenyan'),
+      'wenyan-ultra': t('saver.level.wenyanUltra'),
+    })
+    const LANE_LABEL = t => ({
+      free: t('routing.channel.free'),
+      eac: t('routing.channel.eac'),
+      kilo: t('routing.channel.kilo'),
+      aggregate: t('routing.channel.aggregate'),
+      combo: t('routing.channel.combo'),
+    })
+
+    /**
+     * Auth kinds this lane cannot drive.
+     *
+     * `oauth` needs an interactive login and `adc` a cloud-side credential, so
+     * the aggregate lane skips them when it builds the catalog. Offering one in
+     * the picker would be offering a provider whose key field can never work, so
+     * they are shown and marked instead of hidden — "this exists and this lane
+     * will not call it" is the honest sentence.
+     */
+    const AGG_UNUSABLE = new Set(['oauth', 'adc'])
+
+    /** `a, b` / `a\nb` -> `['a','b']`, the shape POST /providers stores. */
+    const parseModelIds = value => String(value ?? '').split(/[\n,]+/).map(part => part.trim()).filter(part => part !== '')
+
+    /** How many catalog rows one provider contributes right now, read from
+     *  /summary: "configured" must never imply "in the model picker". */
+    const contributedBy = (catalog, providerId) => (catalog ?? [])
+      .filter(row => row.channel === 'aggregate' && row.providerId === providerId).length
+
+    const miniBtn = (label, onClick, options = {}) => h('button', {
+      type: 'button',
+      className: 'ofm_minibtn' + (options.danger === true ? ' danger' : ''),
+      disabled: options.disabled === true,
+      title: options.title,
+      onClick,
+    }, label)
+
+    /**
+     * The add-provider picker: the whole registry, filtered.
+     *
+     * Every row carries what the decision needs — category, wire format, auth
+     * kind, how many models ship with it, where to get a key and the free-tier
+     * note — because "which of these 76 is worth a key" is the actual question.
+     * Rows are capped; the counts say how many matched.
+     */
+    function ProviderPicker(props) {
+      const { t, registry, onPick } = props
+      const [query, setQuery] = useState('')
+      const [category, setCategory] = useState('')
+      const [format, setFormat] = useState('')
+      const [auth, setAuth] = useState('')
+      const categories = AGG_CATEGORY(t)
+      const auths = AGG_AUTH(t)
+      const needle = query.trim().toLowerCase()
+      const matched = registry.filter(row => {
+        if (category !== '' && row.category !== category) return false
+        if (format !== '' && row.format !== format) return false
+        if (auth !== '' && row.authKind !== auth) return false
+        if (needle === '') return true
+        return `${row.id} ${row.name}`.toLowerCase().includes(needle)
+      })
+      const shown = matched.slice(0, 48)
+      const formats = [...new Set(registry.map(row => row.format))].sort()
+      return h('div', { className: 'ofm_panel ofm_rise' },
+        h('div', { className: 'ofm_paneltitle' }, t('agg.addTitle'),
+          h('span', { className: 'ofm_sec_hint' }, t('agg.showing').replace('{shown}', String(shown.length)).replace('{total}', String(matched.length)))),
+        h('div', { className: 'ofm_row' },
+          h('div', { className: 'ofm_field', style: { flex: '1 1 180px' } },
+            h('span', null, t('agg.search')),
+            h('input', { className: 'ofm_input', value: query, placeholder: t('agg.search'), onChange: event => setQuery(event.target.value) })),
+          h('div', { className: 'ofm_field' }, h('span', null, t('agg.filterCategory')),
+            h('select', { className: 'ofm_input', value: category, onChange: event => setCategory(event.target.value) },
+              h('option', { value: '' }, t('agg.filterAll')),
+              Object.keys(categories).map(id => h('option', { key: id, value: id }, categories[id])))),
+          h('div', { className: 'ofm_field' }, h('span', null, t('agg.filterFormat')),
+            h('select', { className: 'ofm_input', value: format, onChange: event => setFormat(event.target.value) },
+              h('option', { value: '' }, t('agg.filterAll')),
+              formats.map(id => h('option', { key: id, value: id }, id)))),
+          h('div', { className: 'ofm_field' }, h('span', null, t('agg.filterAuth')),
+            h('select', { className: 'ofm_input', value: auth, onChange: event => setAuth(event.target.value) },
+              h('option', { value: '' }, t('agg.filterAll')),
+              Object.keys(auths).map(id => h('option', { key: id, value: id }, auths[id]))))),
+        h('p', { className: 'ofm_note' }, t('agg.addHint')),
+        shown.length === 0
+          ? h('p', { className: 'ofm_note' }, t('agg.noMatch'))
+          : h('div', { className: 'ofm_picklist' }, shown.map((row, index) => {
+            const blocked = AGG_UNUSABLE.has(row.authKind)
+            return h('div', {
+              key: row.id, className: 'ofm_pickrow ofm_rise',
+              style: { animationDelay: `${Math.min(index, 12) * 18}ms` },
+            },
+            h('span', { className: 'ofm_pickhead' },
+              h('b', { title: row.name }, row.name),
+              blocked ? h('span', { className: 'ofm_tagpill dead' }, t('agg.notUsable')) : null),
+            h('span', { className: 'ofm_pickmeta' },
+              h('span', { className: 'ofm_tag' }, categories[row.category] ?? row.category),
+              h('span', { className: 'ofm_tag' }, row.format),
+              h('span', { className: 'ofm_tag' }, auths[row.authKind] ?? row.authKind),
+              h('span', null, t('agg.modelCount').replace('{n}', String(row.modelCount)))),
+            blocked
+              ? h('span', { className: 'ofm_picknote' }, t('agg.notUsableWhy').replace('{kind}', auths[row.authKind] ?? row.authKind))
+              : h('span', { className: 'ofm_row' },
+                row.credentialUrl === '' ? null
+                  : h('a', { className: 'ofm_starlink', href: row.credentialUrl, target: '_blank', rel: 'noreferrer' }, t('agg.credential')),
+                miniBtn(t('agg.select'), () => onPick(row))),
+            row.notes === '' ? null : h('span', { className: 'ofm_picknote' }, row.notes))
+          })))
+    }
+
+    /**
+     * One provider's editor, shared by "configure" and "add".
+     *
+     * The key box starts empty on purpose and an empty box means *keep*: the host
+     * distinguishes an absent field from an empty string, and conflating them is
+     * what silently kept a key the user believed they had deleted. Deleting one
+     * is therefore its own button, and it says what it does.
+     */
+    function ProviderEditor(props) {
+      const { t, provider, state, contributions, onSaved, onRemoved, onChanged } = props
+      const fresh = state === undefined
+      const [enabled, setEnabled] = useState(state?.enabled !== false)
+      const [baseUrl, setBaseUrl] = useState(state?.baseUrl ?? '')
+      const [key, setKey] = useState('')
+      const [models, setModels] = useState((state?.models ?? []).join(', '))
+      const [verdict, setVerdict] = useState(state?.lastTest ?? null)
+      const [found, setFound] = useState(null)
+      const [confirm, setConfirm] = useState(false)
+      const [busy, setBusy] = useState('')
+      const [error, setError] = useState('')
+
+      const run = async (kind, action) => {
+        setBusy(kind)
+        setError('')
+        try { await action() } catch (failure) { setError(String(failure?.message ?? failure)) } finally { setBusy('') }
+      }
+      const save = () => run('save', async () => {
+        const body = { providerId: provider.id, enabled, baseUrl, models: parseModelIds(models) }
+        if (key !== '') body.apiKey = key
+        const answer = await post('/providers', body)
+        setKey('')
+        onSaved(answer.aggregate, provider, fresh)
+      })
+      const clearKey = () => run('clear', async () => {
+        const answer = await post('/providers', { providerId: provider.id, apiKey: '' })
+        setKey('')
+        onSaved(answer.aggregate, provider, false)
+      })
+      const test = () => run('test', async () => {
+        // A listing probe, not a generation: the host verifies the key by asking
+        // for the model list, so this costs no tokens. `status: 0` with ok:false
+        // is its own verdict — "cannot be verified without spending a
+        // generation" — and reads as a warning, not as a rejected key.
+        const answer = await post('/providers/test', { providerId: provider.id }, 60_000)
+        setVerdict({ at: Date.now(), ok: answer.ok === true, status: Number(answer.status) || 0, message: String(answer.message ?? '') })
+      })
+      const discover = () => run('discover', async () => {
+        const answer = await post('/providers/discover', { providerId: provider.id }, 60_000)
+        setFound(Array.isArray(answer.models) ? answer.models : null)
+        // The host persisted the ids and rebuilt the catalog; re-read both views
+        // so the contribution counts and the key fingerprint stay true.
+        onChanged?.()
+      })
+
+      return h('div', { className: 'ofm_rise', style: { display: 'flex', flexDirection: 'column', gap: 10 } },
+        h('div', { className: 'ofm_pickmeta' },
+          h('span', { className: 'ofm_tag' }, AGG_CATEGORY(t)[provider.category] ?? provider.category),
+          h('span', { className: 'ofm_tag' }, provider.format),
+          h('span', { className: 'ofm_tag' }, AGG_AUTH(t)[provider.authKind] ?? provider.authKind),
+          h('span', null, t('agg.contributes').replace('{n}', String(contributions)))),
+        h('div', { className: 'ofm_duo' },
+          ToggleRow({
+            label: t('agg.enabled'), checked: enabled, disabled: busy !== '',
+            onChange: () => { if (busy === '') setEnabled(value => !value) },
+          }),
+          field(t('agg.key'),
+            h('input', {
+              className: 'ofm_input', type: 'password', value: key, placeholder: t('agg.keyPlaceholder'),
+              autoComplete: 'off', disabled: busy !== '',
+              onChange: event => setKey(event.target.value),
+            })),
+          field(t('agg.baseUrl'),
+            h('input', {
+              className: 'ofm_input', value: baseUrl, placeholder: provider.baseUrl, disabled: busy !== '',
+              onChange: event => setBaseUrl(event.target.value),
+            })),
+          field(t('agg.models'),
+            h('textarea', {
+              className: 'ofm_input', rows: 2, value: models, placeholder: t('agg.modelsPlaceholder'),
+              disabled: busy !== '',
+              onChange: event => setModels(event.target.value),
+            }))),
+        h('div', { className: 'ofm_row' },
+          h('span', { className: 'ofm_note' }, t('agg.keyKeep')),
+          state?.hasKey === true ? h('span', { className: 'ofm_note' }, t('agg.hasKey').replace('{hint}', state.keyHint)) : h('span', { className: 'ofm_note' }, t('agg.noKey')),
+          state?.hasKey === true ? miniBtn(t('agg.keyClear'), clearKey, { danger: true, disabled: busy !== '', title: t('agg.keyClearWarn') }) : null),
+        h('div', { className: 'ofm_row' },
+          h('span', { className: 'ofm_note' }, t('agg.baseUrlHint')),
+          provider.baseUrl === '' ? null : h('span', { className: 'ofm_note' }, t('agg.baseUrlDefault').replace('{url}', provider.baseUrl)),
+          provider.baseUrlOverrideEnv === '' ? null : h('span', { className: 'ofm_note' }, t('agg.baseUrlEnv').replace('{env}', provider.baseUrlOverrideEnv))),
+        h('p', { className: 'ofm_note' }, t('agg.modelsHint')),
+        h('div', { className: 'ofm_row' },
+          h(Button, { kind: 'primary', disabled: busy !== '', onClick: save }, busy === 'save' ? t('agg.saving') : fresh ? t('agg.add') : t('agg.save')),
+          miniBtn(t('agg.test'), test, { disabled: busy !== '' }),
+          miniBtn(t('agg.discover'), discover, { disabled: busy !== '' }),
+          h('span', { className: 'spacer', style: { marginLeft: 'auto' } }),
+          fresh ? null : (confirm
+            ? h(Fragment, null,
+              miniBtn(t('agg.removeConfirm'), () => run('remove', async () => {
+                const answer = await post('/providers/remove', { providerId: provider.id })
+                onRemoved(answer.aggregate, provider)
+              }), { danger: true, disabled: busy !== '' }),
+              miniBtn(t('agg.cancel'), () => setConfirm(false), { disabled: busy !== '' }))
+            : miniBtn(t('agg.remove'), () => setConfirm(true), { danger: true, disabled: busy !== '' }))),
+        confirm ? h('p', { className: 'ofm_note' }, t('agg.removeWarn')) : null,
+        h('div', { className: 'ofm_row' },
+          verdict === null ? h('span', { className: 'ofm_note' }, t('agg.neverTested'))
+            : h(Fragment, null,
+              h(Pill, { tone: verdict.ok === true ? 'ok' : verdict.status === 0 ? 'warn' : 'err' },
+                verdict.ok === true ? t('agg.testOk') : verdict.status === 0 ? t('agg.testUnverified') : t('agg.testFailed')),
+              h('span', { className: 'ofm_note' }, t('agg.testAt').replace('{when}', ago(verdict.at, t.locale)))),
+          busy === 'test' ? h('span', { className: 'ofm_note' }, t('agg.testing')) : null,
+          busy === 'discover' ? h('span', { className: 'ofm_note' }, t('agg.discovering')) : null),
+        verdict !== null && verdict.ok !== true && verdict.status === 0
+          ? h('p', { className: 'ofm_note' }, t('agg.testUnverifiedWhy')) : null,
+        verdict !== null && verdict.message !== '' ? h('p', { className: 'ofm_note' }, verdict.message) : null,
+        found === null
+          ? null
+          : h('div', { className: 'ofm_row' },
+            h('span', { className: 'ofm_note' }, found.length === 0 ? t('agg.discoveredNone') : t('agg.discovered').replace('{n}', String(found.length))),
+            found.length === 0 ? null : miniBtn(t('agg.discoveredUse'), () => setModels(found.join(', ')))),
+        error === '' ? null : h('div', { className: 'ofm_callout ofm_error' },
+          h('div', null, h('b', null, t('agg.failed')), h('div', null, error))))
+    }
+
+    /** A configured provider as one card: identity, what it contributes, and its
+     *  editor. The editor is inline rather than behind a fold because every field
+     *  on it is something the card's own state can disagree with. */
+    function ProviderCard(props) {
+      const { t, provider, state, contributions, onSaved, onRemoved, onChanged, index } = props
+      return h('div', { className: 'ofm_card ofm_rise', style: { animationDelay: `${Math.min(index, 8) * 22}ms` } },
+        h('div', { className: 'ofm_cardhead' },
+          h('span', { className: 'ofm_cardname', title: provider.name }, provider.name),
+          state.enabled === false ? h('span', { className: 'ofm_tagpill dead' }, t('agg.disabled')) : null),
+        h('div', { className: 'ofm_id' }, provider.id),
+        h('div', { className: 'ofm_metrics' },
+          h('span', null, contributions > 0 ? t('agg.contributes').replace('{n}', String(contributions)) : t('agg.contributesNone')),
+          h('span', null, state.hasKey === true ? t('agg.hasKey').replace('{hint}', state.keyHint) : t('agg.noKey'))),
+        h(ProviderEditor, { t, provider, state, contributions, onSaved, onRemoved, onChanged }))
+    }
+
+    /**
+     * 聚合渠道: the registry, the configured providers and their editors.
+     *
+     * The catalog is read from the summary the shell already holds, so the
+     * "contributes N models" line is the picker's own view rather than a second
+     * derivation — and every write asks the shell to re-read it, because saving a
+     * provider changes what the model picker offers.
+     */
+    function AggregatePage(props) {
+      const { t, summary } = props
+      const panel = usePanel(() => api('/providers'), [])
+      const [adding, setAdding] = useState(false)
+      const [draft, setDraft] = useState(null)
+      const [query, setQuery] = useState('')
+      const [category, setCategory] = useState('')
+      const catalog = summary?.data?.catalog ?? []
+      const registry = panel.data?.registry ?? []
+      const configured = panel.data?.configured?.providers ?? {}
+      const categories = AGG_CATEGORY(t)
+
+      const afterWrite = (aggregate, provider, isNew) => {
+        if (aggregate !== undefined && aggregate !== null) panel.patch({ configured: aggregate })
+        if (isNew) { setAdding(false); setDraft(null) }
+        summary?.reload?.()
+        showToast({ title: t('agg.saved'), body: t('agg.savedBody').replace('{name}', provider.name), holdMs: 3600 })
+      }
+      const afterRemove = (aggregate, provider) => {
+        if (aggregate !== undefined && aggregate !== null) panel.patch({ configured: aggregate })
+        summary?.reload?.()
+        showToast({ title: t('agg.saved'), body: t('agg.removedBody').replace('{name}', provider.name), holdMs: 3600 })
+      }
+      const afterDiscover = () => { panel.reload(); summary?.reload?.() }
+
+      const needle = query.trim().toLowerCase()
+      const rows = Object.keys(configured)
+        .map(id => ({ id, provider: registry.find(entry => entry.id === id) ?? null, state: configured[id] }))
+        .filter(row => row.provider !== null)
+        .filter(row => category === '' || row.provider.category === category)
+        .filter(row => needle === '' || `${row.id} ${row.provider.name}`.toLowerCase().includes(needle))
+
+      return h('div', { className: 'ofm_page' },
+        h(PageHero, { title: t('agg.title'), sub: t('agg.sub') },
+          h('div', { className: 'ofm_pills' },
+            h(Pill, null, t('agg.registryCount').replace('{n}', String(registry.length))),
+            h(Pill, { strong: true }, t('agg.configuredCount').replace('{n}', String(Object.keys(configured).length)))),
+          h(Button, {
+            kind: adding ? 'ghost' : 'primary',
+            onClick: () => { setAdding(value => !value); setDraft(null) },
+          }, adding ? t('agg.cancel') : t('agg.addProvider'))),
+        panel.status === 'loading' ? h(PanelSkeleton) : null,
+        panel.status === 'error'
+          ? h(PanelError, { t, title: t('agg.loadFailed'), message: panel.error, onRetry: panel.reload })
+          : null,
+        panel.status === 'ready'
+          ? h(Fragment, null,
+            draft !== null
+              ? h('div', { className: 'ofm_panel ofm_rise' },
+                h('div', { className: 'ofm_paneltitle' }, draft.name, h('span', { className: 'ofm_sec_hint' }, draft.id)),
+                h(ProviderEditor, {
+                  t, provider: draft, state: undefined, contributions: 0,
+                  onSaved: afterWrite, onRemoved: afterRemove, onChanged: afterDiscover,
+                }))
+              : adding
+                ? h(ProviderPicker, { t, registry, onPick: setDraft })
+                : null,
+            h(Section, { title: t('agg.configuredTitle'), hint: t('agg.configuredHint') },
+              h('div', { className: 'ofm_row' },
+                h('div', { className: 'ofm_field', style: { flex: '1 1 180px' } },
+                  h('span', null, t('agg.search')),
+                  h('input', { className: 'ofm_input', value: query, placeholder: t('agg.search'), onChange: event => setQuery(event.target.value) })),
+                h('div', { className: 'ofm_field' }, h('span', null, t('agg.filterCategory')),
+                  h('select', { className: 'ofm_input', value: category, onChange: event => setCategory(event.target.value) },
+                    h('option', { value: '' }, t('agg.filterAll')),
+                    Object.keys(categories).map(id => h('option', { key: id, value: id }, categories[id]))))),
+              Object.keys(configured).length === 0
+                ? h('div', { className: 'ofm_panel' },
+                  h('div', { className: 'ofm_paneltitle' }, t('agg.empty')),
+                  h('p', { className: 'ofm_note' }, t('agg.emptyHint')))
+                : rows.length === 0
+                  ? h('p', { className: 'ofm_note' }, t('agg.filterEmpty'))
+                  : h('div', { className: 'ofm_grid' }, rows.map((row, index) => h(ProviderCard, {
+                    key: row.id, t, index, provider: row.provider, state: row.state,
+                    contributions: contributedBy(catalog, row.id),
+                    onSaved: afterWrite, onRemoved: afterRemove, onChanged: afterDiscover,
+                  })))))
+          : null)
+    }
+
+    /** The segmented level picker the two prompt savers share. */
+    function LevelPicker(props) {
+      const { t, levels, value, disabled, onChange } = props
+      const labels = SAVER_LEVEL(t)
+      return h('div', { className: 'ofm_seg', role: 'group' },
+        levels.map(level => h('button', {
+          key: level, type: 'button', disabled, 'aria-pressed': level === value ? 'true' : 'false',
+          onClick: () => { if (!disabled && level !== value) onChange(level) },
+        }, labels[level] ?? level)))
+    }
+
+    /** The savings bar: it grows into place once the first measurement lands, so
+     *  the number reads as a measurement rather than as decoration. */
+    function SavingsMeter(props) {
+      const { t, percent } = props
+      const [live, setLive] = useState(0)
+      useEffect(() => {
+        const timer = setTimeout(() => setLive(Math.max(0, Math.min(100, percent))), 60)
+        return () => clearTimeout(timer)
+      }, [percent])
+      return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 } },
+        h('div', { className: 'ofm_row' },
+          h('span', { className: 'ofm_note' }, t('saver.percent')),
+          h('b', { className: 'ofm_kpivalue', style: { fontSize: 20 } }, `${percent}%`)),
+        h('div', {
+          className: 'ofm_meter', role: 'progressbar',
+          'aria-valuenow': percent, 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-label': t('saver.percent'),
+        }, h('i', { style: { width: `${live}%` } })))
+    }
+
+    /**
+     * 省 Token: the three savers and what they have actually saved.
+     *
+     * Every control posts and then renders the host's own answer; nothing here
+     * shows a switch state the settings file does not have. The dashboard reads
+     * the measurement the host keeps, and says so explicitly when there is none —
+     * an empty meter is not a claim that nothing was saved, it is the absence of a
+     * measurement.
+     */
+    function SaverPage(props) {
+      const { t } = props
+      const panel = usePanel(() => Promise.all([api('/token-saver'), api('/local-optimize')])
+        .then(([saver, local]) => ({ saver, local })), [])
+      const [busy, setBusy] = useState('')
+      const [error, setError] = useState('')
+      const saver = panel.data?.saver
+      const local = panel.data?.local
+      const savings = saver?.savings ?? null
+
+      const write = async (kind, action) => {
+        setBusy(kind)
+        setError('')
+        try { await action() } catch (failure) {
+          // The route refuses an unknown level with a 400 and a sentence naming
+          // the legal ones; showing it is more useful than swallowing it.
+          setError(String(failure?.message ?? failure))
+          showToast({ title: t('saver.failed'), body: String(failure?.message ?? failure), tone: 'warn', holdMs: 6000 })
+        } finally { setBusy('') }
+      }
+      const saveSaver = patch => write('saver', async () => {
+        const answer = await post('/token-saver', patch)
+        // The POST answer carries the stored switches; the measurement is the
+        // host's own tally and is only served by the GET, so it is kept as-is.
+        panel.patch(current => ({ ...current, saver: { ...answer.tokenSaver, savings: current.saver?.savings } }))
+        showToast({ title: t('saver.saved'), body: t('saver.savedBody'), holdMs: 3200 })
+      })
+      const saveLocal = patch => write('local', async () => {
+        const answer = await post('/local-optimize', patch)
+        panel.patch(current => ({ ...current, local: answer.localOptimize }))
+        showToast({ title: t('saver.saved'), body: t('saver.savedBody'), holdMs: 3200 })
+      })
+
+      return h('div', { className: 'ofm_page' },
+        h(PageHero, { title: t('saver.title'), sub: t('saver.sub') },
+          h('div', { className: 'ofm_pills' },
+            h(Pill, { strong: true, tone: saver?.enabled === false ? 'warn' : 'ok' },
+              saver?.enabled === false ? t('agg.disabled') : t('agg.enabled')))),
+        panel.status === 'loading' ? h(PanelSkeleton) : null,
+        panel.status === 'error'
+          ? h(PanelError, { t, title: t('saver.loadFailed'), message: panel.error, onRetry: panel.reload })
+          : null,
+        error === '' ? null : h('div', { className: 'ofm_callout ofm_error ofm_rise' }, h('div', null, error)),
+        panel.status === 'ready'
+          ? h(Fragment, null,
+            // The master switch governs all three savers, so it stands on its own
+            // above them: inside the prompt-shaping section it read as that
+            // section's switch, which is the one thing it is not.
+            h('div', { className: 'ofm_panel ofm_rise' },
+              h('div', { className: 'ofm_row' },
+                h(Switch, {
+                  checked: saver.enabled !== false, label: t('saver.master'), disabled: busy !== '',
+                  onChange: () => { if (busy === '') saveSaver({ enabled: saver.enabled === false }) },
+                }),
+                h('span', { className: 'ofm_note' }, t('saver.masterHint')))),
+            h(Section, { title: t('saver.dashTitle'), hint: t('saver.dashHint') },
+              savings === null
+                ? h('p', { className: 'ofm_note' }, t('saver.noData'))
+                : h('div', { className: 'ofm_panel ofm_rise' },
+                  h('div', { className: 'ofm_stats' },
+                    stat(`${fmtInt(savings.bytesBefore)} B`, t('saver.bytesBefore')),
+                    stat(`${fmtInt(savings.bytesAfter)} B`, t('saver.bytesAfter')),
+                    stat(`${fmtInt(savings.saved)} B`, t('saver.bytesSaved')),
+                    stat(String(savings.blocks), t('saver.blocks')),
+                    stat(String(savings.calls), t('saver.calls')),
+                    stat(String(savings.promptCalls), t('saver.promptCalls'))),
+                  savings.bytesBefore > 0
+                    ? h(SavingsMeter, { t, percent: savings.percent })
+                    : h('p', { className: 'ofm_note' }, t('saver.noData')),
+                  savings.summary === undefined || savings.summary === ''
+                    ? null
+                    : h('p', { className: 'ofm_note' }, `${t('saver.report')} · ${savings.summary}`))),
+            h(Section, { title: t('saver.promptTitle'), hint: t('saver.promptHint') },
+              h('div', { className: 'ofm_panel ofm_rise' },
+                h('div', { className: 'ofm_duo' },
+                  h('div', { className: 'ofm_field' },
+                    h('span', null, t('saver.caveman')),
+                    h(LevelPicker, {
+                      t, levels: saver.cavemanLevels ?? [], value: saver.prompts?.caveman, disabled: busy !== '',
+                      onChange: level => saveSaver({ prompts: { caveman: level } }),
+                    }),
+                    h('span', null, t('saver.cavemanWhat'))),
+                  h('div', { className: 'ofm_field' },
+                    h('span', null, t('saver.ponytail')),
+                    h(LevelPicker, {
+                      t, levels: saver.ponytailLevels ?? [], value: saver.prompts?.ponytail, disabled: busy !== '',
+                      onChange: level => saveSaver({ prompts: { ponytail: level } }),
+                    }),
+                    h('span', null, t('saver.ponytailWhat')))),
+                h('p', { className: 'ofm_note' }, t('saver.voiceWarn')))),
+            h(Section, { title: t('saver.rtk'), hint: t('saver.rtkWhat') },
+              h('div', { className: 'ofm_panel ofm_rise' },
+                h('div', { className: 'ofm_row' },
+                  h(Switch, {
+                    checked: saver.rtk === true, label: t('saver.rtk'), disabled: busy !== '',
+                    onChange: () => { if (busy === '') saveSaver({ rtk: saver.rtk !== true }) },
+                  })),
+                h('p', { className: 'ofm_note' }, t('saver.rtkSafety')))),
+            h(Section, { title: t('saver.localTitle'), hint: t('saver.localHint') },
+              h('div', { className: 'ofm_panel ofm_rise' },
+                h('div', { className: 'ofm_row' },
+                  h(Switch, {
+                    checked: local.enabled !== false, label: t('saver.local.enabled'), disabled: busy !== '',
+                    onChange: () => { if (busy === '') saveLocal({ enabled: local.enabled === false }) },
+                  })),
+                h('div', { className: 'ofm_duo' },
+                  h('div', { className: 'ofm_field' },
+                    h(Switch, {
+                      checked: local.quota !== false, label: t('saver.local.quota'), disabled: busy !== '',
+                      onChange: () => { if (busy === '') saveLocal({ quota: local.quota === false }) },
+                    }),
+                    h('span', null, t('saver.local.quotaHint'))),
+                  h('div', { className: 'ofm_field' },
+                    h(Switch, {
+                      checked: local.prefix !== false, label: t('saver.local.prefix'), disabled: busy !== '',
+                      onChange: () => { if (busy === '') saveLocal({ prefix: local.prefix === false }) },
+                    }),
+                    h('span', null, t('saver.local.prefixHint'))),
+                  h('div', { className: 'ofm_field' },
+                    h(Switch, {
+                      checked: local.title !== false, label: t('saver.local.title'), disabled: busy !== '',
+                      onChange: () => { if (busy === '') saveLocal({ title: local.title === false }) },
+                    }),
+                    h('span', null, t('saver.local.titleHint'))),
+                  h('div', { className: 'ofm_field' },
+                    h(Switch, {
+                      checked: local.suggestion !== false, label: t('saver.local.suggestion'), disabled: busy !== '',
+                      onChange: () => { if (busy === '') saveLocal({ suggestion: local.suggestion === false }) },
+                    }),
+                    h('span', null, t('saver.local.suggestionHint'))),
+                  h('div', { className: 'ofm_field' },
+                    h(Switch, {
+                      checked: local.filepath !== false, label: t('saver.local.filepath'), disabled: busy !== '',
+                      onChange: () => { if (busy === '') saveLocal({ filepath: local.filepath === false }) },
+                    }),
+                    h('span', null, t('saver.local.filepathHint')))))))
+          : null)
+    }
+
+    /** The chain editor's member picker: searchable, and it shows the lane and
+     *  the vision flag, because those are what decide a chain's order. */
+    function ModelPicker(props) {
+      const { t, models, chosen, onPick } = props
+      const [query, setQuery] = useState('')
+      const lanes = LANE_LABEL(t)
+      const needle = query.trim().toLowerCase()
+      const rows = models
+        .filter(row => needle === '' || `${row.id} ${row.name}`.toLowerCase().includes(needle))
+        .slice(0, 60)
+      return h('div', { className: 'ofm_panel' },
+        h('div', { className: 'ofm_paneltitle' }, t('routing.pickModel')),
+        h('div', { className: 'ofm_row' },
+          h('div', { className: 'ofm_field', style: { flex: '1 1 200px' } },
+            h('span', null, t('routing.pickModel')),
+            h('input', { className: 'ofm_input', value: query, placeholder: t('routing.searchModel'), onChange: event => setQuery(event.target.value) }))),
+        rows.length === 0
+          ? h('p', { className: 'ofm_note' }, t('routing.noModel'))
+          : h('div', { className: 'ofm_picklist' }, rows.map(row => h('button', {
+            key: row.id, type: 'button', className: 'ofm_pickrow',
+            'aria-pressed': chosen.includes(row.id) ? 'true' : 'false',
+            onClick: () => onPick(row.id),
+          },
+          h('span', { className: 'ofm_pickhead' }, h('b', { title: row.name }, row.name ?? row.id)),
+          h('span', { className: 'ofm_pickmeta' },
+            h('span', { className: 'ofm_id' }, row.id),
+            h('span', { className: 'ofm_tag' }, lanes[row.channel] ?? row.channel),
+            row.vision === true ? h('span', { className: 'ofm_tag' }, t('tag.vision')) : null)))))
+    }
+
+    /**
+     * The chain editor.
+     *
+     * The member list is ordered and the order is the chain, so it is edited in
+     * place (add / remove / move) rather than through a free-text field: a typo in
+     * a text field is a link that silently never resolves, and the host has no way
+     * to tell "you meant this model" from "this model is gone".
+     */
+    function ChainEditor(props) {
+      const { t, chain, models, onSave, onCancel } = props
+      const [name, setName] = useState(chain.name ?? '')
+      const [strategy, setStrategy] = useState(chain.strategy === 'round-robin' ? 'round-robin' : 'fallback')
+      const [stickyLimit, setStickyLimit] = useState(String(chain.stickyLimit ?? 1))
+      const [enabled, setEnabled] = useState(chain.enabled !== false)
+      const [members, setMembers] = useState(Array.isArray(chain.models) ? chain.models : [])
+      const [picking, setPicking] = useState(false)
+      const [busy, setBusy] = useState(false)
+      const [error, setError] = useState('')
+      const byId = new Map(models.map(row => [row.id, row]))
+      const lanes = LANE_LABEL(t)
+
+      const move = (index, delta) => setMembers(current => {
+        const next = [...current]
+        const target = index + delta
+        if (target < 0 || target >= next.length) return current
+        const [row] = next.splice(index, 1)
+        next.splice(target, 0, row)
+        return next
+      })
+      const submit = async () => {
+        setBusy(true)
+        setError('')
+        try {
+          const limit = Number(stickyLimit)
+          await onSave({
+            ...chain.id === undefined ? {} : { id: chain.id },
+            name,
+            models: members,
+            strategy,
+            stickyLimit: Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 1,
+            enabled,
+          })
+        } catch (failure) { setError(String(failure?.message ?? failure)) } finally { setBusy(false) }
+      }
+
+      return h('div', { className: 'ofm_panel ofm_rise' },
+        h('div', { className: 'ofm_row' },
+          h('div', { className: 'ofm_field', style: { flex: '1 1 180px' } },
+            h('span', null, t('routing.name')),
+            h('input', {
+              className: 'ofm_input', value: name, placeholder: t('routing.namePlaceholder'), disabled: busy,
+              onChange: event => setName(event.target.value),
+            })),
+          h('div', { className: 'ofm_field' },
+            h('span', null, t('routing.strategy')),
+            h('div', { className: 'ofm_seg', role: 'group' },
+              h('button', {
+                type: 'button', disabled: busy, 'aria-pressed': strategy === 'fallback' ? 'true' : 'false',
+                onClick: () => { if (!busy) setStrategy('fallback') },
+              }, t('routing.strategy.fallback')),
+              h('button', {
+                type: 'button', disabled: busy, 'aria-pressed': strategy === 'round-robin' ? 'true' : 'false',
+                onClick: () => { if (!busy) setStrategy('round-robin') },
+              }, t('routing.strategy.roundRobin')))),
+          strategy === 'round-robin'
+            ? h('div', { className: 'ofm_field' },
+              h('span', null, t('routing.stickyLimit')),
+              h('input', {
+                className: 'ofm_input', type: 'number', min: 1, max: 100, style: { width: 96 },
+                value: stickyLimit, disabled: busy,
+                onChange: event => setStickyLimit(event.target.value),
+              }))
+            : null,
+          h(Switch, {
+            checked: enabled, label: t('routing.enabled'), disabled: busy,
+            onChange: () => { if (!busy) setEnabled(value => !value) },
+          })),
+        strategy === 'round-robin' ? h('p', { className: 'ofm_note' }, t('routing.stickyHint')) : null,
+        h('div', { className: 'ofm_paneltitle' }, t('routing.members'),
+          h('span', { className: 'ofm_sec_hint' }, t('routing.memberCount').replace('{n}', String(members.length)))),
+        members.length === 0
+          ? h('p', { className: 'ofm_note' }, t('routing.memberEmpty'))
+          : h('div', { style: { display: 'flex', flexDirection: 'column', gap: 6 } }, members.map((id, index) => {
+            const row = byId.get(id)
+            return h('div', { key: `${id}#${index}`, className: 'ofm_member' },
+              h('span', { className: 'ofm_id', title: id }, row?.name ?? id),
+              h('span', { className: 'ofm_tag' }, lanes[row?.channel] ?? ''),
+              miniBtn('↑', () => move(index, -1), { disabled: busy || index === 0, title: t('routing.moveUp') }),
+              miniBtn('↓', () => move(index, 1), { disabled: busy || index === members.length - 1, title: t('routing.moveDown') }),
+              miniBtn(t('routing.removeMember'), () => setMembers(current => current.filter((_, at) => at !== index)), { danger: true, disabled: busy }))
+          })),
+        h('div', { className: 'ofm_row' },
+          h(Button, { kind: 'ghost', disabled: busy, onClick: () => setPicking(value => !value) }, picking ? t('routing.cancel') : t('routing.addMember'))),
+        picking ? h(ModelPicker, { t, models, chosen: members, onPick: id => setMembers(current => [...current, id]) }) : null,
+        h('div', { className: 'ofm_row' },
+          h(Button, { kind: 'primary', disabled: busy || name.trim() === '' || members.length === 0, onClick: submit }, t('routing.save')),
+          h(Button, { kind: 'ghost', disabled: busy, onClick: onCancel }, t('routing.cancel'))),
+        error === '' ? null : h('div', { className: 'ofm_callout ofm_error' },
+          h('div', null, h('b', null, t('routing.failed')), h('div', null, error))))
+    }
+
+    /**
+     * One stored chain.
+     *
+     * A chain that resolves to nothing right now is *not* an error state: the host
+     * keeps such a chain on purpose, because a link that reaches an EAC model is
+     * still correct on a day that lane is closed, and rewriting the user's chain
+     * for them is worse than showing it as unavailable. So the card names the
+     * members that are not in the roster and says the chain is kept as written —
+     * which is the difference between "your chain is fine" and "your chain is
+     * broken", and the user is the only one who can tell which one it is.
+     */
+    function ChainCard(props) {
+      const { t, chain, resolved, missing, lookup, onEdit, onDelete, confirming, index } = props
+      const lanes = LANE_LABEL(t)
+      const usable = chain.enabled !== false && resolved.length > 0
+      return h('div', { className: 'ofm_card ofm_rise', style: { animationDelay: `${Math.min(index, 8) * 22}ms` } },
+        h('div', { className: 'ofm_cardhead' },
+          h('span', { className: 'ofm_cardname', title: chain.name }, chain.name),
+          h(Pill, { tone: usable ? 'ok' : 'warn' }, usable ? t('routing.usable') : t('routing.notUsable'))),
+        h('div', { className: 'ofm_metrics' },
+          h('span', null, chain.id),
+          h('span', null, chain.strategy === 'round-robin' ? t('routing.strategy.roundRobin') : t('routing.strategy.fallback')),
+          h('span', null, t('routing.memberCount').replace('{n}', String((chain.models ?? []).length)))),
+        h('div', { className: 'ofm_row' },
+          h('span', { className: 'ofm_note' }, t('routing.resolved')),
+          resolved.length === 0
+            ? h('span', { className: 'ofm_note' }, '—')
+            : resolved.map(id => h('span', { key: id, className: 'ofm_tag' }, `${lookup.get(id)?.name ?? id} · ${lanes[lookup.get(id)?.channel] ?? ''}`))),
+        missing.length === 0
+          ? null
+          : h(Fragment, null,
+            h('p', { className: 'ofm_note' }, t('routing.missing').replace('{ids}', missing.join(', '))),
+            h('p', { className: 'ofm_note' }, t('routing.notUsableWhy'))),
+        h('div', { className: 'ofm_row' },
+          miniBtn(t('routing.edit'), onEdit),
+          onDelete === undefined ? null : miniBtn(confirming === true ? t('routing.deleteConfirm') : t('routing.delete'), onDelete, { danger: true })))
+    }
+
+    /**
+     * 路由: the stored fallback chains and their editor.
+     *
+     * The resolution shown per chain is derived from the model list this page
+     * already holds — the same intersection the host uses to build the virtual
+     * catalog row — so it survives a reload, and the `usable` array a save answers
+     * with is preferred when it is there.
+     */
+    function RoutingPage(props) {
+      const { t } = props
+      const panel = usePanel(() => api('/combos'), [])
+      const [editing, setEditing] = useState(null)
+      const [confirm, setConfirm] = useState('')
+      const chains = panel.data?.combos ?? []
+      const models = panel.data?.models ?? []
+      const lookup = useMemo(() => new Map(models.map(row => [row.id, row])), [models])
+
+      const resolvedOf = chain => {
+        const answered = (panel.data?.usable ?? []).find(row => row.id === chain.id)
+        if (answered !== undefined) return answered.models
+        return (chain.models ?? []).filter(id => lookup.has(id))
+      }
+      const missingOf = chain => (chain.models ?? []).filter(id => !lookup.has(id))
+      const save = async row => {
+        // The whole list is written back, because that is the route's shape: it
+        // normalizes and replaces. An edit keeps its id, so a rename never changes
+        // the model id a client may already be pinned to.
+        const known = chains.some(chain => chain.id === row.id)
+        const rows = known ? chains.map(chain => chain.id === row.id ? row : chain) : [...chains, row]
+        const answer = await post('/combos', { combos: rows })
+        panel.patch({ combos: answer.combos, usable: answer.usable })
+        panel.reload()
+        setEditing(null)
+        showToast({ title: t('routing.saved'), body: t('routing.savedBody'), holdMs: 3200 })
+      }
+      const remove = async id => {
+        const answer = await post('/combos', { combos: chains.filter(chain => chain.id !== id) })
+        panel.patch({ combos: answer.combos, usable: answer.usable })
+        panel.reload()
+        setConfirm('')
+        showToast({ title: t('routing.saved'), body: t('routing.savedBody'), holdMs: 3200 })
+      }
+      // A fresh chain is the same editor with an empty draft: the fields, the
+      // member list and the validation are identical, only the id is absent.
+      const blank = { name: '', models: [], strategy: 'fallback', stickyLimit: 1, enabled: true }
+
+      return h('div', { className: 'ofm_page' },
+        h(PageHero, { title: t('routing.title'), sub: t('routing.sub') },
+          h('div', { className: 'ofm_pills' },
+            h(Pill, null, t('routing.chains') + ' ' + String(chains.length)))),
+        panel.status === 'loading' ? h(PanelSkeleton) : null,
+        panel.status === 'error'
+          ? h(PanelError, { t, title: t('routing.loadFailed'), message: panel.error, onRetry: panel.reload })
+          : null,
+        panel.status === 'ready'
+          ? h(Section, { title: t('routing.chains'), hint: t('routing.chainsHint') },
+            // The editor renders full width above the list rather than inside a
+            // grid cell: a chain's member list and its picker need the room, and a
+            // form squeezed into a 252 px column is a form nobody can order.
+            editing !== null
+              ? h(ChainEditor, {
+                t, models, chain: editing.chain,
+                onSave: save, onCancel: () => setEditing(null),
+              })
+              : chains.length === 0
+                ? h('div', { className: 'ofm_panel' },
+                  h('div', { className: 'ofm_paneltitle' }, t('routing.empty')),
+                  h('p', { className: 'ofm_note' }, t('routing.emptyHint')),
+                  h('div', { className: 'ofm_row' },
+                    h(Button, { kind: 'primary', onClick: () => setEditing({ chain: blank }) }, t('routing.newChain'))))
+                : h('div', { className: 'ofm_row' },
+                  h(Button, { kind: 'primary', onClick: () => setEditing({ chain: blank }) }, t('routing.newChain'))),
+            chains.length === 0 ? null : h('div', { className: 'ofm_grid' }, chains.map((chain, index) => h(ChainCard, {
+              key: chain.id, t, index, chain, lookup,
+              resolved: resolvedOf(chain), missing: missingOf(chain),
+              confirming: confirm === chain.id,
+              onEdit: () => setEditing({ chain }),
+              onDelete: () => { if (confirm === chain.id) void remove(chain.id); else setConfirm(chain.id) },
+            }))),
+            confirm === '' ? null : h('p', { className: 'ofm_note' }, t('routing.deleteWarn')))
+          : null)
     }
 
     // ── settings page ─────────────────────────────────────────────────────────
@@ -3442,7 +4777,7 @@ window.__ModuleLoader__.load({
       const [eacAuth, setEacAuth] = useState(undefined)
       useEffect(() => {
         let alive = true
-        const load = () => api('/eac/status')
+        const load = () => api('/eac/status', { timeout: 20_000 })
           .then(data => { if (alive) setEacAuth(data) })
           .catch(() => { if (alive) setEacAuth({ available: false, authorized: false, login: '' }) })
         load()
@@ -3502,11 +4837,11 @@ window.__ModuleLoader__.load({
     // people actually open this page for — below the fold:
     //   免费模型       the no-account lane (this plugin's own gateway),
     //   EAC 模型       the desktop co-paid lane behind GitHub auth,
-    //   白嫖模型接入   the fourteen absorbed channels and their logins.
+    //   白嫖模型接入   the thirteen enabled account channels and their logins.
     // The active page lives in localStorage so a reload — or the hot reload the
     // upgrader triggers — comes back to the page the user was reading.
     const TAB_KEY = 'ofm.tab'
-    const TABS = ['free', 'eac', 'channels']
+    const TABS = ['free', 'eac', 'channels', 'aggregate', 'saver', 'routing', 'ledger', 'logs', 'gateway']
 
     function Shell(props) {
       const { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, setBusy, apply, bench, benches, ctx } = props
@@ -3539,7 +4874,10 @@ window.__ModuleLoader__.load({
       const tabs = [
         ['free', t('nav.tab.free'), counts.available ?? 0],
         ['eac', t('nav.tab.eac'), data.catalog.filter(m => m.channel === 'eac').length],
-        ['channels', t('nav.tab.channels'), 14],
+        ['channels', t('nav.tab.channels'), CHANNEL_PROVIDERS.length],
+        ['aggregate', t('nav.tab.aggregate'), data.catalog.filter(m => m.channel === 'aggregate').length],
+        ['saver', t('nav.tab.saver'), null],
+        ['routing', t('nav.tab.routing'), data.catalog.filter(m => m.channel === 'combo').length],
         ['ledger', t('nav.tab.ledger'), null],
         ['logs', t('nav.tab.logs'), null],
         ['gateway', t('nav.tab.gateway'), null],
@@ -3562,15 +4900,21 @@ window.__ModuleLoader__.load({
 
       const page = tab === 'channels'
         ? h(ChannelsPage, { t, ctx, summary })
-        : tab === 'ledger'
-          ? h(LedgerPage, { t, ctx })
-          : tab === 'logs'
-            ? h(LogsPage, { t, ctx })
-            : tab === 'gateway'
-              ? h(GatewayPage, { t, ctx })
-              : tab === 'eac'
-                ? h(EacPage, { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
-                : h(FreePage, { t, data, counts, summary, stats, eacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
+        : tab === 'aggregate'
+          ? h(AggregatePage, { t, summary })
+          : tab === 'saver'
+            ? h(SaverPage, { t })
+            : tab === 'routing'
+              ? h(RoutingPage, { t })
+              : tab === 'ledger'
+                ? h(LedgerPage, { t, ctx })
+                : tab === 'logs'
+                  ? h(LogsPage, { t, ctx })
+                  : tab === 'gateway'
+                    ? h(GatewayPage, { t, ctx })
+                    : tab === 'eac'
+                      ? h(EacPage, { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
+                      : h(FreePage, { t, data, counts, summary, stats, eacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
 
       return h('div', { className: 'ofm_root ofm_shell' },
         h('div', { className: 'ofm_aurora', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
@@ -3672,7 +5016,7 @@ window.__ModuleLoader__.load({
                 // 未授权时把登录入口放到页头：撞到「没授权」的用户第一眼看到的
                 // 位置就该有钥匙，而不是要先找到下方的授权区。
                 eacAuth?.available === true && eacAuth?.authorized !== true
-                  ? h(Button, { kind: 'primary', disabled: eacLogin.busy, onClick: eacLogin.login },
+                  ? h(Button, { kind: 'primary', disabled: eacLogin.busy || eacLogin.pending !== null, onClick: eacLogin.login },
                     eacLogin.busy ? t('eac.starting') : t('eac.login'))
                   : null,
                 h(StarButton, { t })),
@@ -3950,7 +5294,7 @@ window.__ModuleLoader__.load({
     exports.inject = inject
     exports.name = 'our-free-model'
     // Headless test seams use the same stub React as scripts/client-lint.mjs.
-    exports.__test = { parseSafeHtml, safeUrl, sanitizeStyle, htmlToDom, buildHeatCells, Heatmap, UpgradePanel }
+    exports.__test = { parseSafeHtml, safeUrl, sanitizeStyle, htmlToDom, buildHeatCells, Heatmap, ChannelsPage, UpgradePanel, useEacLogin, EacAuth }
     return module.exports
   },
 })
