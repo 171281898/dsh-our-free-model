@@ -4114,7 +4114,7 @@ window.__ModuleLoader__.load({
      * is therefore its own button, and it says what it does.
      */
     function ProviderEditor(props) {
-      const { t, provider, state, contributions, onSaved, onRemoved, onChanged } = props
+      const { t, provider, state, contributions, onSaved, onRemoved, onChanged, showContributions = true } = props
       const fresh = state === undefined
       const [enabled, setEnabled] = useState(state?.enabled !== false)
       const [baseUrl, setBaseUrl] = useState(state?.baseUrl ?? '')
@@ -4164,7 +4164,9 @@ window.__ModuleLoader__.load({
           h('span', { className: 'ofm_tag' }, AGG_CATEGORY(t)[provider.category] ?? provider.category),
           h('span', { className: 'ofm_tag' }, provider.format),
           h('span', { className: 'ofm_tag' }, AGG_AUTH(t)[provider.authKind] ?? provider.authKind),
-          h('span', null, t('agg.contributes').replace('{n}', String(contributions)))),
+          // The card prints this one line above the editor, so it is suppressed
+          // there; the add-provider flow renders the editor alone and keeps it.
+          showContributions === false ? null : h('span', null, t('agg.contributes').replace('{n}', String(contributions)))),
         h('div', { className: 'ofm_duo' },
           ToggleRow({
             label: t('agg.enabled'), checked: enabled, disabled: busy !== '',
@@ -4243,7 +4245,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'ofm_metrics' },
           h('span', null, contributions > 0 ? t('agg.contributes').replace('{n}', String(contributions)) : t('agg.contributesNone')),
           h('span', null, state.hasKey === true ? t('agg.hasKey').replace('{hint}', state.keyHint) : t('agg.noKey'))),
-        h(ProviderEditor, { t, provider, state, contributions, onSaved, onRemoved, onChanged }))
+        h(ProviderEditor, { t, provider, state, contributions, onSaved, onRemoved, onChanged, showContributions: false }))
     }
 
     /**
