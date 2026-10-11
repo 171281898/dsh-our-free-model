@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="250" height="55" viewBox="0 0 250 55" role="img" aria-labelledby="title desc">
-  <title id="title">GITHUB TRENDING #2 Repository Of The Week</title>
-  <desc id="desc">OFM 在 Trendshift JavaScript 周榜排名第 2，静态记录。</desc>
+  <title id="title">Trendshift JavaScript Weekly #1 - October 5-11, 2026</title>
+  <desc id="desc">OFM 在 Trendshift JavaScript 周榜排名第 1。统计周期为 2026-10-05 至 2026-10-11，榜单仍在更新；截至 2026-10-11 的静态记录，不会自动刷新。</desc>
   <rect x="0.6" y="0.6" width="248.8" height="53.8" rx="10" fill="#fff" stroke="#68449d" stroke-width="1.2"/>
   <defs>
     <g id="laurel-half">
@@ -10,7 +10,7 @@
   </defs>
   <use href="#laurel-half"/>
   <use href="#laurel-half" transform="translate(68 0) scale(-1 1)"/>
-  <text x="34" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" fill="#68449d">2</text>
-  <text x="63" y="20" font-family="Arial, sans-serif" font-size="9" fill="#68449d">GITHUB TRENDING</text>
-  <text x="63" y="38" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#55328c">#2 Repository Of The Week</text>
+  <text x="34" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" fill="#68449d">1</text>
+  <text x="63" y="20" font-family="Arial, sans-serif" font-size="9" fill="#68449d">TRENDSHIFT · JAVASCRIPT</text>
+  <text x="63" y="38" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#55328c">#1 Repository Of The Week</text>
 </svg>
