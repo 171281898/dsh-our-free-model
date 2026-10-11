@@ -94,6 +94,7 @@ window.__ModuleLoader__.load({
         'eac.pollFailed': '领取授权失败（{reason}），正在自动重试；无需重新授权。',
         'eac.saveFailed': '授权已完成，但本机无法保存登录记录。请检查 DSH_HOME 目录权限；修复后将自动重试。',
         'eac.cancel': '取消此次登录',
+        'eac.cancelFailed': '无法确认取消登录，请稍后重试。',
         'eac.pillUnverified': '网关暂不可达',
         'eac.intro': 'EAC 渠道的对话在服务器侧校验授权：用 GitHub 登录，并给 {repo} 点一个 Star，即可解锁。登录在浏览器里完成，无需复制粘贴；取消 Star 后授权会自动失效。',
         'eac.login': '使用 GitHub 登录',
@@ -207,6 +208,7 @@ window.__ModuleLoader__.load({
         'forward.lanWarn': '开启后，能连到这台机器的任何人都可以用这个 Key 花掉本机的免费额度。请只在信任的网络里开启，必要时用防火墙限制来源。',
         'forward.lanUrl': '局域网地址',
         'forward.lanNoAddress': '没有检测到局域网 IPv4 地址',
+        'forward.lanAlso': '其它地址：{list}',
         'pref.enabled': '启用免费模型',
         'pref.exposeRegion': '展示地区受限模型',
         'pref.interval': '自动探测间隔（分钟）',
@@ -349,8 +351,12 @@ window.__ModuleLoader__.load({
         'chan.credit.today': '今日已领 {credit}',
         'chan.model.free': '免费额度',
         'chan.model.dead': '已下架',
-        'chan.model.off': '已关闭',
-        'chan.model.on': '已开启',
+        'chan.model.off': '关闭',
+        'chan.model.on': '开启',
+        'chan.model.enableAll': '全部开启',
+        'chan.model.disableAll': '全部关闭',
+        'chan.model.enabledCount': '已开启 {enabled}/{total}',
+        'chan.model.allScope': '仅操作当前渠道的全部模型',
         'chan.error': '操作失败：{reason}',
         'chan.confirm.delete': '移除账号 {name}？该账号的凭据会一并删除。',
         'chan.rpc.unavailable': '宿主未提供 connection 服务，渠道操作暂不可用。',
@@ -443,6 +449,16 @@ window.__ModuleLoader__.load({
         'gw.relayNote': '中继只放行模型接口（/v1/*），并要求携带中继密钥；局域网绑定意味着同网段的设备都能访问到这个端口。',
         'gw.freeLaneNote': '免费车道（Our Free Model）自己的转发端口在「免费模型」页的「本地转发」分区。',
         'chan.credits.left': '剩余积分',
+        'chan.credits.tokens': '剩余 Token',
+        'chan.credits.dollars': '剩余余额（USD）',
+        'chan.credits.quota': '剩余配额',
+        'chan.credits.loaded': '已查询 {count} 个账号',
+        'chan.credits.refresh': '刷新余额',
+        'chan.credits.loading': '余额查询中…',
+        'chan.credits.failed': '余额查询失败：{reason}',
+        'chan.credits.partial': '{count} 个账号未能查询余额，请展开账号查看原因并重试。',
+        'chan.credits.unavailable': '未返回余额数据',
+        'chan.claim.failed': '领取失败：{reason}',
         'chan.auto.title': '每日自动签到',
         'chan.auto.running': '签到进行中…',
         'chan.auto.ran': '今日已自动签到',
@@ -715,6 +731,7 @@ window.__ModuleLoader__.load({
         'eac.pollFailed': 'Could not collect authorization ({reason}); retrying automatically. No new sign-in is needed.',
         'eac.saveFailed': 'Authorization completed, but this machine could not save it. Check DSH_HOME permissions; collection will retry automatically.',
         'eac.cancel': 'Cancel this sign-in',
+        'eac.cancelFailed': 'Could not confirm cancellation. Please try again.',
         'eac.pillUnverified': 'gateway unreachable',
         'eac.intro': 'EAC turns are checked server-side: sign in with GitHub and star {repo} to unlock them. The browser does the work — nothing to paste — and removing the star revokes access automatically.',
         'eac.login': 'Sign in with GitHub',
@@ -803,6 +820,7 @@ window.__ModuleLoader__.load({
         'forward.lanWarn': 'While this is on, anyone who can reach this machine can spend its free quota with that key. Enable it only on a network you trust, and narrow the sources with a firewall if you can.',
         'forward.lanUrl': 'Network URL',
         'forward.lanNoAddress': 'No network IPv4 address was detected',
+        'forward.lanAlso': 'Also reachable at {list}',
         'pref.enabled': 'Enable free models',
         'pref.exposeRegion': 'Show region-limited models',
         'pref.interval': 'Auto-probe interval (minutes)',
@@ -945,8 +963,12 @@ window.__ModuleLoader__.load({
         'chan.credit.today': '{credit} claimed today',
         'chan.model.free': 'Free quota',
         'chan.model.dead': 'Retired',
-        'chan.model.off': 'Hidden',
-        'chan.model.on': 'Shown',
+        'chan.model.off': 'Hide',
+        'chan.model.on': 'Show',
+        'chan.model.enableAll': 'Show all',
+        'chan.model.disableAll': 'Hide all',
+        'chan.model.enabledCount': 'Shown {enabled}/{total}',
+        'chan.model.allScope': 'Apply to all models in this channel only',
         'chan.error': 'Action failed: {reason}',
         'chan.confirm.delete': 'Remove account {name}? Its credential is deleted with it.',
         'chan.rpc.unavailable': 'This host exposes no connection service, so channel actions are unavailable.',
@@ -1039,6 +1061,16 @@ window.__ModuleLoader__.load({
         'gw.relayNote': 'The relay forwards only the model routes (/v1/*) and demands the relay key; binding to the LAN means every device on the network can reach that port.',
         'gw.freeLaneNote': 'The free lane (Our Free Model) has its own forward port under "Local forward" on the Free models page.',
         'chan.credits.left': 'Credits left',
+        'chan.credits.tokens': 'Tokens left',
+        'chan.credits.dollars': 'Balance left (USD)',
+        'chan.credits.quota': 'Quota left',
+        'chan.credits.loaded': '{count} accounts queried',
+        'chan.credits.refresh': 'Refresh balance',
+        'chan.credits.loading': 'Querying balance…',
+        'chan.credits.failed': 'Balance query failed: {reason}',
+        'chan.credits.partial': 'Could not query {count} accounts. Expand accounts to see the reasons and retry.',
+        'chan.credits.unavailable': 'No balance data returned',
+        'chan.claim.failed': 'Claim failed: {reason}',
         'chan.auto.title': 'Daily auto check-in',
         'chan.auto.running': 'Check-in running…',
         'chan.auto.ran': 'Checked in today',
@@ -1235,170 +1267,249 @@ window.__ModuleLoader__.load({
     // colour, callouts lost their border. Every use of those two names carries a
     // fallback for exactly that reason.
     const CSS = `
-.ofm_root{--gap:14px;display:flex;flex-direction:column;gap:calc(var(--gap)*1.4);max-width:1080px;font-size:13px;line-height:1.55;color:var(--dsw-alias-label-primary)}
+/* ═══════════════════════════════════════════════════════════════════════
+   Our Free Model — visual system
+   统一令牌：所有色值取自宿主 --dsw-alias-* 变量，昼夜由宿主切换。
+   层级约定：layer-3 凹槽/页面底 · layer-2 面板 · layer-1 浮起元素。
+   动效约定：transform/opacity 优先；常规 150–300ms、覆盖层 300–400ms。
+   ═══════════════════════════════════════════════════════════════════════ */
+.ofm_root{--ease-instrument:cubic-bezier(.16,1,.3,1);--ease-settle:cubic-bezier(.34,1.4,.4,1);--gap:14px;display:flex;flex-direction:column;gap:calc(var(--gap)*1.4);max-width:1080px;font-size:13px;line-height:1.55;color:var(--dsw-alias-label-primary);-webkit-font-smoothing:antialiased}
+.ofm_root::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.022;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E")}
+.ofm_root>*{position:relative;z-index:1}
 .ofm_root *{box-sizing:border-box}
-.ofm_hero{display:flex;flex-direction:column;gap:10px;padding:18px 20px;border-radius:16px;border:1px solid var(--dsw-alias-border-l2);background:linear-gradient(160deg,var(--dsw-alias-bg-layer-3),var(--dsw-alias-bg-layer-1))}
+.ofm_root ::-webkit-scrollbar{width:10px;height:10px}
+.ofm_root ::-webkit-scrollbar-track{background:transparent}
+.ofm_root ::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--dsw-alias-label-tertiary) 32%,transparent);border-radius:99px;border:2.5px solid transparent;background-clip:padding-box}
+.ofm_root ::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--dsw-alias-label-tertiary) 52%,transparent);background-clip:padding-box;border:2.5px solid transparent}
+.ofm_root{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--dsw-alias-label-tertiary) 32%,transparent) transparent}
+
+.ofm_root ::selection{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 24%,transparent)}
+/* ── 键盘可达性：只给键盘聚焦画聚焦环，鼠标点击不出现 ─────────────────── */
+.ofm_root :focus-visible{outline:2px solid color-mix(in srgb,var(--dsw-alias-state-business-primary) 78%,transparent);outline-offset:2px;box-shadow:0 0 0 4px color-mix(in srgb,var(--dsw-alias-state-business-primary) 13%,transparent)}
+/* ══ 页头 hero ═════════════════════════════════════════════════════════ */
+.ofm_hero{position:relative;display:flex;flex-direction:column;gap:14px;padding:22px 24px;border-radius:20px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l2) 78%,transparent);background:linear-gradient(165deg,color-mix(in srgb,var(--dsw-alias-bg-layer-3) 88%,transparent),color-mix(in srgb,var(--dsw-alias-bg-layer-1) 82%,transparent));overflow:hidden}
+.ofm_hero::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 150% at 12% -20%,color-mix(in srgb,var(--dsw-alias-state-business-primary) 13%,transparent),transparent 58%),radial-gradient(90% 120% at 88% 130%,color-mix(in srgb,var(--dsw-alias-state-success-primary) 7%,transparent),transparent 60%)}
+.ofm_hero>*{position:relative}
+.ofm_pagehead{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.ofm_pagetitle{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ofm_pagetitle h2{margin:0;font-size:23px;font-weight:760;letter-spacing:-.6px;line-height:1.2;background:linear-gradient(120deg,var(--dsw-alias-label-primary) 20%,color-mix(in srgb,var(--dsw-alias-label-primary) 55%,var(--dsw-alias-state-business-primary)));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ofm_pagesub{margin:0;font-size:12.5px;color:var(--dsw-alias-label-secondary);max-width:70ch}
+.ofm_pagehead .ofm_pills{margin-left:auto}
 .ofm_pills{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-.ofm_pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-2);font-size:11.5px;color:var(--dsw-alias-label-secondary);white-space:nowrap}
+.ofm_pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 78%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 4%);font-size:11.5px;color:var(--dsw-alias-label-secondary);white-space:nowrap;transition:border-color .16s ease,color .16s ease}
 .ofm_pill.strong{color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
 .ofm_dot{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-label-tertiary);flex:none}
-.ofm_dot.ok{background:var(--dsw-alias-state-success-primary)}
-.ofm_dot.warn{background:var(--dsw-alias-state-warning-primary,#f0a441)}
-.ofm_dot.err{background:var(--dsw-alias-state-error-primary)}
+@keyframes ofm-dot-breathe{0%,100%{opacity:1}50%{opacity:.55}}
+.ofm_dot.ok{background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent);animation:ofm-dot-breathe 2.6s ease-in-out infinite}
+.ofm_dot.warn{background:var(--dsw-alias-state-warning-primary,#f0a441);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 18%,transparent)}
+.ofm_dot.err{background:var(--dsw-alias-state-error-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-error-primary) 18%,transparent)}
+/* ══ 区块与分节 ════════════════════════════════════════════════════════ */
 .ofm_sec{display:flex;flex-direction:column;gap:10px}
-.ofm_sechead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-bottom:2px;border-bottom:1px solid var(--dsw-alias-border-l1)}
-.ofm_sec_title{font-size:14px;font-weight:650}
+.ofm_sechead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-bottom:6px;border-bottom:1px solid var(--dsw-alias-border-l1)}
+.ofm_sec_title{font-size:14px;font-weight:680;letter-spacing:-.2px}
 .ofm_sec_hint{font-size:11.5px;color:var(--dsw-alias-label-tertiary);margin-left:auto}
 .ofm_grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(252px,1fr));gap:10px}
-.ofm_card{position:relative;display:flex;flex-direction:column;gap:8px;padding:12px 13px;border-radius:13px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-3);transition:border-color .16s ease,transform .16s ease}
-.ofm_card:hover{border-color:var(--dsw-alias-state-business-primary)}
+/* ══ 卡片（双层 bezel：hairline 边框 + 顶部内高光 + 柔和外阴影） ═══════ */
+.ofm_card{position:relative;display:flex;flex-direction:column;gap:8px;padding:12px 13px;border-radius:13px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-3) 80%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%),0 1px 2px color-mix(in srgb,var(--dsw-alias-state-business-primary) 7%,transparent),0 3px 10px color-mix(in srgb,var(--dsw-alias-state-business-primary) 4%,transparent);transition:transform .2s cubic-bezier(.32,.72,0,1),box-shadow .24s ease,border-color .18s ease}
+.ofm_card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 66%,var(--dsw-alias-border-l2));box-shadow:inset 0 1px 0 rgb(255 255 255 / 9%),0 16px 34px color-mix(in srgb,var(--dsw-alias-state-business-primary) 12%,transparent)}
 .ofm_card.dim{opacity:.68}
 .ofm_cardhead{display:flex;align-items:center;gap:8px}
-.ofm_cardname{font-size:13.5px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ofm_badge{margin-left:auto;font-size:10.5px;padding:2px 7px;border-radius:6px;border:1px solid var(--dsw-alias-border-l1);white-space:nowrap}
-.ofm_badge.available{color:var(--dsw-alias-state-success-primary);border-color:var(--dsw-alias-state-success-primary)}
-.ofm_badge.region-blocked{color:var(--dsw-alias-state-warning-primary,#f0a441);border-color:var(--dsw-alias-state-warning-primary,#f0a441)}
-.ofm_badge.throttled,.ofm_badge.unavailable{color:var(--dsw-alias-state-error-primary);border-color:var(--dsw-alias-state-error-primary)}
+.ofm_cardname{font-size:13.5px;font-weight:650;letter-spacing:-.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ofm_badge{margin-left:auto;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 60%,transparent);white-space:nowrap}
+.ofm_badge.available{color:var(--dsw-alias-state-success-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 10%,transparent)}
+.ofm_badge.region-blocked{color:var(--dsw-alias-state-warning-primary,#f0a441);border-color:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 10%,transparent)}
+.ofm_badge.throttled,.ofm_badge.unavailable{color:var(--dsw-alias-state-error-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 10%,transparent)}
 .ofm_badge.unknown{color:var(--dsw-alias-label-tertiary)}
 .ofm_id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--dsw-alias-label-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ofm_tags{display:flex;gap:5px;flex-wrap:wrap}
-.ofm_tag{font-size:10.5px;padding:2px 7px;border-radius:6px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary)}
-.ofm_chantag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;border:1px solid var(--dsw-alias-state-business-primary);color:var(--dsw-alias-state-business-primary);white-space:nowrap}
+.ofm_tag{font-size:10.5px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 70%,transparent);border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary)}
+.ofm_chantag{font-size:10px;font-weight:650;padding:2px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-business-primary) 50%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 9%,transparent);color:var(--dsw-alias-state-business-primary);white-space:nowrap}
 .ofm_metrics{display:flex;gap:12px;font-size:11px;color:var(--dsw-alias-label-tertiary);flex-wrap:wrap}
 .ofm_metrics b{color:var(--dsw-alias-label-secondary);font-weight:600;font-variant-numeric:tabular-nums}
 .ofm_note{font-size:11px;color:var(--dsw-alias-label-tertiary);line-height:1.5}
-.ofm_panel{padding:14px;border-radius:14px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);display:flex;flex-direction:column;gap:12px}
-.ofm_paneltitle{font-size:12px;font-weight:650;color:var(--dsw-alias-label-secondary);display:flex;align-items:center;gap:8px}
-.ofm_paneltitle .ofm_sec_hint{font-weight:400}
+/* ══ 面板 ══════════════════════════════════════════════════════════════ */
+.ofm_panel{padding:16px;border-radius:16px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 82%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 5%),0 2px 6px rgb(0 0 0 / 4%);display:flex;flex-direction:column;gap:12px}
+.ofm_paneltitle{font-size:12px;font-weight:680;letter-spacing:.2px;color:var(--dsw-alias-label-secondary);display:flex;align-items:center;gap:8px}
+.ofm_paneltitle .ofm_sec_hint{font-weight:400;letter-spacing:0}
 .ofm_row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.ofm_heat{display:grid;grid-auto-flow:column;grid-auto-columns:12px;grid-template-rows:repeat(7,12px);justify-content:start;gap:0;overflow-x:auto;padding:2px 0 6px}
-.ofm_cell{width:12px;height:12px;border-radius:2px;background:var(--dsw-alias-bg-layer-1);outline:1px solid var(--dsw-alias-border-l1);outline-offset:-1px}
-.ofm_cell.l1{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 22%,transparent);outline-color:transparent}
-.ofm_cell.l2{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 42%,transparent);outline-color:transparent}
-.ofm_cell.l3{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 66%,transparent);outline-color:transparent}
+/* ══ 请求热度图 ════════════════════════════════════════════════════════ */
+.ofm_heat{display:grid;grid-auto-flow:column;grid-auto-columns:12px;grid-template-rows:repeat(7,12px);justify-content:start;gap:2px;overflow-x:auto;padding:2px 0 6px}
+.ofm_cell{width:12px;height:12px;border-radius:3.5px;background:var(--dsw-alias-bg-layer-1);outline:1px solid var(--dsw-alias-border-l1);outline-offset:-1px;transition:transform .14s ease,background .3s ease}
+.ofm_cell:hover{transform:scale(1.25)}
+.ofm_cell.l1{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 24%,transparent);outline-color:transparent}
+.ofm_cell.l2{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 45%,transparent);outline-color:transparent}
+.ofm_cell.l3{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 68%,transparent);outline-color:transparent}
 .ofm_cell.l4{background:var(--dsw-alias-state-business-primary);outline-color:transparent}
 .ofm_scale{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--dsw-alias-label-tertiary);margin-left:auto}
 .ofm_scale .ofm_cell{width:10px;height:10px}
-.ofm_seg{display:inline-flex;flex-wrap:wrap;padding:2px;border-radius:9px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);gap:2px}
-.ofm_seg button{border:0;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11.5px;padding:3px 10px;border-radius:7px;cursor:pointer}
-.ofm_seg button[aria-pressed="true"]{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-primary);box-shadow:0 1px 2px rgb(0 0 0 / 12%)}
-.ofm_seg button:disabled{opacity:.45;cursor:default}
+/* ══ 分段选择器 ════════════════════════════════════════════════════════ */
+.ofm_seg{display:inline-flex;padding:3px;border-radius:10px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);gap:2px;box-shadow:inset 0 1px 2px rgb(0 0 0 / 5%)}
+.ofm_seg button{border:0;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11.5px;font-weight:550;padding:3px 11px;border-radius:8px;cursor:pointer;transition:color .16s ease,background .16s ease,box-shadow .16s ease}
+.ofm_seg button:hover{color:var(--dsw-alias-label-primary)}
+.ofm_seg button[aria-pressed="true"]{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-primary);box-shadow:0 1px 3px rgb(0 0 0 / 12%),inset 0 1px 0 rgb(255 255 255 / 6%)}
 .ofm_svg{display:block;width:100%;height:auto;overflow:visible}
-.ofm_chips{display:flex;gap:5px;flex-wrap:wrap}
-.ofm_chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);cursor:pointer;color:var(--dsw-alias-label-secondary)}
-.ofm_chip[aria-pressed="true"]{border-color:currentColor}
-.ofm_swatch{width:8px;height:8px;border-radius:2px;flex:none}
+/* ══ 筛选 chips ════════════════════════════════════════════════════════ */
+.ofm_chips{display:flex;gap:6px;flex-wrap:wrap}
+.ofm_chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 72%,transparent);cursor:pointer;color:var(--dsw-alias-label-secondary);transition:border-color .16s ease,color .16s ease,background .16s ease}
+.ofm_chip:hover{color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l2)}
+.ofm_chip[aria-pressed="true"]{border-color:color-mix(in srgb,currentColor 55%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 70%,transparent)}
+.ofm_swatch{width:8px;height:8px;border-radius:3px;flex:none}
+/* ══ 数据表格 ══════════════════════════════════════════════════════════ */
 .ofm_table{width:100%;min-width:760px;border-collapse:collapse;font-size:11.5px}
 .ofm_tablewrap{overflow-x:auto;max-width:100%}
-.ofm_table th{text-align:left;font-weight:500;color:var(--dsw-alias-label-tertiary);padding:0 8px 6px;border-bottom:1px solid var(--dsw-alias-border-l1);white-space:nowrap}
-.ofm_table td{padding:6px 8px;border-bottom:1px solid var(--dsw-alias-border-l1);font-variant-numeric:tabular-nums}
+.ofm_table th{text-align:left;font-weight:560;font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--dsw-alias-label-tertiary);padding:0 10px 8px;border-bottom:1px solid var(--dsw-alias-border-l1);white-space:nowrap}
+.ofm_table td{padding:7px 10px;border-bottom:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 62%,transparent);font-variant-numeric:tabular-nums}
 .ofm_table td:first-child{font-weight:600}
+.ofm_table tbody tr{transition:background .15s ease}
+.ofm_table tbody tr:hover td{background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 5%,transparent)}
 .ofm_table tr:last-child td{border-bottom:0}
 .ofm_num{text-align:right}
-.ofm_btn{font:inherit;font-size:12px;padding:5px 12px;border-radius:9px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-primary);cursor:pointer;transition:border-color .15s ease,opacity .15s ease}
-.ofm_btn:hover:not(:disabled){border-color:var(--dsw-alias-state-business-primary)}
-.ofm_btn:disabled{opacity:.5;cursor:default}
-.ofm_btn.primary{background:var(--dsw-alias-state-business-primary);border-color:var(--dsw-alias-state-business-primary);color:var(--dsw-alias-label-on-accent,#fff)}
-.ofm_btn.ghost{background:transparent}
-.ofm_starlink{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+/* ══ 按钮（分层状态） ══════════════════════════════════════════════════ */
+.ofm_btn{font:inherit;font-size:12px;font-weight:580;padding:6px 14px;border-radius:9px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-3) 84%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 5%),0 1px 2px rgb(0 0 0 / 6%);color:var(--dsw-alias-label-primary);cursor:pointer;transition:transform .18s var(--ease-instrument),border-color .2s var(--ease-instrument),background .2s var(--ease-instrument),box-shadow .22s var(--ease-instrument),opacity .16s ease}
+.ofm_btn:hover:not(:disabled){border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 62%,var(--dsw-alias-border-l2));background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 7%,var(--dsw-alias-bg-layer-3));transform:translateY(-1px);box-shadow:inset 0 1px 0 rgb(255 255 255 / 7%),0 3px 8px rgb(0 0 0 / 9%)}
+.ofm_btn:active:not(:disabled){transform:scale(.985);transition-duration:.1s;box-shadow:inset 0 1px 0 rgb(255 255 255 / 4%)}
+.ofm_btn:disabled{opacity:.45;cursor:default;box-shadow:none;transform:none}
+.ofm_btn.primary{background:linear-gradient(180deg,color-mix(in srgb,var(--dsw-alias-state-business-primary) 88%,#fff),var(--dsw-alias-state-business-primary));border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 82%,#000);color:var(--dsw-alias-label-on-accent,#fff);box-shadow:inset 0 1px 0 rgb(255 255 255 / 18%),0 2px 8px color-mix(in srgb,var(--dsw-alias-state-business-primary) 32%,transparent)}
+.ofm_btn.primary:hover:not(:disabled){background:linear-gradient(180deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 88%,#000));border-color:var(--dsw-alias-state-business-primary);box-shadow:inset 0 1px 0 rgb(255 255 255 / 20%),0 4px 14px color-mix(in srgb,var(--dsw-alias-state-business-primary) 42%,transparent)}
+.ofm_btn.ghost{background:transparent;box-shadow:none;border-color:transparent;color:var(--dsw-alias-label-secondary)}
+.ofm_btn.ghost:hover:not(:disabled){background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 80%,transparent);border-color:var(--dsw-alias-border-l1);color:var(--dsw-alias-label-primary)}
+.ofm_minibtn{font:inherit;font-size:11px;font-weight:540;padding:3px 9px;border-radius:8px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l2) 85%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-3) 70%,transparent);color:var(--dsw-alias-label-secondary);cursor:pointer;transition:transform .12s ease,border-color .16s ease,color .16s ease,background .16s ease,opacity .16s ease}
+.ofm_minibtn:hover:not(:disabled){border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 60%,transparent);color:var(--dsw-alias-label-primary);background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 7%,transparent);transform:translateY(-1px)}
+.ofm_minibtn:active:not(:disabled){transform:scale(.96)}
+.ofm_minibtn:disabled{opacity:.45;cursor:default;transform:none}
+.ofm_minibtn.danger:hover:not(:disabled){border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 60%,transparent);color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 7%,transparent)}
+/* ══ 表单 ══════════════════════════════════════════════════════════════ */
 .ofm_field{display:flex;flex-direction:column;gap:4px;min-width:120px}
 .ofm_field>span{font-size:11px;color:var(--dsw-alias-label-tertiary)}
-.ofm_input{font:inherit;font-size:12px;padding:5px 9px;border-radius:9px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);min-width:0;width:100%}
-.ofm_input:focus{outline:none;border-color:var(--dsw-alias-state-business-primary)}
-.ofm_switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
-.ofm_switch i{width:34px;height:20px;border-radius:999px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l2);position:relative;transition:background .16s ease,border-color .16s ease;flex:none}
-.ofm_switch i::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--dsw-alias-label-secondary);transition:transform .16s ease,background .16s ease}
-.ofm_switch[aria-checked="true"] i{background:var(--dsw-alias-state-business-primary);border-color:var(--dsw-alias-state-business-primary)}
-.ofm_switch[aria-checked="true"] i::after{transform:translateX(14px);background:#fff}
+.ofm_input{font:inherit;font-size:12px;padding:6px 10px;border-radius:9px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);box-shadow:inset 0 1px 2px rgb(0 0 0 / 5%);color:var(--dsw-alias-label-primary);min-width:0;width:100%;transition:border-color .16s ease,box-shadow .16s ease}
+.ofm_input::placeholder{color:var(--dsw-alias-label-tertiary)}
+.ofm_input:hover{border-color:color-mix(in srgb,var(--dsw-alias-border-l2) 60%,var(--dsw-alias-label-tertiary))}
+.ofm_input:focus{outline:none;border-color:var(--dsw-alias-state-business-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-business-primary) 20%,transparent)}
+/* ══ 开关（spring 滑块） ═══════════════════════════════════════════════ */
+.ofm_switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.ofm_switch i{width:36px;height:20px;border-radius:999px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l2);box-shadow:inset 0 1px 3px rgb(0 0 0 / 8%);position:relative;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease;flex:none}
+.ofm_switch:hover i{filter:brightness(1.05)}
+.ofm_switch[aria-checked="true"]:hover i{filter:brightness(1.08)}
+.ofm_switch i::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--dsw-alias-label-secondary);box-shadow:0 1px 3px rgb(0 0 0 / 22%);transition:transform .26s cubic-bezier(.34,1.3,.64,1),background .2s ease,width .16s ease}
+.ofm_switch:active i::after{width:17px}
+.ofm_switch[aria-checked="true"] i{background:var(--dsw-alias-state-business-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 85%,#000);box-shadow:inset 0 1px 3px rgb(0 0 0 / 12%)}
+.ofm_switch[aria-checked="true"] i::after{transform:translateX(16px);background:#fff}
+.ofm_switch[aria-checked="true"]:active i::after{transform:translateX(13px)}
+.ofm_switch:focus-visible i{box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-business-primary) 22%,transparent)}
 .ofm_mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;padding:7px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);overflow-x:auto;white-space:pre;color:var(--dsw-alias-label-secondary)}
-.ofm_callout{display:flex;gap:9px;padding:10px 12px;border-radius:11px;border:1px solid var(--dsw-alias-state-warning-primary,#f0a441);background:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 10%,transparent);font-size:11.5px;line-height:1.5}
-.ofm_error{border-color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 10%,transparent)}
+/* ══ 提示条 ════════════════════════════════════════════════════════════ */
+.ofm_callout{display:flex;gap:9px;padding:10px 12px;border-radius:11px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 9%,transparent);font-size:11.5px;line-height:1.5;color:var(--dsw-alias-label-primary)}
+.ofm_error{border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 9%,transparent)}
+/* ══ 小组件统计 ════════════════════════════════════════════════════════ */
 .ofm_stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px}
-.ofm_stat{padding:9px 11px;border-radius:11px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1)}
-.ofm_stat b{display:block;font-size:16px;font-weight:680;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.ofm_stat{padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 78%,transparent);border:1px solid var(--dsw-alias-border-l1);box-shadow:inset 0 1px 0 rgb(255 255 255 / 4%)}
+.ofm_stat b{display:block;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
 .ofm_stat span{font-size:10.5px;color:var(--dsw-alias-label-tertiary)}
-/* announcement */
+/* ══ 公告（首次引导） ══════════════════════════════════════════════════ */
 /* The onboarding slot is mounted inside the collapsed sidebar foot of the shell,
    so a card that stays in flow inherits a 55 px-wide, overflow-hidden column. The
    scrim is therefore fixed to the viewport; the shell sets no transform, filter
    or contain on any ancestor, so nothing re-anchors it. Mask colour, blur and
    z-index mirror the Modal layer of the shell so this reads as first-party. */
-.ofm_scrim{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:var(--dsw-alias-bg-mask-1, rgb(0 0 0 / 24%));backdrop-filter:var(--dsw-mask-blur, blur(2px))}
-.ofm_ann{width:min(620px,92vw);max-height:min(86vh,640px);border-radius:18px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);box-shadow:0 24px 70px rgb(0 0 0 / 34%);overflow:hidden;display:flex;flex-direction:column}
-.ofm_annhead{padding:18px 22px 12px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(150deg,var(--dsw-alias-bg-layer-3),transparent)}
-.ofm_anntitle{margin:0;font-size:18px;font-weight:700;letter-spacing:-.3px}
+.ofm_scrim{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:var(--dsw-alias-bg-mask-1, rgb(0 0 0 / 32%));backdrop-filter:var(--dsw-mask-blur, blur(8px)) saturate(140%);-webkit-backdrop-filter:var(--dsw-mask-blur, blur(8px)) saturate(140%);animation:ofm-fadein .24s ease}
+@keyframes ofm-fadein{from{opacity:0}to{opacity:1}}
+.ofm_ann{width:min(620px,92vw);max-height:min(86vh,640px);border-radius:18px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 94%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 8%),0 28px 80px rgb(0 0 0 / 40%);overflow:hidden;display:flex;flex-direction:column;animation:ofm-popin .36s cubic-bezier(.16,1,.3,1)}
+@keyframes ofm-popin{from{opacity:0;transform:translateY(16px) scale(.965)}to{opacity:1;transform:none}}
+.ofm_annhead{padding:18px 22px 12px;display:flex;flex-direction:column;gap:8px;background:linear-gradient(150deg,color-mix(in srgb,var(--dsw-alias-state-business-primary) 8%,transparent),transparent 75%)}
+.ofm_anntitle{margin:0;font-size:18px;font-weight:730;letter-spacing:-.4px}
 .ofm_annsub{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary)}
 .ofm_steps{display:flex;gap:6px;padding:0 22px 14px}
-.ofm_step{height:3px;flex:1;border-radius:99px;background:var(--dsw-alias-border-l2);transition:background .2s ease}
-.ofm_step[data-on="true"]{background:var(--dsw-alias-state-business-primary)}
+.ofm_step{height:3px;flex:1;border-radius:99px;background:var(--dsw-alias-border-l2);transition:background .3s ease}
+.ofm_step[data-on="true"]{background:var(--dsw-alias-state-business-primary);box-shadow:0 0 6px color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,transparent)}
 .ofm_annbody{padding:2px 22px 18px;max-height:min(48vh,420px);overflow:auto;display:flex;flex-direction:column;gap:12px}
 .ofm_annbody h3{margin:0;font-size:13.5px;font-weight:660}
 .ofm_annbody p,.ofm_annbody li{font-size:12.5px;line-height:1.72;color:var(--dsw-alias-label-secondary);margin:0}
 .ofm_annbody ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
-.ofm_annfoot{display:flex;align-items:center;gap:10px;padding:13px 22px;border-top:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1)}
+.ofm_annfoot{display:flex;align-items:center;gap:10px;padding:13px 22px;border-top:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 72%,transparent)}
 .ofm_annfoot .spacer{margin-left:auto}
 .ofm_kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
-.ofm_kvc{padding:9px 11px;border-radius:11px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);display:flex;flex-direction:column;gap:3px}
-.ofm_kvc b{font-size:12.5px}
+.ofm_kvc{padding:9px 12px;border-radius:12px;border:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 74%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 4%);display:flex;flex-direction:column;gap:3px}
+.ofm_kvc b{font-size:12.5px;font-variant-numeric:tabular-nums}
 .ofm_kvc span{font-size:10.5px;color:var(--dsw-alias-label-tertiary)}
 .ofm_two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
-/* announcement center + upgrade */
+/* ══ 公告中心 ══════════════════════════════════════════════════════════ */
 .ofm_news{display:flex;flex-direction:column;gap:10px}
-.ofm_newsitem{display:flex;flex-direction:column;gap:7px;padding:12px 14px;border-radius:12px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-3);position:relative}
-.ofm_newsitem.unread{border-color:var(--dsw-alias-state-business-primary)}
-.ofm_newsdot{position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--dsw-alias-state-business-primary)}
+.ofm_newsitem{display:flex;flex-direction:column;gap:7px;padding:13px 15px;border-radius:13px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-3) 80%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 4%);position:relative;transition:border-color .18s ease,transform .2s cubic-bezier(.32,.72,0,1),box-shadow .22s ease}
+.ofm_newsitem:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 rgb(255 255 255 / 7%),0 8px 22px rgb(0 0 0 / 10%)}
+.ofm_newsitem.unread{border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,transparent)}
+.ofm_newsdot{position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;background:var(--dsw-alias-state-business-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-business-primary) 18%,transparent)}
 .ofm_newshead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-right:16px}
-.ofm_newstitle{font-size:13px;font-weight:650}
-.ofm_level{font-size:10.5px;padding:2px 8px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);white-space:nowrap}
-.ofm_level.info{color:var(--dsw-alias-state-business-primary);border-color:var(--dsw-alias-state-business-primary)}
-.ofm_level.update{color:var(--dsw-alias-state-success-primary);border-color:var(--dsw-alias-state-success-primary)}
-.ofm_level.warn{color:var(--dsw-alias-state-warning-primary,#f0a441);border-color:var(--dsw-alias-state-warning-primary,#f0a441)}
-.ofm_level.urgent{color:#fff;background:var(--dsw-alias-state-error-primary);border-color:var(--dsw-alias-state-error-primary)}
+.ofm_newstitle{font-size:13px;font-weight:650;letter-spacing:-.1px}
+.ofm_level{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);white-space:nowrap}
+.ofm_level.info{color:var(--dsw-alias-state-business-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 9%,transparent)}
+.ofm_level.update{color:var(--dsw-alias-state-success-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 9%,transparent)}
+.ofm_level.warn{color:var(--dsw-alias-state-warning-primary,#f0a441);border-color:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 9%,transparent)}
+.ofm_level.urgent{color:#fff;background:var(--dsw-alias-state-error-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 85%,#000)}
 .ofm_newsmeta{display:flex;gap:10px;font-size:11px;color:var(--dsw-alias-label-tertiary);flex-wrap:wrap}
 .ofm_newsbody{font-size:12.5px;line-height:1.7;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere}
 .ofm_newsbody p{margin:0 0 6px}
 .ofm_newsbody p:last-child{margin-bottom:0}
 .ofm_newsbody h1,.ofm_newsbody h2,.ofm_newsbody h3,.ofm_newsbody h4{margin:6px 0 4px;font-size:13px;line-height:1.4}
 .ofm_newsbody ul,.ofm_newsbody ol{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
-.ofm_newsbody code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);border-radius:5px;padding:1px 5px}
-.ofm_newsbody pre{margin:4px 0;padding:8px 10px;border-radius:9px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);overflow-x:auto}
+.ofm_newsbody code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);border-radius:6px;padding:1px 5px}
+.ofm_newsbody pre{margin:4px 0;padding:8px 10px;border-radius:10px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);overflow-x:auto}
 .ofm_newsbody pre code{background:transparent;border:0;padding:0}
-.ofm_newsbody blockquote{margin:4px 0;padding:2px 10px;border-left:3px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-tertiary)}
+.ofm_newsbody blockquote{margin:4px 0;padding:2px 10px;border-left:3px solid color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,transparent);color:var(--dsw-alias-label-tertiary)}
 .ofm_newsbody img{max-width:100%;border-radius:8px}
 .ofm_newsbody a{color:var(--dsw-alias-state-business-primary);text-decoration:none}
 .ofm_newsbody a:hover{text-decoration:underline}
 .ofm_newsbody table{border-collapse:collapse;font-size:12px}
 .ofm_newsbody th,.ofm_newsbody td{border:1px solid var(--dsw-alias-border-l1);padding:3px 8px}
 .ofm_newsbody hr{border:0;border-top:1px solid var(--dsw-alias-border-l1);margin:8px 0}
-.ofm_newsbody mark{background:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 30%,transparent)}
+.ofm_newsbody mark{background:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 30%,transparent);border-radius:2px;padding:0 2px}
 .ofm_upgradecards{display:flex;gap:8px;flex-wrap:wrap}
 .ofm_upnotes{max-height:220px;overflow:auto;padding:10px 12px;border-radius:10px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1)}
-.ofm_prog{height:4px;border-radius:99px;background:var(--dsw-alias-bg-layer-1);overflow:hidden}
-.ofm_prog i{display:block;height:100%;width:40%;border-radius:99px;background:var(--dsw-alias-state-business-primary);animation:ofm-prog-slide 1.1s ease-in-out infinite}
+/* ══ 进度条 ════════════════════════════════════════════════════════════ */
+.ofm_prog{height:4px;border-radius:99px;background:var(--dsw-alias-bg-layer-1);box-shadow:inset 0 1px 2px rgb(0 0 0 / 6%);overflow:hidden}
+.ofm_prog i{display:block;height:100%;width:40%;border-radius:99px;background:linear-gradient(90deg,color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,transparent),var(--dsw-alias-state-business-primary));animation:ofm-prog-slide 1.1s ease-in-out infinite}
+.ofm_prog i{position:relative;overflow:hidden}
+.ofm_prog i::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,color-mix(in srgb,var(--dsw-alias-bg-layer-1) 60%,transparent) 50%,transparent 70%);transform:translateX(-100%);animation:ofm-prog-shine 1.6s ease-in-out infinite}
+@keyframes ofm-prog-shine{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
 @keyframes ofm-prog-slide{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
-/* toasts (vanilla DOM, appended to body so they float above every surface) */
+/* ══ Toast（fixed 到视口，浮在所有层之上） ════════════════════════════ */
 .ofm_toasts{position:fixed;right:18px;bottom:18px;z-index:1200;display:flex;flex-direction:column;gap:10px;max-width:min(380px,calc(100vw - 36px));font-family:inherit}
-.ofm_toast{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);box-shadow:0 10px 34px rgb(0 0 0 / 22%);font-size:12.5px;line-height:1.5;color:var(--dsw-alias-label-primary);animation:ofm-toast-rise .18s ease}
-.ofm_toast.warn{border-color:var(--dsw-alias-state-warning-primary,#f0a441)}
-.ofm_toast.urgent{border-color:var(--dsw-alias-state-error-primary)}
-.ofm_toast .ofm_toasttitle{font-weight:650;font-size:12.5px;display:flex;align-items:center;gap:7px}
+.ofm_toast{position:relative;display:flex;flex-direction:column;gap:6px;padding:12px 14px 12px 16px;border-radius:13px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 94%,transparent);backdrop-filter:blur(14px) saturate(150%);-webkit-backdrop-filter:blur(14px) saturate(150%);box-shadow:inset 0 1px 0 rgb(255 255 255 / 7%),0 14px 40px rgb(0 0 0 / 26%);font-size:12.5px;line-height:1.5;color:var(--dsw-alias-label-primary);animation:ofm-toast-rise .32s cubic-bezier(.16,1,.3,1);overflow:hidden}
+.ofm_toast{transform-origin:bottom right;will-change:transform}
+.ofm_toast::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--dsw-alias-state-business-primary)}
+.ofm_toast.warn::before{background:var(--dsw-alias-state-warning-primary,#f0a441)}
+.ofm_toast.urgent::before{background:var(--dsw-alias-state-error-primary)}
+.ofm_toast.warn{border-color:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 42%,var(--dsw-alias-border-l2))}
+.ofm_toast.urgent{border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 42%,var(--dsw-alias-border-l2))}
+.ofm_toast .ofm_toasttitle{font-weight:660;font-size:12.5px;display:flex;align-items:center;gap:7px}
 .ofm_toast .ofm_toastbody{color:var(--dsw-alias-label-secondary);max-height:180px;overflow:auto;overflow-wrap:anywhere}
 .ofm_toast .ofm_toastbody p{margin:0 0 5px}
 .ofm_toast .ofm_toastbody p:last-child{margin-bottom:0}
 .ofm_toast .ofm_toastbody img{max-width:100%}
 .ofm_toastactions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.ofm_toastclose{margin-left:auto;background:transparent;border:0;color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;font-size:13px;padding:0 2px}
+.ofm_toastclose{margin-left:auto;background:transparent;border:0;color:var(--dsw-alias-label-tertiary);cursor:pointer;font:inherit;font-size:13px;padding:0 2px;transition:color .14s ease}
 .ofm_toastclose:hover{color:var(--dsw-alias-label-primary)}
-@keyframes ofm-toast-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.ofm_modal{width:min(520px,92vw);max-height:min(80vh,600px);border-radius:16px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);box-shadow:0 24px 70px rgb(0 0 0 / 34%);display:flex;flex-direction:column;overflow:hidden}
-.ofm_modalhead{padding:16px 20px 10px;display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700}
+@keyframes ofm-toast-rise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+/* ══ 模态 ══════════════════════════════════════════════════════════════ */
+.ofm_modal{width:min(520px,92vw);max-height:min(80vh,600px);border-radius:18px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 95%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 8%),0 28px 80px rgb(0 0 0 / 42%);display:flex;flex-direction:column;overflow:hidden;animation:ofm-popin .34s cubic-bezier(.16,1,.3,1)}
+.ofm_modalhead{padding:17px 20px 11px;display:flex;align-items:center;gap:10px;font-size:15px;font-weight:720;letter-spacing:-.2px}
 .ofm_modalbody{padding:4px 20px 16px;overflow:auto;font-size:12.5px;line-height:1.7;color:var(--dsw-alias-label-secondary)}
 .ofm_modalbody p{margin:0 0 6px}
-.ofm_modalfoot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1)}
+.ofm_modalfoot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 72%,transparent)}
 @media (max-width:720px){.ofm_sec_hint{margin-left:0;width:100%}.ofm_pills{margin-left:0;width:100%}}
-@keyframes ofmpulse{50%{opacity:.3}}
-.ofm_starbtn{display:inline-flex;gap:6px;align-items:center;padding:6px 13px;border-radius:999px;border:1px solid var(--dsw-alias-state-business-primary);color:var(--dsw-alias-state-business-primary);text-decoration:none;font-weight:600;font-size:12.5px;transition:background .2s,color .2s;white-space:nowrap}
-.ofm_starbtn:hover{background:var(--dsw-alias-state-business-primary);color:#fff}
+/* ══ GitHub star 按钮 ══════════════════════════════════════════════════ */
+.ofm_starbtn{position:relative;display:inline-flex;gap:7px;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,transparent);background:linear-gradient(140deg,color-mix(in srgb,var(--dsw-alias-state-business-primary) 16%,transparent),transparent 70%);color:var(--dsw-alias-state-business-primary);text-decoration:none;font-weight:650;font-size:12.5px;transition:transform .18s ease,box-shadow .22s ease,color .22s ease,background .22s ease;white-space:nowrap;overflow:hidden}
+.ofm_starbtn svg{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.ofm_starbtn:hover svg{transform:rotate(72deg) scale(1.12)}
+.ofm_starbtn:hover{box-shadow:0 0 0 4px color-mix(in srgb,var(--dsw-alias-state-business-primary) 10%,transparent),0 6px 16px color-mix(in srgb,var(--dsw-alias-state-business-primary) 22%,transparent)}
+.ofm_starbtn:active svg{transform:rotate(72deg) scale(.94)}
+.ofm_starbtn svg{width:14px;height:14px;fill:currentColor;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.ofm_starbtn:hover{transform:translateY(-1px);box-shadow:0 8px 22px color-mix(in srgb,var(--dsw-alias-state-business-primary) 34%,transparent);background:linear-gradient(140deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 72%,#3ECFA0));color:#fff}
+.ofm_starbtn:active{transform:scale(.97)}
+.ofm_starbtn:hover svg{transform:rotate(-72deg) scale(1.12)}
+.ofm_starbtn::after{content:"";position:absolute;top:0;bottom:0;width:38%;left:-45%;background:linear-gradient(100deg,transparent,rgb(255 255 255 / 34%),transparent);transform:skewX(-18deg);transition:left .55s ease}
+.ofm_starbtn:hover::after{left:112%}
+.ofm_starlink{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+/* ══ 鱼缸（品牌装饰：玻璃缸 + 水位 + 波光 + 鱼群） ════════════════════ */
 .ofm_tank{position:relative;width:206px;height:128px;border-radius:16px;overflow:hidden;flex:none;background:linear-gradient(180deg,rgba(127,166,255,.10),rgba(127,166,255,.03));box-shadow:inset 0 0 0 1px var(--dsw-alias-border-l1)}
 .ofm_tankwater{position:absolute;left:0;right:0;bottom:0;height:var(--lvl,0%);transition:height 1.4s cubic-bezier(.22,.61,.36,1)}
 .ofm_tank.ok .ofm_tankwater{background:linear-gradient(180deg,color-mix(in srgb,var(--dsw-alias-state-business-primary) 72%,transparent),var(--dsw-alias-state-business-primary))}
@@ -1415,7 +1526,7 @@ window.__ModuleLoader__.load({
 .ofm_bubble.b4{left:71%;width:7px;height:7px;animation-delay:1.3s;animation-duration:8s}
 .ofm_bubble.b5{left:86%;width:4px;height:4px;animation-delay:5.4s;animation-duration:10s}
 @keyframes ofmbub{0%{transform:translateY(0);opacity:0}12%{opacity:.75}100%{transform:translateY(-136px);opacity:0}}
-.ofm_fish{position:absolute;left:-34px;width:26px;height:13px;animation:ofmswim 12s linear infinite;will-change:transform}
+.ofm_fish{position:absolute;left:-34px;width:26px;height:13px;animation:ofmswim 12s linear infinite;will-change:transform;filter:drop-shadow(0 1px 2px rgb(0 0 0 / 18%))}
 .ofm_fish.f1{bottom:14px}
 .ofm_fish.f1 svg,.ofm_fish.f3 svg{transform:scaleX(-1)}
 .ofm_fish.f2{bottom:44px;animation-duration:16s;animation-delay:-7s;animation-name:ofmswimrev}
@@ -1423,9 +1534,12 @@ window.__ModuleLoader__.load({
 .ofm_fish svg{display:block;width:100%;height:100%;fill:rgba(255,255,255,.82)}
 @keyframes ofmswim{0%{transform:translateX(0)}100%{transform:translateX(270px)}}
 @keyframes ofmswimrev{0%{transform:translateX(270px)}100%{transform:translateX(0)}}
-.ofm_tankglass{position:absolute;inset:0;pointer-events:none;border-radius:16px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 16px 30px rgba(255,255,255,.05),inset 0 -10px 22px rgba(0,0,0,.07)}
+.ofm_tankglass{position:absolute;inset:0;pointer-events:none;border-radius:16px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 18px 32px rgba(255,255,255,.06),inset 0 -12px 24px rgba(0,0,0,.10)}
+.ofm_tankrays{position:absolute;inset:-30% -12%;pointer-events:none;opacity:.5;background:repeating-linear-gradient(104deg,rgb(255 255 255 / 7%) 0 9px,transparent 9px 30px);mix-blend-mode:soft-light;animation:ofmrays 11s ease-in-out infinite alternate}
+@keyframes ofmrays{from{transform:translateX(-14px) rotate(-.4deg)}to{transform:translateX(14px) rotate(.4deg)}}
+.ofm_tankshine{position:absolute;inset:0;pointer-events:none;background:linear-gradient(196deg,rgb(255 255 255 / 13%) 0%,transparent 32%)}
 @media (prefers-reduced-motion:reduce){.ofm_wave,.ofm_bubble,.ofm_fish,.ofm_tankrays{animation:none}}
-/* ── 三页外壳：极光底 · 毛玻璃导航 · 页过渡 ───────────────────────────────
+/* ══ 三页外壳：极光底 · 毛玻璃导航 · 页过渡 ═════════════════════════════
    The aurora is a fixed layer *inside* our root: a flat shell background gives
    backdrop-filter nothing to sample, so every glass surface would read as a
    plain translucent box. It sits at z-index:-1 with isolation:isolate on the
@@ -1440,9 +1554,9 @@ window.__ModuleLoader__.load({
 @keyframes ofmdrift{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(3vw,2vh,0) scale(1.09)}100%{transform:translate3d(-3vw,-2vh,0) scale(.96)}}
 .ofm_nav{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px 12px;padding:10px 12px;border-radius:16px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l2) 82%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 62%,transparent);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);box-shadow:inset 0 1px 0 rgb(255 255 255 / 7%),0 8px 26px rgb(0 0 0 / 10%)}
 .ofm_navbrand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:14px;letter-spacing:-.2px;white-space:nowrap}
-.ofm_navmark{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;flex:none;background:linear-gradient(145deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 42%,#3ECFA0));box-shadow:0 4px 12px color-mix(in srgb,var(--dsw-alias-state-business-primary) 40%,transparent)}
+.ofm_navmark{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;flex:none;background:linear-gradient(145deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 42%,#3ECFA0));box-shadow:0 4px 12px color-mix(in srgb,var(--dsw-alias-state-business-primary) 40%,transparent),inset 0 1px 0 rgb(255 255 255 / 22%)}
 .ofm_navmark svg{width:16px;height:16px;fill:#fff}
-.ofm_tabs{position:relative;grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:13px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 80%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 62%,transparent)}
+.ofm_tabs{position:relative;grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:13px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 80%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 62%,transparent);box-shadow:inset 0 1px 2px rgb(0 0 0 / 4%)}
 .ofm_tabglider{position:absolute;top:0;left:0;border-radius:10px;background:linear-gradient(150deg,color-mix(in srgb,var(--dsw-alias-bg-layer-3) 92%,transparent),color-mix(in srgb,var(--dsw-alias-bg-layer-2) 88%,transparent));box-shadow:0 3px 10px rgb(0 0 0 / 14%),inset 0 1px 0 rgb(255 255 255 / 9%);transition:transform .34s cubic-bezier(.22,.61,.36,1),width .34s cubic-bezier(.22,.61,.36,1),height .34s cubic-bezier(.22,.61,.36,1);pointer-events:none}
 .ofm_tab{position:relative;z-index:1;font:inherit;font-size:12px;font-weight:600;padding:6px 13px;border-radius:10px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);cursor:pointer;white-space:nowrap;transition:color .2s ease}
 .ofm_tab[data-on="true"]{color:var(--dsw-alias-label-primary)}
@@ -1452,112 +1566,545 @@ window.__ModuleLoader__.load({
 /* The star belongs beside the brand: grid auto-placement would push it below
    the tabs row (they come first in the DOM) and stretch it across the row. */
 .ofm_nav .ofm_starbtn{grid-column:2;grid-row:1;justify-self:end}
-.ofm_starbtn{position:relative;display:inline-flex;gap:7px;align-items:center;padding:7px 15px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,transparent);background:linear-gradient(140deg,color-mix(in srgb,var(--dsw-alias-state-business-primary) 16%,transparent),transparent 70%);color:var(--dsw-alias-state-business-primary);text-decoration:none;font-weight:650;font-size:12.5px;transition:transform .18s ease,box-shadow .22s ease,color .22s ease,background .22s ease;white-space:nowrap;overflow:hidden}
-.ofm_starbtn svg{width:14px;height:14px;fill:currentColor;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
-.ofm_starbtn:hover{transform:translateY(-1px);box-shadow:0 8px 22px color-mix(in srgb,var(--dsw-alias-state-business-primary) 34%,transparent);background:linear-gradient(140deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 72%,#3ECFA0));color:#fff}
-.ofm_starbtn:hover svg{transform:rotate(-72deg) scale(1.12)}
-.ofm_starbtn::after{content:"";position:absolute;top:0;bottom:0;width:38%;left:-45%;background:linear-gradient(100deg,transparent,rgb(255 255 255 / 34%),transparent);transform:skewX(-18deg);transition:left .55s ease}
-.ofm_starbtn:hover::after{left:112%}
-.ofm_page{display:flex;flex-direction:column;gap:20px;animation:ofmpagein .24s cubic-bezier(.22,.61,.36,1)}
+.ofm_page{display:flex;flex-direction:column;gap:20px;animation:ofmpagein .4s cubic-bezier(.16,1,.3,1)}
 @keyframes ofmpagein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-/* 毛玻璃表面：只给大块面用 backdrop-filter，小卡片用半透明叠层，滚动更顺 */
+/* ── 毛玻璃表面：只给大块面用 backdrop-filter，小卡片用半透明叠层，滚动更顺 */
 .ofm_glass{background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 68%,transparent);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border:1px solid color-mix(in srgb,var(--dsw-alias-border-l2) 78%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 6%),0 12px 34px rgb(0 0 0 / 9%)}
 .ofm_root .ofm_hero,.ofm_root .ofm_panel,.ofm_root .ofm_ann,.ofm_root .ofm_modal{background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 70%,transparent);backdrop-filter:blur(18px) saturate(155%);-webkit-backdrop-filter:blur(18px) saturate(155%);box-shadow:inset 0 1px 0 rgb(255 255 255 / 7%),0 14px 40px rgb(0 0 0 / 10%)}
-.ofm_root .ofm_card,.ofm_root .ofm_newsitem,.ofm_root .ofm_stat{background:color-mix(in srgb,var(--dsw-alias-bg-layer-3) 78%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 5%)}
-.ofm_root .ofm_card{transition:border-color .18s ease,transform .22s cubic-bezier(.22,.61,.36,1),box-shadow .22s ease}
-.ofm_root .ofm_card:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgb(255 255 255 / 8%),0 14px 30px rgb(0 0 0 / 14%)}
-/* 页头：标题 + 鱼缸（鱼缸紧随标题，位于页首最上方） */
-.ofm_hero{display:flex;flex-direction:column;gap:14px;padding:20px 22px;border-radius:20px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l2) 78%,transparent)}
-.ofm_pagehead{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
-.ofm_pagetitle{display:flex;flex-direction:column;gap:5px;min-width:0}
-.ofm_pagetitle h2{margin:0;font-size:23px;font-weight:750;letter-spacing:-.5px;background:linear-gradient(120deg,var(--dsw-alias-label-primary),color-mix(in srgb,var(--dsw-alias-label-primary) 62%,var(--dsw-alias-state-business-primary)));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.ofm_pagesub{margin:0;font-size:12.5px;color:var(--dsw-alias-label-secondary);max-width:70ch}
-.ofm_pagehead .ofm_pills{margin-left:auto}
+/* ══ 鱼缸加大版（页头） ════════════════════════════════════════════════ */
 .ofm_tankrow{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .ofm_tankside{flex:1;min-width:236px;display:flex;flex-direction:column;gap:11px;justify-content:center}
 .ofm_tank.xl{width:264px;height:148px;border-radius:20px;box-shadow:inset 0 0 0 1px rgb(255 255 255 / 12%),0 16px 40px rgb(0 0 0 / 14%)}
 .ofm_tank.xl .ofm_tankglass{border-radius:20px}
-.ofm_tankrays{position:absolute;inset:-30% -12%;pointer-events:none;opacity:.5;background:repeating-linear-gradient(104deg,rgb(255 255 255 / 7%) 0 9px,transparent 9px 30px);mix-blend-mode:soft-light;animation:ofmrays 11s ease-in-out infinite alternate}
-@keyframes ofmrays{from{transform:translateX(-14px) rotate(-.4deg)}to{transform:translateX(14px) rotate(.4deg)}}
-.ofm_tankshine{position:absolute;inset:0;pointer-events:none;background:linear-gradient(196deg,rgb(255 255 255 / 12%) 0%,transparent 30%)}
-.ofm_fish{filter:drop-shadow(0 1px 2px rgb(0 0 0 / 18%))}
-/* 渠道接入页 */
+/* ══ 渠道接入页 ════════════════════════════════════════════════════════ */
 .ofm_chanwrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
-.ofm_chan{position:relative;display:flex;flex-direction:column;gap:12px;padding:15px 16px 14px;border-radius:16px;overflow:hidden;transition:transform .22s cubic-bezier(.22,.61,.36,1),box-shadow .24s ease,border-color .2s ease}
-.ofm_chan::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--chan-accent,var(--dsw-alias-state-business-primary)),transparent 78%);opacity:.9}
+.ofm_chan{position:relative;display:flex;flex-direction:column;gap:12px;padding:16px 17px 15px;border-radius:16px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-3) 78%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 5%),0 1px 2px rgb(0 0 0 / 5%);overflow:hidden;transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .24s ease,border-color .2s ease}
+.ofm_chan::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,var(--chan-accent,var(--dsw-alias-state-business-primary)),transparent 78%);opacity:.95}
 .ofm_chan:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgb(255 255 255 / 8%),0 18px 40px rgb(0 0 0 / 15%);border-color:color-mix(in srgb,var(--chan-accent,var(--dsw-alias-state-business-primary)) 55%,transparent)}
 .ofm_chan.off{opacity:.62}
 .ofm_chanhead{display:flex;align-items:center;gap:11px}
-.ofm_chanlogo{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none;font-weight:800;font-size:13px;color:#fff;letter-spacing:-.3px;background:linear-gradient(145deg,var(--chan-accent,var(--dsw-alias-state-business-primary)),color-mix(in srgb,var(--chan-accent,var(--dsw-alias-state-business-primary)) 45%,#101828));box-shadow:0 6px 16px color-mix(in srgb,var(--chan-accent,var(--dsw-alias-state-business-primary)) 34%,transparent)}
+.ofm_chanlogo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;font-weight:800;font-size:13px;color:#fff;letter-spacing:-.3px;background:linear-gradient(150deg,var(--chan-accent,var(--dsw-alias-state-business-primary)),color-mix(in srgb,var(--chan-accent,var(--dsw-alias-state-business-primary)) 45%,#101828));box-shadow:0 6px 16px color-mix(in srgb,var(--chan-accent,var(--dsw-alias-state-business-primary)) 34%,transparent),inset 0 1px 0 rgb(255 255 255 / 22%)}
+.ofm_chan:hover .ofm_chanlogo{transform:scale(1.06) rotate(-3deg);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.ofm_chanlogo{transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
 .ofm_chanid{display:flex;flex-direction:column;gap:2px;min-width:0}
 .ofm_chanid b{font-size:14px;font-weight:700;letter-spacing:-.2px}
 .ofm_chanid span{font-size:11px;color:var(--dsw-alias-label-tertiary)}
-.ofm_chanstate{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--dsw-alias-label-secondary);padding:3px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 90%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 70%,transparent);white-space:nowrap}
+.ofm_chanstate{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--dsw-alias-label-secondary);padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 90%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 70%,transparent);white-space:nowrap}
 .ofm_chanmeta{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--dsw-alias-label-tertiary)}
 .ofm_chanmeta b{color:var(--dsw-alias-label-secondary);font-weight:650;font-variant-numeric:tabular-nums}
 .ofm_chanacts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .ofm_acctlist{display:flex;flex-direction:column;gap:6px}
-.ofm_acct{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:11px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 82%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 62%,transparent);font-size:12px}
+.ofm_acct{display:flex;align-items:center;flex-wrap:wrap;gap:9px;padding:7px 10px;border-radius:11px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 82%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 62%,transparent);font-size:12px;transition:border-color .16s ease,background .16s ease}
+.ofm_acct:hover{border-color:var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 88%,transparent)}
 .ofm_acct.pending{border-style:dashed}
 .ofm_acctname{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
 .ofm_acctmeta{font-size:10.5px;color:var(--dsw-alias-label-tertiary);white-space:nowrap}
+.ofm_balanceerror{flex-basis:100%;overflow-wrap:anywhere;color:var(--dsw-alias-state-error-primary);font-size:11px}
 .ofm_acctacts{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
-.ofm_minibtn{font:inherit;font-size:11px;padding:3px 9px;border-radius:8px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l2) 85%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-3) 70%,transparent);color:var(--dsw-alias-label-secondary);cursor:pointer;transition:border-color .16s ease,color .16s ease,transform .16s ease}
-.ofm_minibtn:hover:not(:disabled){border-color:var(--dsw-alias-state-business-primary);color:var(--dsw-alias-label-primary);transform:translateY(-1px)}
-.ofm_minibtn:disabled{opacity:.45;cursor:default}
-.ofm_minibtn.danger:hover:not(:disabled){border-color:var(--dsw-alias-state-error-primary);color:var(--dsw-alias-state-error-primary)}
 .ofm_modellist{display:flex;flex-direction:column;gap:4px;max-height:238px;overflow:auto;padding-right:2px}
-.ofm_modelrow{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:9px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 55%,transparent);font-size:11.5px}
+.ofm_modelrow{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:9px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 55%,transparent);font-size:11.5px;transition:background .15s ease}
+.ofm_modelrow:hover{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 85%,transparent)}
 .ofm_modelrow.off{opacity:.5}
 .ofm_modelrow .ofm_id{flex:1;min-width:0}
-.ofm_tagpill{font-size:10px;padding:1px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 90%,transparent);color:var(--dsw-alias-label-tertiary);white-space:nowrap}
-.ofm_tagpill.free{color:var(--dsw-alias-state-success-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 60%,transparent)}
-.ofm_tagpill.dead{color:var(--dsw-alias-state-error-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 60%,transparent)}
+.ofm_tagpill{font-size:10px;font-weight:560;padding:1px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 90%,transparent);color:var(--dsw-alias-label-tertiary);white-space:nowrap}
+.ofm_tagpill.free{color:var(--dsw-alias-state-success-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 55%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 8%,transparent)}
+.ofm_tagpill.dead{color:var(--dsw-alias-state-error-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 55%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 8%,transparent)}
 .ofm_chanfold{border-top:1px dashed color-mix(in srgb,var(--dsw-alias-border-l1) 85%,transparent);padding-top:10px;display:flex;flex-direction:column;gap:8px}
-.ofm_foldtoggle{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dsw-alias-label-secondary);background:transparent;border:0;cursor:pointer;font-family:inherit;padding:0}
+.ofm_foldtoggle{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dsw-alias-label-secondary);background:transparent;border:0;cursor:pointer;font-family:inherit;padding:0;transition:color .15s ease}
+.ofm_foldtoggle svg{transition:transform .3s cubic-bezier(.32,.72,0,1)}
+.ofm_foldtoggle:hover svg{transform:translateY(1px)}
 .ofm_foldtoggle:hover{color:var(--dsw-alias-label-primary)}
 .ofm_foldtoggle svg{width:10px;height:10px;fill:currentColor;transition:transform .22s ease}
 .ofm_foldtoggle[data-open="true"] svg{transform:rotate(90deg)}
-.ofm_skel{position:relative;overflow:hidden;border-radius:12px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 60%,transparent);min-height:96px}
+/* ══ 骨架屏 ════════════════════════════════════════════════════════════ */
+.ofm_skel{position:relative;overflow:hidden;border-radius:12px;background:color-mix(in srgb,var(--dsw-alias-bg-layer-2) 60%,transparent);border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 60%,transparent);min-height:96px;animation:ofmpulse 1.8s ease-in-out infinite}
+.ofm_skel::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 30%,color-mix(in srgb,var(--dsw-alias-bg-layer-1) 55%,transparent) 50%,transparent 70%);transform:translateX(-100%);animation:ofm-skel-shine 1.8s ease-in-out infinite}
+@keyframes ofm-skel-shine{0%{transform:translateX(-100%)}60%,100%{transform:translateX(100%)}}
 .ofm_skel::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent,rgb(255 255 255 / 8%) 42%,transparent 74%);animation:ofmshine 1.5s ease-in-out infinite}
 @keyframes ofmshine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
-.ofm_loginbody{display:flex;flex-direction:column;gap:12px}
-.ofm_loginstep{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--dsw-alias-label-secondary)}
-.ofm_loginstep b{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 20%,transparent);color:var(--dsw-alias-state-business-primary)}
+@keyframes ofmpulse{0%,100%{opacity:1}50%{opacity:.55}}
+/* ══ 登录引导 ══════════════════════════════════════════════════════════ */
+.ofm_loginbody{display:flex;flex-direction:column;gap:14px}
+.ofm_loginstep{display:flex;gap:11px;align-items:flex-start;font-size:12.5px;line-height:1.6;color:var(--dsw-alias-label-secondary)}
+.ofm_loginstep b{flex:none;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:650;background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 14%,transparent);border:1px solid color-mix(in srgb,var(--dsw-alias-state-business-primary) 35%,transparent);color:var(--dsw-alias-state-business-primary)}
 .ofm_scanline{animation:ofmscan 2.2s ease-in-out infinite}
 @keyframes ofmscan{0%,100%{opacity:.35}50%{opacity:.85}}
-.ofm_creditbadge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;padding:2px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 55%,transparent);color:var(--dsw-alias-state-warning-primary,#f0a441);white-space:nowrap}
-/* 数据看板 */
+/* ══ 数据看板 KPI ══════════════════════════════════════════════════════ */
 .ofm_kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
-.ofm_kpi{display:flex;flex-direction:column;gap:6px;padding:15px 17px;border-radius:16px;transition:transform .22s cubic-bezier(.22,.61,.36,1),box-shadow .24s ease}
-.ofm_kpi:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgb(255 255 255 / 8%),0 16px 36px rgb(0 0 0 / 13%)}
-.ofm_kpilabel{font-size:11.5px;color:var(--dsw-alias-label-tertiary)}
-.ofm_kpivalue{font-size:24px;font-weight:750;letter-spacing:-.6px;font-variant-numeric:tabular-nums;background:linear-gradient(120deg,var(--dsw-alias-label-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,var(--dsw-alias-label-primary)));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ofm_kpi{display:flex;flex-direction:column;gap:6px;padding:15px 17px;border-radius:16px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-3) 78%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 5%),0 1px 2px rgb(0 0 0 / 5%);transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .24s ease,border-color .2s ease}
+.ofm_kpi:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 45%,var(--dsw-alias-border-l2));box-shadow:inset 0 1px 0 rgb(255 255 255 / 8%),0 16px 36px rgb(0 0 0 / 13%)}
+.ofm_kpilabel{font-size:11px;font-weight:560;letter-spacing:.4px;text-transform:uppercase;color:var(--dsw-alias-label-tertiary)}
+.ofm_kpivalue{font-size:25px;font-weight:760;letter-spacing:-.7px;line-height:1.15;font-variant-numeric:tabular-nums;background:linear-gradient(120deg,var(--dsw-alias-label-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,var(--dsw-alias-label-primary)));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ofm_kpi:hover .ofm_kpivalue{transform:translateY(-1px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.ofm_kpivalue{transition:transform .3s cubic-bezier(.34,1.56,.64,1);display:inline-block}
 .ofm_kpisub{font-size:11px;color:var(--dsw-alias-label-tertiary);font-variant-numeric:tabular-nums}
 .ofm_kpi.warn .ofm_kpivalue{-webkit-text-fill-color:var(--dsw-alias-state-warning-primary,#f0a441);background:none}
-.ofm_logfailed td{background:color-mix(in srgb,var(--dsw-alias-state-error-primary,#ec1313) 5%,transparent)}
-.ofm_root .ofm_table tbody tr{transition:background .16s ease}
-.ofm_root .ofm_table tbody tr:hover td{background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4176e6) 6%,transparent)}
-/* 真实图标与积分展示 */
+.ofm_logfailed td{background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 5%,transparent)}
+/* ══ 真实图标与积分展示 ════════════════════════════════════════════════ */
 .ofm_navmark img,.ofm_chanlogo img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .ofm_chanlogo{padding:0;overflow:hidden}
-.ofm_credittotal b{color:var(--dsw-alias-state-success-primary,#22c55e);font-variant-numeric:tabular-nums}
-.ofm_creditbadge.strong{color:var(--dsw-alias-state-success-primary,#22c55e);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary,#22c55e) 55%,transparent)}
+.ofm_credittotal b{color:var(--dsw-alias-state-success-primary);font-variant-numeric:tabular-nums}
+.ofm_creditbadge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 50%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 9%,transparent);color:var(--dsw-alias-state-warning-primary,#f0a441);white-space:nowrap}
+.ofm_creditbadge.strong{max-width:100%;white-space:normal;overflow-wrap:anywhere;color:var(--dsw-alias-state-success-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 50%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 9%,transparent)}
+/* ══ 账号池状态 ════════════════════════════════════════════════════════ */
 .ofm_pooltop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.ofm_poolbadge{display:inline-flex;align-items:center;gap:8px;padding:5px 13px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 72%,transparent);font-size:12.5px;font-weight:650;white-space:nowrap}
+.ofm_poolbadge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 72%,transparent);box-shadow:inset 0 1px 0 rgb(255 255 255 / 4%);font-size:12.5px;font-weight:650;white-space:nowrap}
 .ofm_pooldot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--dsw-alias-label-tertiary)}
-.ofm_poolbadge.ok{color:var(--dsw-alias-state-success-primary,#22c55e)}
-.ofm_poolbadge.ok .ofm_pooldot{background:var(--dsw-alias-state-success-primary,#22c55e)}
-.ofm_poolbadge.busy{color:var(--dsw-alias-state-warning-primary,#f0a441)}
+.ofm_poolbadge.ok{color:var(--dsw-alias-state-success-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-success-primary) 40%,transparent)}
+.ofm_poolbadge.ok .ofm_pooldot{background:var(--dsw-alias-state-success-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-success-primary) 18%,transparent)}
+.ofm_poolbadge.busy{color:var(--dsw-alias-state-warning-primary,#f0a441);border-color:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 40%,transparent)}
 .ofm_poolbadge.busy .ofm_pooldot{background:var(--dsw-alias-state-warning-primary,#f0a441);animation:ofmpulse 1.4s ease-in-out infinite}
-.ofm_poolbadge.over{color:var(--dsw-alias-state-error-primary,#ec1313)}
-.ofm_poolbadge.over .ofm_pooldot{background:var(--dsw-alias-state-error-primary,#ec1313);animation:ofmpulse .8s ease-in-out infinite}
-@keyframes ofmpulse{50%{opacity:.3}}
+.ofm_poolbadge.over{color:var(--dsw-alias-state-error-primary);border-color:color-mix(in srgb,var(--dsw-alias-state-error-primary) 40%,transparent)}
+.ofm_poolbadge.over .ofm_pooldot{background:var(--dsw-alias-state-error-primary);animation:ofmpulse .8s ease-in-out infinite}
 .ofm_poolstats{display:flex;gap:22px;flex-wrap:wrap}
 .ofm_poolstats .ofm_stat b{font-size:19px}
-.ofm_poolstats .ofm_stat.hot b{color:var(--dsw-alias-state-error-primary,#ec1313)}
+.ofm_poolstats .ofm_stat.hot b{color:var(--dsw-alias-state-error-primary)}
 .ofm_poolmeta{display:flex;gap:8px 18px;align-items:baseline;flex-wrap:wrap;justify-content:space-between}
 @media (max-width:760px){.ofm_tank.xl{width:100%;max-width:340px}.ofm_tab{flex:1 1 auto;text-align:center}}
+/* ══ 动效降级：用户系统开启"减少动态效果"时全部收敛 ═══════════════════ */
+/* —— 交互锚点增强：激活态 / 状态色 / 加载态（additive，不改既有规则） —— */
+/* tab：激活项在滑块底衬之上再补一道品牌下划线，选中更明确 */
+.ofm_tab[aria-selected="true"]{color:var(--dsw-alias-label-primary)}
+.ofm_tab[aria-selected="true"]::after{content:"";position:absolute;left:12px;right:12px;bottom:3px;height:2px;border-radius:2px;background:var(--dsw-alias-state-business-primary);opacity:.85;transition:opacity .18s cubic-bezier(.32,.72,0,1)}
+/* 渠道卡：随接入状态着色顶部 hairline 与外发光（已接入=品牌色、关闭=灰、待接入=琥珀弱化） */
+.ofm_chan[data-state="on"]::before{background:linear-gradient(90deg,var(--chan-accent,var(--dsw-alias-state-business-primary)),color-mix(in srgb,var(--chan-accent,var(--dsw-alias-state-business-primary)) 30%,transparent));opacity:1}
+.ofm_chan[data-state="on"]{border-color:color-mix(in srgb,var(--chan-accent,var(--dsw-alias-state-business-primary)) 34%,var(--dsw-alias-border-l2))}
+.ofm_chan[data-state="idle"]::before{background:linear-gradient(90deg,var(--dsw-alias-state-warning-primary,#f0a441),transparent);opacity:.6}
+.ofm_chan[data-state="off"]::before{background:linear-gradient(90deg,var(--dsw-alias-label-tertiary),transparent);opacity:.5}
+/* 按钮：异步进行中显示内联 spinner（aria-busy 锚点，文字仍保留占位避免布局跳动） */
+.ofm_btn[aria-busy="true"]{position:relative;color:transparent !important;pointer-events:none}
+.ofm_btn[aria-busy="true"]::after{content:"";position:absolute;left:50%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;border:2px solid color-mix(in srgb,currentColor 30%,var(--dsw-alias-label-secondary));border-top-color:var(--dsw-alias-label-primary);animation:ofm-btn-spin .7s linear infinite}
+@keyframes ofm-btn-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.ofm_root *,.ofm_root *::before,.ofm_root *::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}}
+/* ═══ 精密仪器精修层（世界观：原厂仪器手感）：颜色听宿主，质感在阻尼。曲线 --ease-instrument 冲得快落得稳，--ease-settle 极轻过冲。退场比进场快。 ═══ */
+.ofm_glass{transition:border-color .22s var(--ease-instrument),box-shadow .26s var(--ease-instrument),transform .22s var(--ease-instrument),background .22s var(--ease-instrument)}
+.ofm_glass:hover{border-color:color-mix(in srgb,var(--dsw-alias-border-l2) 92%,var(--dsw-alias-state-business-primary));box-shadow:0 1px 2px rgb(0 0 0 / 5%),0 10px 28px -14px color-mix(in srgb,var(--dsw-alias-state-business-primary) 18%,transparent)}
+.ofm_kpi{transition:border-color .22s var(--ease-instrument),transform .22s var(--ease-instrument),box-shadow .26s var(--ease-instrument)}
+.ofm_kpi:hover{transform:translateY(-1px)}
+.ofm_kpivalue{transition:transform .3s var(--ease-settle),color .2s var(--ease-instrument);display:inline-block}
+.ofm_kpi:hover .ofm_kpivalue{transform:translateY(-1px) scale(1.015);color:var(--dsw-alias-label-primary)}
+.ofm_table tbody tr{transition:background .14s var(--ease-instrument)}
+.ofm_seg button,.ofm_chip{transition:background .2s var(--ease-instrument),color .2s var(--ease-instrument),border-color .2s var(--ease-instrument),box-shadow .22s var(--ease-settle)}
+.ofm_prog i{transition:width .5s var(--ease-instrument)}
+.ofm_minibtn{transition:transform .14s var(--ease-instrument),border-color .18s var(--ease-instrument),color .18s var(--ease-instrument),background .18s var(--ease-instrument)}
+.ofm_minibtn:active:not(:disabled){transform:scale(.98);transition-duration:.09s}
+.ofm_root input,.ofm_root select,.ofm_root textarea{transition:border-color .18s var(--ease-instrument),box-shadow .2s var(--ease-instrument),background .18s var(--ease-instrument)}
+@media (prefers-reduced-motion:reduce){.ofm_glass,.ofm_kpi,.ofm_kpivalue,.ofm_minibtn,.ofm_prog i{transition:none!important}.ofm_kpi:hover,.ofm_kpi:hover .ofm_kpivalue{transform:none}}
+
+/* ==== V5 INSTRUMENT START ==== */
+/* 精密仪器·样板间覆盖层：1px细边+内高光，无外投影；颜色全部听宿主 var(--dsw-alias-*)。
+   夜(暗)高光更刃、纹理更显；昼(亮)高光收敛、纹理近乎哑。reduced-motion 去位移留状态。 */
+
+/* ── ① 面板卡片 .ofm_panel / .ofm_card ─────────────────────────── */
+/* 双基底：拉丝细纹(repeating-linear-gradient)垫底，实体色覆盖在上，从边缘隐约透出拉丝感 */
+.ofm_root .ofm_panel{
+  background:
+    repeating-linear-gradient(115deg, rgb(255 255 255 / 4.5%) 0 1px, transparent 1px 2.5px) padding-box,
+    color-mix(in srgb, var(--dsw-alias-bg-layer-2) 86%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%), inset 0 -14px 28px -18px rgb(0 0 0 / 16%) !important;
+  transition: border-color .22s var(--ease-instrument), box-shadow .26s var(--ease-instrument), transform .22s var(--ease-instrument) !important;
+}
+.ofm_root .ofm_card{
+  background:
+    repeating-linear-gradient(115deg, rgb(255 255 255 / 4.5%) 0 1px, transparent 1px 2.5px) padding-box,
+    color-mix(in srgb, var(--dsw-alias-bg-layer-3) 84%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), inset 0 -12px 24px -16px rgb(0 0 0 / 14%) !important;
+  transition: transform .22s var(--ease-instrument), box-shadow .26s var(--ease-instrument), border-color .2s var(--ease-instrument) !important;
+}
+/* hover：kinetic tension —— 位移压浅(-1px)，去掉外投影，靠边色提亮+高光增强传递"浮起" */
+.ofm_root .ofm_card:hover{
+  transform: translateY(-1px) !important;
+  border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 58%, var(--dsw-alias-border-l2)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 11%), inset 0 -12px 24px -16px rgb(0 0 0 / 10%) !important;
+}
+
+/* ── ② 按钮 .ofm_btn ─────────────────────────── */
+/* kinetic tension：外壳 active 陷落(scale .985)，内部 ::after 扫光条反向滑过形成"外陷内顶" */
+.ofm_root .ofm_btn{
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%) !important;
+  transition: transform .16s var(--ease-settle), border-color .2s var(--ease-instrument), background .2s var(--ease-instrument), box-shadow .2s var(--ease-instrument), opacity .16s var(--ease-instrument) !important;
+}
+.ofm_root .ofm_btn::after{
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important; bottom: 0 !important;
+  left: -60% !important; width: 42% !important;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 14%), transparent) !important;
+  transform: skewX(-18deg) !important;
+  transition: left .5s var(--ease-instrument) !important;
+  pointer-events: none !important;
+}
+/* hover：扫光滑过（exit slower than press）；去掉原外投影，仅留顶部高光 */
+.ofm_root .ofm_btn:hover:not(:disabled){
+  transform: translateY(-1px) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%) !important;
+}
+.ofm_root .ofm_btn:hover:not(:disabled)::after{
+  left: 118% !important;
+}
+/* active：快速陷落(.09s) + 内阴影加深=物理按压；松开靠 --ease-settle 回弹 */
+.ofm_root .ofm_btn:active:not(:disabled){
+  transform: scale(.985) !important;
+  transition-duration: .09s !important;
+  box-shadow: inset 0 2px 5px rgb(0 0 0 / 14%), inset 0 1px 0 rgb(255 255 255 / 3%) !important;
+}
+/* primary 按钮保留主色渐变，仅把外投影换成更克制的内高光+轻凹槽 */
+.ofm_root .ofm_btn.primary{
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%), inset 0 -10px 18px -12px rgb(0 0 0 / 24%) !important;
+}
+.ofm_root .ofm_btn.primary:hover:not(:disabled){
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 26%), inset 0 -10px 18px -12px rgb(0 0 0 / 18%) !important;
+}
+
+/* ── ③ 表格行 hover .ofm_table tbody tr ─────────────────────────── */
+/* 行首 2px 主色竖条用 transform:scaleY 展开(不触发布局)；exit(.12s) 比 entrance(.16s) 快 */
+.ofm_root .ofm_table tbody tr{
+  transition: background .16s var(--ease-instrument) !important;
+}
+.ofm_root .ofm_table tbody tr td:first-child{
+  position: relative !important;
+}
+.ofm_root .ofm_table tbody tr td:first-child::before{
+  content: "" !important;
+  position: absolute !important;
+  left: 0 !important; top: 6px !important; bottom: 6px !important;
+  width: 2px !important; border-radius: 2px !important;
+  background: var(--dsw-alias-state-business-primary) !important;
+  transform: scaleY(0) !important;
+  transform-origin: center !important;
+  opacity: 0 !important;
+  transition: transform .16s var(--ease-instrument), opacity .12s var(--ease-instrument) !important;
+  pointer-events: none !important;
+}
+.ofm_root .ofm_table tbody tr:hover td:first-child::before{
+  transform: scaleY(1) !important;
+  opacity: 1 !important;
+}
+/* 数字列表针走格感：tabular-nums + pl5-tick 机械顿挫(steps) */
+.ofm_root .ofm_table td{
+  font-variant-numeric: tabular-nums !important;
+}
+/* 表针走格：离散百分比快照模拟 steps 顿挫——同值连帧=停格，瞬间跳格=机械感；@keyframes 里用不了 steps() 函数，用帧堆出来 */
+@keyframes pl5-tick{
+  0%,24%{ transform: translateY(0); }
+  25%,54%{ transform: translateY(-1.5px); }
+  55%,79%{ transform: translateY(-.75px); }
+  80%,100%{ transform: translateY(0); }
+}
+
+/* ── 昼(not-dark)收敛：高光更哑、拉丝更隐、回弹更小 ─────────────── */
+@media not (prefers-color-scheme: dark){
+  .ofm_root .ofm_panel,
+  .ofm_root .ofm_card{
+    background:
+      repeating-linear-gradient(115deg, rgb(255 255 255 / 4%) 0 1px, transparent 1px 2.5px) padding-box,
+      color-mix(in srgb, var(--dsw-alias-bg-layer-2) 90%, transparent) !important;
+  }
+  .ofm_root .ofm_card{
+    background:
+      repeating-linear-gradient(115deg, rgb(255 255 255 / 4%) 0 1px, transparent 1px 2.5px) padding-box,
+      color-mix(in srgb, var(--dsw-alias-bg-layer-3) 88%, transparent) !important;
+  }
+  .ofm_root .ofm_panel{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 45%), inset 0 -14px 28px -18px rgb(0 0 0 / 7%) !important;
+  }
+  .ofm_root .ofm_card{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 50%), inset 0 -12px 24px -16px rgb(0 0 0 / 6%) !important;
+  }
+  .ofm_root .ofm_card:hover{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 60%), inset 0 -12px 24px -16px rgb(0 0 0 / 5%) !important;
+  }
+  .ofm_root .ofm_btn{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 50%) !important;
+  }
+  .ofm_root .ofm_btn:hover:not(:disabled){
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 62%) !important;
+  }
+}
+
+/* ── reduced-motion 降级：去位移/回弹/扫光/顿挫，保留颜色与不透明度反馈 ── */
+@media (prefers-reduced-motion: reduce){
+  /* 统一过渡降级：所有交互件只留颜色/不透明度反馈，去位移 */
+  .ofm_root .ofm_card,
+  .ofm_root .ofm_panel,
+  .ofm_root .ofm_btn,
+  .ofm_root .ofm_table tbody tr,
+  .ofm_root .ofm_table tbody tr td:first-child::before,
+  .ofm_root .ofm_switch i,
+  .ofm_root .ofm_switch i::after,
+  .ofm_root .ofm_seg button,
+  .ofm_root .ofm_stat,
+  .ofm_root .ofm_kvc,
+  .ofm_root .ofm_input,
+  .ofm_root .ofm_starbtn,
+  .ofm_root .ofm_chanlogo{
+    transition: border-color .12s ease, background .12s ease, box-shadow .12s ease, opacity .12s ease, color .12s ease !important;
+  }
+  /* 去位移/回弹/陷落 */
+  .ofm_root .ofm_card:hover,
+  .ofm_root .ofm_btn:hover:not(:disabled),
+  .ofm_root .ofm_btn:active:not(:disabled),
+  .ofm_root .ofm_stat:hover,
+  .ofm_root .ofm_kvc:hover,
+  .ofm_root .ofm_seg button:active:not([aria-pressed="true"]),
+  .ofm_root .ofm_starbtn:active,
+  .ofm_root .ofm_chan:hover .ofm_chanlogo{
+    transform: none !important;
+  }
+  /* 开关捏扁还原 */
+  .ofm_root .ofm_switch:active i::after{
+    width: 14px !important;
+  }
+  /* 扫光条砍掉 */
+  .ofm_root .ofm_btn::after,
+  .ofm_root .ofm_starbtn::after{
+    content: none !important;
+  }
+  /* 呼吸灯停跳，但保留颜色状态 */
+  .ofm_root .ofm_dot.ok{
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  /* 表针走格动画停走，但保留数字本身 */
+  .ofm_root .ofm_kpi:hover .ofm_kpivalue,
+  .ofm_root .ofm_stat:hover b{
+    animation: none !important;
+  }
+}
+
+/* ── ④ 输入框 .ofm_input：仪器凹槽手感 ─────────────────────────── */
+/* 常态凹槽(inset 顶高光+底内阴影)；focus 时凹槽不动，只换边色+外发光，像仪器被点亮 */
+.ofm_root .ofm_input{
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%), inset 0 2px 6px -2px rgb(0 0 0 / 10%) !important;
+  transition: border-color .18s var(--ease-instrument), box-shadow .2s var(--ease-instrument), background .18s var(--ease-instrument) !important;
+}
+.ofm_root .ofm_input:hover{
+  border-color: color-mix(in srgb, var(--dsw-alias-border-l2) 55%, var(--dsw-alias-state-business-primary)) !important;
+}
+.ofm_root .ofm_input:focus{
+  border-color: var(--dsw-alias-state-business-primary) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%), inset 0 2px 6px -2px rgb(0 0 0 / 8%), 0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary) 16%, transparent) !important;
+}
+
+/* ── ⑤ 开关 .ofm_switch：spring 滑块阻尼 ─────────────────────────── */
+/* 滑块用 --ease-settle 带回弹；按下时滑块变宽=被"捏扁"，松开回弹归位 */
+.ofm_root .ofm_switch i{
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 10%), inset 0 -1px 0 rgb(255 255 255 / 4%) !important;
+  transition: background .22s var(--ease-instrument), border-color .22s var(--ease-instrument), box-shadow .22s var(--ease-instrument) !important;
+}
+.ofm_root .ofm_switch i::after{
+  background: var(--dsw-alias-label-primary) !important;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 20%) !important;
+  transition: transform .28s var(--ease-settle), background .2s var(--ease-instrument), width .14s var(--ease-instrument) !important;
+}
+.ofm_root .ofm_switch[aria-checked="true"] i{
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 14%), inset 0 -1px 0 rgb(255 255 255 / 8%) !important;
+}
+.ofm_root .ofm_switch[aria-checked="true"] i::after{
+  background: var(--dsw-alias-label-on-accent, #fff) !important;
+}
+.ofm_root .ofm_switch:active i::after{
+  width: 17px !important;
+}
+
+/* ── ⑥ 徽章/药丸/标签 .ofm_badge/.ofm_pill/.ofm_tag/.ofm_chantag/.ofm_chip ── */
+/* 统一加顶部发丝高光；状态色只用 color-mix 调透明度，不换色相 */
+.ofm_root .ofm_pill,
+.ofm_root .ofm_tag,
+.ofm_root .ofm_chip,
+.ofm_root .ofm_chantag{
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%) !important;
+  transition: border-color .2s var(--ease-instrument), color .2s var(--ease-instrument), background .2s var(--ease-instrument), transform .18s var(--ease-settle) !important;
+}
+.ofm_root .ofm_badge{
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%) !important;
+  transition: border-color .2s var(--ease-instrument), color .2s var(--ease-instrument), background .2s var(--ease-instrument) !important;
+}
+/* 状态点呼吸灯保留，但改成 pl5- 前缀、机械顿挫更明显的两拍节奏 */
+@keyframes pl5-dot-breathe{
+  0%,100%{ opacity:1; }
+  50%{ opacity:.45; }
+}
+.ofm_root .ofm_dot.ok{
+  animation: pl5-dot-breathe 2.4s cubic-bezier(.4,0,.6,1) infinite !important;
+}
+/* 分段控件选中块：加顶部高光，按下时微微陷落 */
+.ofm_root .ofm_seg button[aria-pressed="true"]{
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%), inset 0 1px 0 rgb(255 255 255 / 8%) !important;
+  transition: color .18s var(--ease-instrument), background .18s var(--ease-instrument), box-shadow .2s var(--ease-settle) !important;
+}
+.ofm_root .ofm_seg button:active:not([aria-pressed="true"]){
+  transform: scale(.97) !important;
+}
+
+/* ── ⑦ 原生件接管：滚动条 / selection / caret / 聚焦环 ─────────────── */
+/* 滚动条：仪器滑轨——thumb 加顶部高光与底部凹槽，hover 时轻微增亮 */
+.ofm_root ::-webkit-scrollbar-thumb{
+  background: color-mix(in srgb, var(--dsw-alias-label-tertiary) 30%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), inset 0 -1px 0 rgb(0 0 0 / 10%) !important;
+  transition: background .2s var(--ease-instrument) !important;
+}
+.ofm_root ::-webkit-scrollbar-thumb:hover{
+  background: color-mix(in srgb, var(--dsw-alias-label-tertiary) 48%, transparent) !important;
+}
+/* 文本选择：主色薄涂，昼模式再淡一点避免刺眼 */
+.ofm_root ::selection{
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 20%, transparent) !important;
+}
+/* 光标：跟随主色 */
+.ofm_root input, .ofm_root textarea{
+  caret-color: var(--dsw-alias-state-business-primary) !important;
+}
+/* 聚焦环：仪器刻度环——细环+外晕，用 --ease-instrument 淡入 */
+.ofm_root :focus-visible{
+  outline: 2px solid color-mix(in srgb, var(--dsw-alias-state-business-primary) 72%, transparent) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent) !important;
+  transition: box-shadow .18s var(--ease-instrument), outline-color .18s var(--ease-instrument) !important;
+}
+
+/* ── ⑧【师傅批改①】拉丝纹理增强：金属感要真的能摸到 ─────────────── */
+/* 夜模式 3% → 4.5%，昼模式 1.5% → 2.8%，纹理间隔收紧让拉丝更密 */
+.ofm_root .ofm_panel{
+  background:
+    repeating-linear-gradient(115deg, rgb(255 255 255 / 4.5%) 0 1px, transparent 1px 2.5px) padding-box,
+    color-mix(in srgb, var(--dsw-alias-bg-layer-2) 86%, transparent) !important;
+}
+.ofm_root .ofm_card{
+  background:
+    repeating-linear-gradient(115deg, rgb(255 255 255 / 4.5%) 0 1px, transparent 1px 2.5px) padding-box,
+    color-mix(in srgb, var(--dsw-alias-bg-layer-3) 84%, transparent) !important;
+}
+@media not (prefers-color-scheme: dark){
+  .ofm_root .ofm_panel,
+  .ofm_root .ofm_card{
+    background:
+      repeating-linear-gradient(115deg, rgb(255 255 255 / 4%) 0 1px, transparent 1px 2.5px) padding-box,
+      color-mix(in srgb, var(--dsw-alias-bg-layer-2) 90%, transparent) !important;
+  }
+  .ofm_root .ofm_card{
+    background:
+      repeating-linear-gradient(115deg, rgb(255 255 255 / 4%) 0 1px, transparent 1px 2.5px) padding-box,
+      color-mix(in srgb, var(--dsw-alias-bg-layer-3) 88%, transparent) !important;
+  }
+}
+
+/* ── ⑧【师傅批改②】昼模式高光压暗：45-62% → 30-38%，更克制 ─────────── */
+@media not (prefers-color-scheme: dark){
+  .ofm_root .ofm_panel{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 34%), inset 0 -14px 28px -18px rgb(0 0 0 / 6%) !important;
+  }
+  .ofm_root .ofm_card{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 38%), inset 0 -12px 24px -16px rgb(0 0 0 / 5%) !important;
+  }
+  .ofm_root .ofm_card:hover{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 42%), inset 0 -12px 24px -16px rgb(0 0 0 / 4%) !important;
+  }
+  .ofm_root .ofm_btn{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 36%) !important;
+  }
+  .ofm_root .ofm_btn:hover:not(:disabled){
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 44%) !important;
+  }
+  .ofm_root .ofm_pill,
+  .ofm_root .ofm_tag,
+  .ofm_root .ofm_chip,
+  .ofm_root .ofm_chantag,
+  .ofm_root .ofm_badge{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 30%) !important;
+  }
+  .ofm_root .ofm_input{
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 34%), inset 0 2px 6px -2px rgb(0 0 0 / 6%) !important;
+  }
+}
+
+/* ── ⑧【师傅批改③】表格竖条语言统一：所有表格行 hover 都带主色竖条 ── */
+/* .ofm_newsbody table 是内容型表格，保持朴素；仅给数据表 .ofm_table 统一竖条。
+   同时把 .ofm_kvc / .ofm_stat 等"类表格"卡片也纳入 hover 微提亮，保持语言一致 */
+.ofm_root .ofm_stat,
+.ofm_root .ofm_kvc{
+  transition: border-color .2s var(--ease-instrument), box-shadow .22s var(--ease-instrument), transform .2s var(--ease-settle) !important;
+}
+.ofm_root .ofm_stat:hover,
+.ofm_root .ofm_kvc:hover{
+  border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 38%, var(--dsw-alias-border-l1)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── ⑩【返工·收编租界】星按钮/导航标/渠道标 全部听宿主变量 ─────────────── */
+/* L1130 .ofm_starbtn:hover 混 #3ECFA0、L1181 .ofm_navmark 混 #3ECFA0 —— 统一改混 label-primary，零品牌色 */
+.ofm_root .ofm_starbtn{
+  transition: transform .16s var(--ease-settle), box-shadow .2s var(--ease-instrument), color .2s var(--ease-instrument), background .2s var(--ease-instrument) !important;
+}
+.ofm_root .ofm_starbtn:hover{
+  background: linear-gradient(140deg, var(--dsw-alias-state-business-primary), color-mix(in srgb, var(--dsw-alias-state-business-primary) 76%, var(--dsw-alias-label-primary))) !important;
+  color: var(--dsw-alias-label-on-accent, #fff) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent), 0 6px 16px color-mix(in srgb, var(--dsw-alias-state-business-primary) 22%, transparent) !important;
+}
+.ofm_root .ofm_starbtn:active{
+  transform: scale(.97) !important;
+}
+/* 扫光条改走 --ease-instrument，与 .ofm_btn 同语言 */
+.ofm_root .ofm_starbtn::after{
+  transition: left .5s var(--ease-instrument) !important;
+}
+/* 导航标：去掉 #3ECFA0 混色，改混 label-primary；外投影换成内高光+轻凹槽 */
+.ofm_root .ofm_navmark{
+  background: linear-gradient(145deg, var(--dsw-alias-state-business-primary), color-mix(in srgb, var(--dsw-alias-state-business-primary) 58%, var(--dsw-alias-label-primary))) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 26%), inset 0 -6px 12px -8px rgb(0 0 0 / 20%) !important;
+}
+.ofm_root .ofm_navmark svg{
+  fill: var(--dsw-alias-label-on-accent, #fff) !important;
+}
+/* 渠道标：--chan-accent 兜底本来就是宿主变量，收编写死的 #fff / #101828，外投影换内高光 */
+.ofm_root .ofm_chanlogo{
+  color: var(--dsw-alias-label-on-accent, #fff) !important;
+  background: linear-gradient(150deg, var(--chan-accent, var(--dsw-alias-state-business-primary)), color-mix(in srgb, var(--chan-accent, var(--dsw-alias-state-business-primary)) 52%, var(--dsw-alias-bg-layer-3))) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 24%), inset 0 -8px 14px -10px rgb(0 0 0 / 22%) !important;
+  transition: transform .3s var(--ease-settle) !important;
+}
+.ofm_root .ofm_chan:hover .ofm_chanlogo{
+  transform: scale(1.05) rotate(-2deg) !important;
+}
+
+/* ── ⑩【返工·收编 SEASON 落地件】色板/选中 chip/渠道卡顶条 ─────────────── */
+/* SEASON 数组在 JS(L1663) 里、靠内联 style 注入，CSS 改不了值；
+   收编它落地的元素，让质感听宿主：色板加高光、chip 选中不再花、渠道卡顶条收敛 */
+.ofm_root .ofm_swatch{
+  border-radius: 3px !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 30%), inset 0 -1px 0 rgb(0 0 0 / 16%) !important;
+}
+/* chip 选中态：JS 注入彩色背景，这里压回宿主语言——主色薄涂+主色边，去掉杂色 */
+.ofm_root .ofm_chip[aria-pressed="true"]{
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 14%, transparent) !important;
+  border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 55%, transparent) !important;
+  color: var(--dsw-alias-state-business-primary) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%) !important;
+}
+/* 渠道卡顶条(::before 用 --chan-accent)：收敛高度与发光，听宿主凹槽语言 */
+.ofm_root .ofm_chan::before{
+  height: 2px !important;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 6%) !important;
+}
+.ofm_root .ofm_chan[data-state="on"]{
+  border-color: color-mix(in srgb, var(--chan-accent, var(--dsw-alias-state-business-primary)) 30%, var(--dsw-alias-border-l2)) !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%) !important;
+}
+
+/* ── ⑩【返工·接上 pl5-tick】KPI/统计数字获得表针走格感 ─────────────── */
+/* 挂到 KPI 大数字与统计卡数字：hover 时数字以机械顿挫走一格，模拟仪表指针跳动 */
+.ofm_root .ofm_kpivalue,
+.ofm_root .ofm_stat b{
+  display: inline-block !important;
+}
+.ofm_root .ofm_kpi:hover .ofm_kpivalue,
+.ofm_root .ofm_stat:hover b{
+  animation: pl5-tick .34s var(--ease-instrument) 1 !important;
+}
+/* ==== V5 INSTRUMENT END ==== */
 /* ── 聚合渠道 / 省 Token / 路由：新页面的表面 ─────────────────────────────
    动效一律走 150–250ms 的短过渡，不弹跳；reduced-motion 下由文件末尾的
    媒体查询整体关掉。ofm_rise 用 backwards 而不是 both：动画结束后元素回到
@@ -2302,6 +2849,7 @@ window.__ModuleLoader__.load({
       const [pending, setPending] = useState(restoreEacLogin)
       const [copied, setCopied] = useState(false)
       const starting = useRef(false)
+      const cancelling = useRef(false)
       const attempt = useRef(0)
       const pendingRef = useRef(pending)
       pendingRef.current = pending
@@ -2326,13 +2874,13 @@ window.__ModuleLoader__.load({
         let timer
         const poll = async () => {
           const t = latestT.current
-          if (!alive) return
+          if (!alive || cancelling.current) return
           if (Date.now() - pending.startedAt >= EAC_LOGIN_TTL) {
             updatePending(null); setNotice(t('eac.expired')); return
           }
           try {
             const result = await api(`/eac/login/poll?link=${encodeURIComponent(pending.link)}`, { timeout: 22_000 })
-            if (!alive || pendingRef.current?.link !== pending.link) return
+            if (!alive || cancelling.current || pendingRef.current?.link !== pending.link) return
             if (result.status === 'ok') {
               updatePending(null)
               setNotice(t('eac.done').replace('{login}', result.login ?? ''))
@@ -2345,8 +2893,9 @@ window.__ModuleLoader__.load({
             if (result.status === 'unstarred') setNotice(t('eac.needStar').replace('{login}', result.login ?? ''))
             else setNotice('')
           } catch (error) {
-            if (!alive || pendingRef.current?.link !== pending.link) return
+            if (!alive || cancelling.current || pendingRef.current?.link !== pending.link) return
             const reason = String(error?.message ?? '')
+            if (reason === 'cancelled') { updatePending(null); setNotice(''); return }
             // Never render response HTML, URL or credentials as diagnostics.
             const safe = /^gateway-http-\d{3}$/.test(reason) ? `HTTP ${reason.slice(-3)}`
               : ['unreachable', 'malformed', 'not-writable', 'cancelled', 'no-lane', 'bad-link', 'timeout'].includes(reason) ? reason : 'unreachable'
@@ -2358,14 +2907,34 @@ window.__ModuleLoader__.load({
         return () => { alive = false; clearTimeout(timer) }
       }, [pending, refresh])
 
-      const cancel = () => { attempt.current++; updatePending(null); setNotice('') }
+      const cancel = async () => {
+        const currentPending = pendingRef.current
+        if (currentPending === null || cancelling.current) return
+        cancelling.current = true
+        attempt.current++; setBusy(true)
+        try {
+          const result = await post(`/eac/login/cancel?link=${encodeURIComponent(currentPending.link)}`)
+          if (result.ok !== true && result.status !== 'ok') throw new Error('cancellation unconfirmed')
+          updatePending(null)
+          if (result.status === 'ok') {
+            setNotice(latestT.current('eac.done').replace('{login}', result.login ?? ''))
+            refresh(); latest.current?.reload?.()
+          } else setNotice('')
+        } catch {
+          const t = latestT.current
+          setNotice(t('eac.cancelFailed'))
+          // A failed cancellation must retain the link and restart the serial
+          // loop. The Host may already have saved it or accepted cancellation.
+          updatePending({ ...currentPending })
+        } finally { cancelling.current = false; setBusy(false) }
+      }
       const login = async () => {
-        if (starting.current || pendingRef.current !== null) return
+        if (starting.current || cancelling.current || pendingRef.current !== null) return
         starting.current = true
         const current = ++attempt.current
         setBusy(true); setNotice('')
         try {
-          const started = await post('/eac/login/start')
+          const started = await post('/eac/login/start', undefined, 20_000)
           if (current !== attempt.current) return
           if (started?.error !== undefined) { setNotice(t('eac.startFailed').replace('{reason}', started.error)); return }
           updatePending({ link: started.link, url: started.url, startedAt: Date.now() })
@@ -2375,7 +2944,7 @@ window.__ModuleLoader__.load({
         } finally { starting.current = false; setBusy(false) }
       }
       const logout = async () => {
-        cancel(); setBusy(true)
+        attempt.current++; updatePending(null); setBusy(true)
         try {
           await post('/eac/logout')
           refresh(); latest.current?.reload?.()
@@ -2411,7 +2980,7 @@ window.__ModuleLoader__.load({
           ? h('div', { className: 'ofm_callout' },
             h('div', null,
               h('div', null, t('eac.waiting')),
-              h(Button, { kind: 'ghost', onClick: cancel }, t('eac.cancel')),
+              h(Button, { kind: 'ghost', disabled: busy, onClick: cancel }, t('eac.cancel')),
               h('div', { style: { display: 'flex', gap: 8, alignItems: 'center', marginTop: 6 } },
                 h('code', { className: 'ofm_mono', style: { padding: '4px 8px', flex: 1, minWidth: 200, wordBreak: 'break-all' } }, pending.url),
                 h(Button, { kind: 'ghost', onClick: () => copy(pending.url, ok => { if (ok) { setCopied(true); setTimeout(() => setCopied(false), 1600) } }) }, copied ? t('eac.copied') : t('eac.copy')))))
@@ -2603,7 +3172,22 @@ window.__ModuleLoader__.load({
         return () => { alive = false }
       }, [lan?.running])
       const lanPort = lan?.actualPort ?? lan?.port ?? 0
-      const lanHost = (lan?.addresses ?? [])[0] ?? ''
+      // Which address a peer should dial is a property of this machine's
+      // interfaces, and they move under the panel: a laptop that changed networks,
+      // woke from sleep, or brought a VPN up holds a different set than it did a
+      // minute ago — and the stale one is exactly the one the user copies to the
+      // other machine. So while the relay is on this polls the addresses
+      // themselves, at the same 15 s cadence the outlet's node reading uses,
+      // instead of trusting the snapshot that shipped with the settings.
+      const lanLive = useAsync(() => api('/forward/lan/addresses'), [lan?.running])
+      const reloadLanAddresses = lanLive.reload
+      useEffect(() => {
+        if (lan?.running !== true) return undefined
+        const timer = setInterval(() => reloadLanAddresses(), 15_000)
+        return () => clearInterval(timer)
+      }, [lan?.running, reloadLanAddresses])
+      const lanHosts = lanLive.data?.addresses ?? lan?.addresses ?? []
+      const lanHost = lanHosts[0] ?? ''
       const lanUrl = lanHost === '' ? t('forward.lanNoAddress') : `http://${lanHost}:${lanPort}/v1`
       const lanToggle = current => ({ ...current, lan: { ...(current?.lan ?? {}), enabled: !(current?.lan?.enabled === true) } })
 
@@ -2648,6 +3232,7 @@ window.__ModuleLoader__.load({
               h('span', { className: 'ofm_note' }, t('forward.lanUrl')),
               h('code', { className: 'ofm_mono', style: { padding: '4px 8px', flex: 1, minWidth: 200 } }, lanUrl),
               h(Button, { kind: 'ghost', onClick: () => doCopy('lanUrl', lanUrl) }, copied === 'lanUrl' ? t('forward.copied') : t('forward.copy'))),
+            lanHosts.length > 1 ? h('div', { className: 'ofm_note' }, t('forward.lanAlso').replace('{list}', lanHosts.slice(1).join('    '))) : null,
             h('div', { className: 'ofm_row' },
               h('span', { className: 'ofm_note' }, t('forward.lanKey')),
               h('code', { className: 'ofm_mono', style: { padding: '4px 8px', flex: 1, minWidth: 200, letterSpacing: lanShown ? 0 : 1 } }, lanKey === '' ? '…' : lanShown ? lanKey : '•'.repeat(24)),
@@ -2984,8 +3569,22 @@ window.__ModuleLoader__.load({
       { id: 'gemini', name: 'Gemini', org: 'Google Code Assist', accent: '#4285F4', note: '本地回调 OAuth 免费线', login: 'browser' },
     ]
 
-    /** Channels whose daily credits can be claimed from here. */
-    const CREDIT_PROVIDERS = new Set(['codearts', 'buddy', 'workbuddy', 'lobsterai', 'qoder', 'qodercn', 'loomy', 'minimax'])
+    /** 与现有 RPC 的能力对应：余额、每日领取及独立签到状态分别判断。 */
+    const CHANNEL_CREDITS = {
+      codearts: { claim: true },
+      buddy: { claim: true, status: true },
+      workbuddy: {},
+      lobsterai: { claim: true },
+      qoder: { claim: true },
+      qodercn: { claim: true },
+      trae: { claim: true },
+      cline: { unit: 'dollars' },
+      loomy: { claim: true },
+      raccoon: {},
+      minimax: { claim: true, status: true },
+      zcode: { claim: true, unit: 'tokens' },
+      gemini: { unit: 'quota', quota: true },
+    }
 
     /**
      * The host RPC the pack registered at `/api/channel-pack`.
@@ -3037,12 +3636,23 @@ window.__ModuleLoader__.load({
       const [busy, setBusy] = useState('')
       const [notice, setNotice] = useState('')
       const [login, setLogin] = useState(null)
+      const modelBatchPending = useRef(false)
+      const [balanceError, setBalanceError] = useState('')
+      const [balanceLoading, setBalanceLoading] = useState(false)
+      const balancePending = useRef(null)
+      const balanceGeneration = useRef(0)
+      const claimPending = useRef(false)
+      const creditCapability = CHANNEL_CREDITS[channel.id]
+      const balanceLabel = creditCapability?.unit === 'tokens' ? t('chan.credits.tokens')
+        : creditCapability?.unit === 'dollars' ? t('chan.credits.dollars')
+          : creditCapability?.quota ? t('chan.credits.quota') : t('chan.credits.left')
 
       const accountsCount = status?.accounts?.total ?? 0
       const enabledCount = status?.accounts?.enabled ?? 0
       const modelsTotal = status?.models?.total ?? 0
       const modelsOff = status?.models?.disabled ?? 0
       const connected = enabledCount > 0
+      const chanState = status?.closed === true ? 'off' : connected ? 'on' : 'idle'
       const stateText = status?.closed === true ? t('chan.state.closed') : connected ? t('chan.state.on') : t('chan.state.off')
 
       const loadAccounts = useCallback(async () => {
@@ -3058,25 +3668,46 @@ window.__ModuleLoader__.load({
         } catch (error) { setModels([]); onError(channel, error) }
       }, [rpc, channel.id, onError])
       const loadCredits = useCallback(async () => {
-        if (!CREDIT_PROVIDERS.has(channel.id)) return
+        if (!CHANNEL_CREDITS[channel.id]?.status) return
         try {
           const value = await rpc('credits.status', { provider: channel.id })
           setCredits(value?.accounts ?? [])
         } catch { setCredits([]) }
       }, [rpc, channel.id])
-      const loadBalances = useCallback(async () => {
-        if (!CREDIT_PROVIDERS.has(channel.id)) return
-        try {
-          const value = await rpc('credits.balances', { provider: channel.id }, 90_000)
-          setBalances(value?.accounts ?? [])
-        } catch { setBalances([]) }
+      const loadBalances = useCallback((afterWrite = false) => {
+        if (!CHANNEL_CREDITS[channel.id] || !rpc) return Promise.resolve()
+        const pending = balancePending.current
+        if (!afterWrite && pending?.provider === channel.id && pending.rpc === rpc) return pending.promise
+        const generation = ++balanceGeneration.current
+        const request = { provider: channel.id, rpc }
+        balancePending.current = request
+        setBalanceLoading(true); setBalanceError('')
+        request.promise = (async () => {
+          try {
+            const value = await rpc('credits.balances', { provider: channel.id, ...afterWrite ? { force: true } : {} }, 90_000)
+            if (generation === balanceGeneration.current) setBalances(value?.accounts ?? [])
+          } catch (error) {
+            if (generation === balanceGeneration.current) {
+              setBalances([])
+              setBalanceError(String(error?.message ?? error))
+            }
+          } finally {
+            if (generation === balanceGeneration.current) setBalanceLoading(false)
+            if (balancePending.current === request) balancePending.current = null
+          }
+        })()
+        return request.promise
       }, [rpc, channel.id])
-      useEffect(() => { void loadBalances() }, [loadBalances])
+      useEffect(() => {
+        setBalances(undefined); setBalanceError('')
+        void loadBalances()
+        return () => { balanceGeneration.current++; balancePending.current = null }
+      }, [loadBalances])
       // A slow heartbeat keeps the numbers honest while the page sits open:
       // balances move whenever a model is used elsewhere, and a stale credit
       // count reads as "I have more quota than I do".
       useEffect(() => {
-        if (!CREDIT_PROVIDERS.has(channel.id)) return undefined
+        if (!CHANNEL_CREDITS[channel.id]) return undefined
         const timer = setInterval(() => { void loadBalances() }, 90_000)
         return () => clearInterval(timer)
       }, [channel.id, loadBalances])
@@ -3086,20 +3717,25 @@ window.__ModuleLoader__.load({
       }
       const balancesTotal = (balances ?? []).reduce((sum, row) => sum + (Number.isFinite(row.balance?.total) ? row.balance.total : 0), 0)
       const balancesKnown = (balances ?? []).some(row => Number.isFinite(row.balance?.total))
+      const balanceFailures = (balances ?? []).filter(row => row.error || !Number.isFinite(row.balance?.total)).length
 
       // Refetch what is on screen whenever the pack reports a change for this
       // channel: an account added in another tab, a completed background login,
       // a claim that moved the numbers.
       useEffect(() => {
-        const onEvent = () => { if (open === 'accounts') void loadAccounts(); if (open === 'models') void loadModels() }
+        const onEvent = () => {
+          if (open === 'accounts') { void loadAccounts(); void loadCredits() }
+          if (open === 'models') void loadModels()
+          void loadBalances()
+        }
         window.addEventListener('ofm:channels', onEvent)
         return () => window.removeEventListener('ofm:channels', onEvent)
-      }, [open, loadAccounts, loadModels])
+      }, [open, loadAccounts, loadModels, loadCredits, loadBalances])
 
       const toggle = async fold => {
         if (open === fold) { setOpen(null); return }
         setOpen(fold)
-        if (fold === 'accounts') { setAccounts(undefined); await loadAccounts(); void loadCredits() }
+        if (fold === 'accounts') { setAccounts(undefined); await loadAccounts(); void loadCredits(); void loadBalances() }
         if (fold === 'models') { setModels(undefined); await loadModels() }
       }
 
@@ -3138,11 +3774,15 @@ window.__ModuleLoader__.load({
             if (!alive) return
             if (value?.done === true) {
               setLogin(null)
-              setNotice(t('chan.login.done').replace('{login}', value.login ?? ''))
-              onChanged()
-              void loadAccounts()
-              void loadCredits()
-              void loadBalances()
+              if (value.success === false) {
+                setNotice(t('chan.login.failed').replace('{reason}', value.error ?? '未知原因'))
+              } else {
+                setNotice(t('chan.login.done').replace('{login}', value.login ?? ''))
+                onChanged()
+                void loadAccounts()
+                void loadCredits()
+                void loadBalances(true)
+              }
             } else if (typeof value?.error === 'string' && value.error !== '') {
               setLogin(null)
               setNotice(t('chan.login.failed').replace('{reason}', value.error))
@@ -3150,11 +3790,23 @@ window.__ModuleLoader__.load({
           } catch { /* the link may still complete; keep polling */ }
         }, 3000)
         return () => { alive = false; clearInterval(timer) }
-      }, [login, rpc, channel.id, t, onChanged, loadAccounts, loadCredits])
+      }, [login, rpc, channel.id, t, onChanged, loadAccounts, loadCredits, loadBalances])
 
       const accountAction = async (key, accountId, fn) => {
         setBusy(key); setNotice('')
         try { await fn() } catch (error) { onError(channel, error) } finally { setBusy('') }
+      }
+
+      const setAllModels = async disabled => {
+        if (busy !== '' || modelBatchPending.current || !rpc || !models?.length) return
+        modelBatchPending.current = true
+        try {
+          await accountAction(disabled ? 'models:hide' : 'models:show', '', async () => {
+            await rpc('model.setAllDisabled', { provider: channel.id, disabled })
+            await loadModels()
+            onChanged()
+          })
+        } finally { modelBatchPending.current = false }
       }
 
       const removeAccount = async accountId => {
@@ -3163,28 +3815,33 @@ window.__ModuleLoader__.load({
           && !window.confirm(t('chan.confirm.delete').replace('{name}', entry?.nickname ?? accountId))) return
         await accountAction('del:' + accountId, accountId, async () => {
           await rpc('account.delete', { accountId })
-          onChanged(); await loadAccounts()
+          onChanged(); await loadAccounts(); void loadBalances(true)
         })
       }
 
       const claim = async () => {
+        if (!creditCapability?.claim || busy !== '' || claimPending.current) return
+        claimPending.current = true
         setBusy('claim'); setNotice('')
         try {
           const value = await rpc('credits.claimAll', { provider: channel.id }, 180_000)
           const summary = value?.summary ?? value
           const claimed = Number(summary?.claimed ?? 0)
           const credit = Number(summary?.totalCredit ?? 0)
-          setNotice(claimed > 0
-            ? t('chan.claim.result').replace('{count}', String(claimed)).replace('{credit}', String(credit))
-            : t('chan.claim.none'))
-          void loadCredits()
-        } catch (error) { onError(channel, error) } finally { setBusy('') }
+          const failed = (value?.results ?? []).filter(row => row.outcome?.kind === 'failed')
+          const successText = t('chan.claim.result').replace('{count}', String(claimed)).replace('{credit}', String(credit))
+          const failureText = t('chan.claim.failed').replace('{reason}', failed.map(row => row.outcome.message).join('；'))
+          setNotice(failed.length > 0 ? claimed > 0 ? `${successText}；${failureText}` : failureText
+            : claimed > 0 ? successText : t('chan.claim.none'))
+          void loadCredits(); void loadBalances(true)
+        } catch (error) { onError(channel, error) } finally { claimPending.current = false; setBusy('') }
       }
 
       const creditFor = accountId => (credits ?? []).find(row => row.accountId === accountId)?.status ?? null
 
       const card = h('article', {
         className: `ofm_chan ofm_glass${status?.closed === true ? ' off' : ''}`,
+        'data-state': chanState,
         style: { '--chan-accent': channel.accent },
       },
         h('div', { className: 'ofm_chanhead' },
@@ -3202,22 +3859,28 @@ window.__ModuleLoader__.load({
         h('div', { className: 'ofm_chanmeta' },
           h('span', null, `${t('chan.meta.accounts')} `, h('b', null, `${enabledCount}/${accountsCount}`)),
           h('span', null, `${t('chan.meta.models')} `, h('b', null, modelsTotal === 0 ? '—' : `${modelsTotal - modelsOff}/${modelsTotal}`)),
-          CREDIT_PROVIDERS.has(channel.id) ? h('span', { className: 'ofm_credittotal' },
-            `${t('chan.credits.left')} `,
-            h('b', null, balancesKnown ? kilo(balancesTotal) : balances === undefined ? '…' : '—')) : null),
+          creditCapability ? h('span', { className: 'ofm_credittotal' },
+            `${balanceLabel} `,
+            h('b', null, balanceLoading ? '…' : balancesKnown
+              ? creditCapability.quota ? t('chan.credits.loaded').replace('{count}', String((balances ?? []).filter(row => Number.isFinite(row.balance?.total)).length)) : kilo(balancesTotal)
+              : balances === undefined ? '…' : '—')) : null),
         h('div', { className: 'ofm_chanacts' },
-          h('button', { type: 'button', className: 'ofm_btn', disabled: busy !== '' || !rpc, onClick: startLogin }, busy === 'add' ? '…' : t('chan.act.add')),
+          h('button', { type: 'button', className: 'ofm_btn', disabled: busy !== '' || !rpc, 'aria-busy': busy === 'add' ? 'true' : undefined, onClick: startLogin }, busy === 'add' ? '…' : t('chan.act.add')),
           accountsCount > 0 ? h('button', {
-            type: 'button', className: 'ofm_btn ghost', disabled: busy !== '' || !rpc,
+            type: 'button', className: 'ofm_btn ghost', disabled: busy !== '' || !rpc, 'aria-busy': busy === 'refreshAll' ? 'true' : undefined,
             onClick: () => accountAction('refreshAll', '', async () => {
               for (const row of accounts ?? await rpc('account.list', { provider: channel.id }).then(v => v?.accounts ?? [])) {
                 try { await rpc('account.refresh', { accountId: row.id }, 90_000) } catch (error) { onError(channel, error) }
               }
-              onChanged(); await loadAccounts(); void loadBalances()
+              onChanged(); await loadAccounts(); void loadBalances(true)
             }),
           }, busy === 'refreshAll' ? '…' : t('chan.act.refresh')) : null,
-          CREDIT_PROVIDERS.has(channel.id) ? h('button', {
-            type: 'button', className: 'ofm_btn ghost', disabled: busy !== '' || !rpc,
+          creditCapability ? h('button', {
+            type: 'button', className: 'ofm_btn ghost', disabled: balanceLoading || busy !== '' || !rpc,
+            'aria-busy': balanceLoading ? 'true' : undefined, onClick: () => void loadBalances(true),
+          }, balanceLoading ? t('chan.credits.loading') : t('chan.credits.refresh')) : null,
+          creditCapability?.claim ? h('button', {
+            type: 'button', className: 'ofm_btn ghost', disabled: busy !== '' || !rpc, 'aria-busy': busy === 'claim' ? 'true' : undefined,
             onClick: claim,
           }, busy === 'claim' ? '…' : t('chan.act.claim')) : null,
           h('button', { type: 'button', className: 'ofm_foldtoggle', 'data-open': open === 'accounts' ? 'true' : 'false', onClick: () => void toggle('accounts') },
@@ -3227,6 +3890,10 @@ window.__ModuleLoader__.load({
             h('svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true' }, h('path', { d: 'M3 1.5l6 4.5-6 4.5z' })),
             t('chan.fold.models'), models === undefined ? null : ` (${models.length})`)),
         notice !== '' ? h('p', { className: 'ofm_note' }, notice) : null,
+        balanceError !== '' ? h('p', { className: 'ofm_balanceerror', role: 'alert' },
+          t('chan.credits.failed').replace('{reason}', balanceError))
+          : balanceFailures > 0 ? h('p', { className: 'ofm_balanceerror', role: 'status' },
+            t('chan.credits.partial').replace('{count}', String(balanceFailures))) : null,
         open === 'accounts' ? h('div', { className: 'ofm_chanfold' },
           accounts === undefined ? h('div', { className: 'ofm_skel', style: { minHeight: 44 } })
             : accounts.length === 0 ? h('p', { className: 'ofm_note' }, t('chan.noAccount'))
@@ -3236,13 +3903,21 @@ window.__ModuleLoader__.load({
                 return h('div', { className: 'ofm_acct' + (pending ? ' pending' : ''), key: row.id },
                   h('span', { className: 'ofm_acctname', title: row.nickname ?? row.id }, row.nickname ?? row.id),
                   h('span', { className: 'ofm_acctmeta' }, row.enabled === false ? t('chan.disabled') : t('chan.enabled'), ' · ', expiryText(row, t)),
-                  credit?.status?.todayCredit ? h('span', { className: 'ofm_creditbadge' },
-                    t('chan.credit.today').replace('{credit}', String(credit.status.todayCredit))) : null,
+                  credit?.todayCheckedIn === true && Number.isFinite(credit.todayCredit) ? h('span', { className: 'ofm_creditbadge' },
+                    t('chan.credit.today').replace('{credit}', String(credit.todayCredit))) : null,
                   (() => {
                     const balance = balanceOf(row.id)
-                    if (balance === null || !Number.isFinite(balance.total)) return null
-                    return h('span', { className: 'ofm_creditbadge strong', title: t('chan.credits.left') },
-                      `${t('chan.credits.left')} ${kilo(balance.total)}`)
+                    if (!creditCapability) return null
+                    if (balanceLoading) return h('span', { className: 'ofm_note' }, t('chan.credits.loading'))
+                    const result = (balances ?? []).find(entry => entry.accountId === row.id)
+                    if (balance === null || !Number.isFinite(balance.total)) return h('span', { className: 'ofm_balanceerror' },
+                      balanceError ? t('chan.credits.failed').replace('{reason}', balanceError)
+                        : result?.error || t('chan.credits.unavailable'))
+                    const reading = creditCapability.quota
+                      ? (balance.packages ?? []).map(pkg => `${pkg.name} ${pkg.remaining}%`).join(' · ') || '—'
+                      : kilo(balance.total)
+                    return h('span', { className: 'ofm_creditbadge strong', title: balanceLabel },
+                      `${balanceLabel} ${reading}`)
                   })(),
                   h('span', { className: 'ofm_acctacts' },
                     h('button', {
@@ -3258,7 +3933,7 @@ window.__ModuleLoader__.load({
                       type: 'button', className: 'ofm_minibtn', disabled: busy !== '' || !rpc,
                       onClick: () => accountAction('refresh:' + row.id, row.id, async () => {
                         await rpc('account.refresh', { accountId: row.id }, 90_000)
-                        onChanged(); await loadAccounts()
+                        onChanged(); await loadAccounts(); void loadBalances(true)
                       }),
                     }, t('chan.act.refresh')),
                     h('button', {
@@ -3276,7 +3951,22 @@ window.__ModuleLoader__.load({
         open === 'models' ? h('div', { className: 'ofm_chanfold' },
           models === undefined ? h('div', { className: 'ofm_skel', style: { minHeight: 44 } })
             : models.length === 0 ? h('p', { className: 'ofm_note' }, '—')
-              : h('div', { className: 'ofm_modellist' }, models.map(model => h('div', {
+              : h(Fragment, null,
+                h('div', { className: 'ofm_row' },
+                  h('span', { className: 'ofm_note' }, t('chan.model.enabledCount')
+                    .replace('{enabled}', String(models.filter(model => model.disabled !== true).length))
+                    .replace('{total}', String(models.length))),
+                  h('button', {
+                    type: 'button', className: 'ofm_btn ghost', disabled: busy !== '' || !rpc,
+                    title: t('chan.model.allScope'), 'aria-busy': busy === 'models:show' ? 'true' : undefined,
+                    onClick: () => void setAllModels(false),
+                  }, t('chan.model.enableAll')),
+                  h('button', {
+                    type: 'button', className: 'ofm_btn ghost', disabled: busy !== '' || !rpc,
+                    title: t('chan.model.allScope'), 'aria-busy': busy === 'models:hide' ? 'true' : undefined,
+                    onClick: () => void setAllModels(true),
+                  }, t('chan.model.disableAll'))),
+                h('div', { className: 'ofm_modellist' }, models.map(model => h('div', {
                 className: 'ofm_modelrow' + (model.disabled === true ? ' off' : ''),
                 key: model.id,
               },
@@ -3289,7 +3979,7 @@ window.__ModuleLoader__.load({
                     await rpc('model.setDisabled', { provider: channel.id, modelId: model.id, disabled: model.disabled !== true })
                     await loadModels(); onChanged()
                   }),
-                }, model.disabled === true ? t('chan.model.on') : t('chan.model.off')))))) : null)
+                }, model.disabled === true ? t('chan.model.on') : t('chan.model.off'))))))) : null)
 
       const modal = login === null ? null : h('div', { className: 'ofm_scrim' },
         h('div', { className: 'ofm_modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('chan.login.title').replace('{name}', channel.name) },
@@ -4892,7 +5582,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'ofm_tabs', role: 'tablist' },
           h('span', { className: 'ofm_tabglider', style: { transform: `translate(${glider.left}px, ${glider.top}px)`, width: `${glider.width}px`, height: `${glider.height}px` } }),
           tabs.map(([id, label, num]) => h('button', {
-            key: id, type: 'button', role: 'tab', className: 'ofm_tab', 'data-on': tab === id ? 'true' : 'false',
+            key: id, type: 'button', role: 'tab', 'aria-selected': tab === id ? 'true' : 'false', className: 'ofm_tab', 'data-on': tab === id ? 'true' : 'false',
             'aria-selected': tab === id ? 'true' : 'false',
             ref: node => { tabRefs.current[id] = node },
             onClick: () => setTab(id),

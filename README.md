@@ -10,11 +10,9 @@
   <img alt="无构建步骤" src="https://img.shields.io/badge/build%20step-none-7da1de?style=flat-square">
   <img alt="适配内核" src="https://img.shields.io/badge/dsh-0.1.5--0.1.7--rc.2-2f6f4f?style=flat-square">
   <img alt="状态" src="https://img.shields.io/badge/status-beta-f0a441?style=flat-square">
-  <p><strong>趋势榜 · 2026-10-06 记录</strong></p>
-  <!-- 自制静态卡片记录核实的名次，图片随仓库托管；点击查看对应榜单。 -->
-  <a href="https://trendshift.io/?language=JavaScript"><img alt="Trendshift JavaScript 日榜第 4 名，记录于 2026-10-06" src="docs/images/trendshift-daily-2026-10-06.svg" width="300" height="118"></a>
-  <a href="https://gittrend.io/trending/ai-infrastructure"><img alt="GitTrend AI Infrastructure 日榜第 4 名，记录于 2026-10-06，榜单更新于 2026-10-05" src="docs/images/gittrend-daily-2026-10-06.svg" width="300" height="118"></a>
-  <p><sub>JavaScript 日榜与 AI Infrastructure 日榜均为第 4 名。GitTrend 榜单数据更新于 2026-10-05。</sub></p>
+  <br>
+  <a href="https://trendshift.io/repositories/261203"><img alt="GITHUB TRENDING 第 1 名，日榜仓库" src="docs/images/trendshift-daily-laurel-gold.svg" width="250" height="55"></a>
+  <a href="https://trendshift.io/repositories/261203"><img alt="GITHUB TRENDING 第 2 名，周榜仓库" src="docs/images/trendshift-weekly-laurel-purple.svg" width="250" height="55"></a>
 
 </div>
 
@@ -83,6 +81,22 @@
 - **插件设置**——总开关、是否展示地区受限模型、探测间隔、默认输出上限，以及当前探测到的出口 IP 与国家。
 - **插件升级**——当前/最新版本、检查更新、一键升级（含进度与失败原因）、最近一次升级历史、热重载按钮与文件监视开关。
 - **首次启动公告**——分 5 页（前言 / 模型清单 / 使用步骤 / 功能介绍 / 公告与升级），确认一次后不再弹出，除非文案版本号被提升。
+
+## 独立本地服务（开发中）
+
+仓库现在提供两个入口：下文安装的是 **DSH 插件**；`packages/standalone` 是
+**无需安装 DSH 的独立本地服务**。从完整源码仓库运行：
+
+```powershell
+npm run start:standalone
+```
+
+独立服务默认使用 `~/.our-free-model` 和端口 `18900`，拥有自己的 API Key，
+不读取插件数据。支持匿名/Kilo、EAC 和原有十三个账号渠道，提供
+Chat Completions、Responses API，以及独立网页管理（模型、统计、渠道、EAC、设置、API Key）。
+启动后打开终端打印的一次性管理链接即可使用；账号在独立页面登录，也可手动导入插件账号备份。
+启动、参数与验证见 [独立服务说明](packages/standalone/README.md)。
+独立服务的安装制品与 Release 尚未发布。
 
 ## 安装
 
@@ -208,7 +222,7 @@ reasoning、reasoning_content、reasoning_text 三个字段识别——同一段
 写入两个字段只计一次——reasoning_details 数组同样识别。上游本身不流式输出思考的模型，此处
 也不会产生思考帧，详见「已知边界」。
 
-**供同一网络中的其它设备使用**：同一面板下方还提供"局域网访问"。该功能默认关闭；启用后中继绑定一个可路由地址（默认 0.0.0.0），并要求使用独立的局域网 Key——与上述本机 Key 互不通用，因此任一泄露只需轮换对应一侧，本机已配置的工具不受影响。中继将请求原样转发至本机监听，模型清单、流式行为与错误语义与本机完全一致。端口填 0 表示自动分配（本机 18899 常已被占用或被端口代理占用），启用后面板会显示实际端口与局域网地址。启用期间，任何能够访问该主机的用户均可使用此 Key 消耗本机的免费额度，因此请仅在可信网络中启用，必要时通过防火墙限制来源网段。
+**供同一网络中的其它设备使用**：同一面板下方还提供"局域网访问"。该功能默认关闭；启用后中继绑定一个可路由地址（默认 0.0.0.0），并要求使用独立的局域网 Key——与上述本机 Key 互不通用，因此任一泄露只需轮换对应一侧，本机已配置的工具不受影响。中继将请求原样转发至本机监听，模型清单、流式行为与错误语义与本机完全一致。端口填 0 表示自动分配（本机 18899 常已被占用或被端口代理占用），启用后面板会显示实际端口与局域网地址。**局域网地址按本机网卡实时读取**：面板在开启期间每 15 秒重读一次，切换到别的网络后不必重开面板。同一台机器常同时持有多张网卡上的私网地址——路由器分配的 `192.168.x.y`，以及虚拟交换机（WSL/Hyper-V/Docker）、VPN 或隧道适配器上的地址——面板把物理网卡的地址排在前面并作为可直接复制的那一条，其余地址列在其下；中继绑定的是所有接口，但某个地址能否被同网段的另一台机器拨通，取决于该地址所属的那张网卡。启用期间，任何能够访问该主机的用户均可使用此 Key 消耗本机的免费额度，因此请仅在可信网络中启用，必要时通过防火墙限制来源网段。
 
 **重新核对地区**：点击"重新探测可用性"，将按当前出口重新执行探测。切换 VPN 状态后再执行一次，
 地区受限模型会在两个分组之间自动迁移。
@@ -221,6 +235,15 @@ reasoning、reasoning_content、reasoning_text 三个字段识别——同一段
 **升级插件**：设置 → Our Free Model → 插件升级 → 检查更新 → 立即升级。全流程
 在应用内完成（下载 → 校验 → 备份 → 替换 → 热重载），无需重新安装，也无需
 重启应用。升级失败会自动回滚至上一版本并给出失败原因。
+
+
+### Gemini 与 Cline 的代理连接
+
+Gemini 登录需要访问 `accounts.google.com`、`oauth2.googleapis.com`、`www.googleapis.com`，模型请求还需访问 Google Code Assist 服务。浏览器能打开授权页，只说明浏览器的网络可用，插件仍需能访问这些端点。
+
+Gemini 的登录、续期、项目探测和推理，以及 Cline 的登录、续期和推理，共用逐请求代理：优先使用已运行的插件出口代理，其次读取 `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY`，最后在 Windows 读取当前用户的手动系统代理；没有代理时直连。环境代理遵守 `NO_PROXY`，系统代理遵守 `ProxyOverride`；回环请求不自动使用代理。无需为这两条渠道设置 `NODE_USE_ENV_PROXY`，也不会改动宿主的全局代理。
+
+Windows 自动检测只支持手动代理，不执行 PAC 自动配置脚本；系统设置最多缓存 30 秒。仅配置 PAC 时，请改用插件出口或环境代理。网络失败会显示所选路径及 `UND_ERR_CONNECT_TIMEOUT`、`ENOTFOUND` 等底层错误码；代理连接失败不会自动重试直连。浏览器回调未到达的授权超时仍需检查本机回调地址和端口是否可达。
 
 ## 聚合渠道、省 Token、路由与本地网关
 
@@ -251,6 +274,7 @@ Key 只写入插件自己的 0600 `settings.json`，接口永不回显——页�
 新增端点 `POST /v1/messages`（流式与非流式，`message_start` / `content_block_*` / `message_delta` / `message_stop` 正确成帧，含 `thinking` 块、`tool_use` 块、真实 `stop_reason`，以及响应头发出之后才失败时的流内 `error` 事件）与 `POST /v1/messages/count_tokens`（本地估算——插件不含 tokenizer）。Claude Code 与 Anthropic 各 SDK 因此可以直接指向本插件。原有的 `/v1/chat/completions` 与 `/v1/responses` 不变，`/v1/models` 现在广播全部车道，含聚合行与链路。网关页新增「接入客户端」分区，按实际绑定的端口与真实要求的密钥生成可复制的配方：Claude Code 环境变量、Codex `config.toml`、OpenAI SDK、Anthropic SDK、curl，以及中继开启时的局域网版本。
 
 顺带修掉一个假成功：一轮只产出了一个调用方从未声明的工具调用时，过去会以干净的空成功收尾；现在会如实报告发生了什么——压缩器自己追加的 `[full diff: rtk git diff --no-compact]` 提示就可能让模型去调一个调用方没有的工具。
+
 
 ## 实现结构
 
@@ -657,3 +681,14 @@ MIT，见 LICENSE。
 
 本项目为独立插件，与任何模型提供方无隶属、认可或赞助关系。使用该插件访问免费额度受各提供方
 自身条款约束；在超出个人机器的场景中部署前，请先确认这些条款。
+
+## Star 趋势
+
+图表由 Star History 自动更新，无需手动提交图片。受服务缓存（当前为 24 小时）和 GitHub 图片缓存影响，显示可能延迟，并非秒级实时；点击图表可查看在线趋势。
+
+<a href="https://www.star-history.com/?type=date&amp;repos=Ebony-Vinyl%2Fdsh-our-free-model">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Ebony-Vinyl/dsh-our-free-model&amp;type=Date&amp;theme=dark" />
+    <img alt="dsh-our-free-model 的 GitHub Star 增长趋势" src="https://api.star-history.com/svg?repos=Ebony-Vinyl/dsh-our-free-model&amp;type=Date" />
+  </picture>
+</a>
