@@ -319,8 +319,8 @@
     },
     {
       "path": "src/updater.js",
-      "size": 42477,
-      "sha256": "e252924dc888522b6aae5d2466aa13499b2c6a6f8e282c088d8856a00c9d9a7a"
+      "size": 43065,
+      "sha256": "3eeaad9ac38f18977a1c52f5bb8a88ba02616f330d8111e6063ad0fa1fbeb65d"
     },
     {
       "path": "src/upstream.js",
