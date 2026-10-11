@@ -278,7 +278,6 @@ src/token-saver/rtk/ 工具输出过滤器：git diff/status/log、grep、find�
  构建日志、编号转储、搜索清单、重复日志行
 src/local-optimize.js 五个本地应答：额度探测、命令前缀、会话标题、建议模式、文件路径
 src/combos.js 降级链：虚拟清单行、两种策略、容量取交集
-src/route/chain.js 候选排序与推进判定：能力重排、恢复评估
 src/route/classify.js 全车道统一的失败词汇与冷却策略
 src/trust.js 插件路由的请求信任围栏（connection 服务桥 + 结构化围栏）
 src/push.js SSE 推送枢纽：公告到达、更新可用、升级完成

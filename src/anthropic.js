@@ -737,9 +737,29 @@ export function foldAnthropicOutcome(outcome, chunk) {
     }
     case 'block-end':
       if (chunk.block?.type === 'tool-call') {
-        const existing = outcome.toolCalls.find(candidate => candidate.id === chunk.block.id)
-        if (existing === undefined) {
-          outcome.toolCalls.push({ slot: chunk.index, id: chunk.block.id, name: chunk.block.name, arguments: chunk.block.arguments })
+        // Match by slot first: the call's deltas were folded under this same
+        // block index, and a relayed stream can carry its id late — matching
+        // by id alone would miss the slot's entry and fold one call into two
+        // (a phantom `tool_use` with an empty id and truncated arguments
+        // beside the complete one). The block-end carries the assembled
+        // arguments, so a slot match adopts them wholesale — the same
+        // replacement the streaming renderer's `held` slot does — while an id
+        // match (deltas under another slot) only fills identity fields.
+        const bySlot = outcome.toolCalls.find(candidate => candidate.slot === chunk.index)
+        if (bySlot !== undefined) {
+          bySlot.id = string(chunk.block.id) !== '' ? chunk.block.id : bySlot.id
+          bySlot.name = string(chunk.block.name) !== '' ? chunk.block.name : bySlot.name
+          if (typeof chunk.block.arguments === 'string') bySlot.arguments = chunk.block.arguments
+          break
+        }
+        const byId = outcome.toolCalls.find(candidate => candidate.id !== '' && candidate.id === chunk.block.id)
+        if (byId === undefined) {
+          outcome.toolCalls.push({
+            slot: chunk.index,
+            id: string(chunk.block.id),
+            name: string(chunk.block.name),
+            arguments: string(chunk.block.arguments),
+          })
         }
       }
       break

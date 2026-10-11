@@ -2190,8 +2190,28 @@ function foldForwardOutcome(outcome, chunk) {
     }
     case 'block-end':
       if (chunk.block?.type === 'tool-call') {
-        const existing = outcome.toolCalls.find(candidate => candidate.id === chunk.block.id)
-        if (existing === undefined) outcome.toolCalls.push({ slot: chunk.index, id: chunk.block.id, name: chunk.block.name, arguments: chunk.block.arguments })
+        // Match by slot first: the call's deltas were folded under this same
+        // block index, and a relayed stream can carry its id late — matching
+        // by id alone would miss the slot's entry and fold one call into two.
+        // The block-end carries the assembled arguments, so a slot match
+        // adopts them; an id match only fills identity fields.
+        const bySlot = outcome.toolCalls.find(candidate => candidate.slot === chunk.index)
+        if (bySlot !== undefined) {
+          if (typeof chunk.block.id === 'string' && chunk.block.id !== '') bySlot.id = chunk.block.id
+          if (typeof chunk.block.name === 'string' && chunk.block.name !== '') bySlot.name = chunk.block.name
+          if (typeof chunk.block.arguments === 'string') bySlot.arguments = chunk.block.arguments
+          break
+        }
+        const byId = outcome.toolCalls.find(candidate => typeof candidate.id === 'string' && candidate.id !== ''
+          && candidate.id === chunk.block.id)
+        if (byId === undefined) {
+          outcome.toolCalls.push({
+            slot: chunk.index,
+            id: typeof chunk.block.id === 'string' ? chunk.block.id : '',
+            name: typeof chunk.block.name === 'string' ? chunk.block.name : '',
+            arguments: typeof chunk.block.arguments === 'string' ? chunk.block.arguments : '',
+          })
+        }
       }
       break
     case 'usage': outcome.usage = toOpenAiUsage(chunk.usage); break

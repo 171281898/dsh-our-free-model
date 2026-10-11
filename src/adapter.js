@@ -481,11 +481,21 @@ export class FreeModelAdapter {
        *
        * Three things veto it, and each one is a different kind of "no": the
        * caller did not ask for a chain, the caller walked away, or this model
-       * already put an answer on the wire — a switch after that point would
+       * already put an *answer* on the wire — a switch after that point would
        * splice two models' prose together in front of the user.
+       *
+       * The veto reads `sawAnswer`, not `delivered`, on purpose. `delivered`
+       * also covers reasoning deltas, but a combo holds those in its own
+       * buffer and drops them whole when it advances — the user never saw
+       * them, so they must not pin the chain to a model that hit a quota wall
+       * after a minute of thinking ("thought for a minute, then hit the wall"
+       * is the single most valuable case to fail over). Answer-bearing output
+       * — visible text or a streamed tool call — is what `commitsAnswer`
+       * commits on, and once committed the combo ignores `advance` anyway, so
+       * this predicate and the commit rule stay two views of one definition.
        */
       const advanceVerdict = (code, message, status) => {
-        if (plan.allowAdvance !== true || options.signal?.aborted === true || delivered || sawAnswer) return { advance: false, verdict: null }
+        if (plan.allowAdvance !== true || options.signal?.aborted === true || sawAnswer) return { advance: false, verdict: null }
         const verdict = classifyFailure({ status, code, message })
         return { advance: shouldAdvance(verdict), verdict }
       }
@@ -739,13 +749,23 @@ function wireOf(entry) {
  *
  * A combo may only abandon a candidate while the answer is still entirely
  * inside its own buffer. Reasoning deltas are excluded on purpose: thinking is
- * not the answer, and "thought for a minute, then hit a quota wall" is the most
- * valuable failure to fail over — the held thinking is dropped with the rest of
- * the discarded attempt, so the caller never learns it happened.
+ * not the answer, and "thought for a minute, then hit a quota wall" is the
+ * most valuable failure to fail over — the held thinking is dropped with the
+ * rest of the discarded attempt, so the caller never learns it happened. A
+ * `block-end` for a reasoning block is the tail of that same reasoning stream
+ * (`closeAll` emits it when the SSE loop ends), so it does not commit either;
+ * letting it commit would pin the chain one chunk before the failure it
+ * exists to survive. Text commits only when it carries visible content, the
+ * same bar `sawAnswer` uses, so whitespace noise cannot pin a chain either.
  */
 function commitsAnswer(chunk) {
   if (chunk === null || typeof chunk !== 'object') return false
-  return chunk.type === 'text-delta' || chunk.type === 'tool-call-delta' || chunk.type === 'block-end'
+  if (chunk.type === 'text-delta') return typeof chunk.text === 'string' && chunk.text.trim() !== ''
+  if (chunk.type === 'tool-call-delta') return true
+  if (chunk.type !== 'block-end') return false
+  if (chunk.block?.type === 'reasoning') return false
+  if (chunk.block?.type === 'text') return typeof chunk.block.text === 'string' && chunk.block.text.trim() !== ''
+  return true
 }
 
 /** What the token savers measured for one dispatched body, as usage-record fields. */

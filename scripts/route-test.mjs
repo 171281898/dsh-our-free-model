@@ -1,6 +1,6 @@
 /**
- * The router's failure brain and candidate chain, checked against the two
- * sources they were ported from.
+ * The router's failure vocabulary, checked against the two sources it was
+ * ported from (9router's ERROR_RULES and FCC's failure_policy).
  *
  * This suite pins numbers, not just kinds. The cooldown table is an operational
  * contract — 2 minutes for a dead credential, 5 seconds for a refusal that
@@ -13,12 +13,7 @@
  * kind, scope and retryability, and the two are checked to agree on the one
  * object both callers read.
  *
- * The chain half checks the three ordering decisions (capability reorder,
- * round-robin sticky, chain build) and the recovery truth table, including the
- * cases that protect the client from seeing the same answer twice.
- *
- * Everything here is pure: no network, no timers, no clock. The rotation tests
- * inject a fresh state map so they never observe another suite's rotation.
+ * Everything here is pure: no network, no timers, no clock.
  *
  * Run: node scripts/route-test.mjs
  */
@@ -29,9 +24,6 @@ import assert from 'node:assert/strict'
 import {
   FAILURE_KIND, FAILURE_SCOPE, backoffFor, classifyFailure, cooldownVerdict, describeVerdict, shouldAdvance,
 } from '../src/route/classify.js'
-import {
-  assessRecovery, buildChain, continuationSeed, detectRequiredCapabilities, reorderByCapabilities, rotationOrder,
-} from '../src/route/chain.js'
 
 let failures = 0
 const check = (name, fn) => {
@@ -311,256 +303,18 @@ check('describeVerdict prints kind, scope, cooldown and status in one line', () 
   assert.match(describeVerdict(classifyFailure({ status: 400, message: 'bad parameter' })), /no cooldown/)
   assert.match(describeVerdict(null), /unknown/)
 })
-
-// ── capability detection: the trailing user turn only ────────────────────────
-check('an image in an earlier turn does not set the flag', () => {
-  const required = detectRequiredCapabilities([
-    { role: 'user', content: [{ type: 'text', text: 'look' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } }] },
-    { role: 'assistant', content: 'I see a cat' },
-    { role: 'user', content: 'now answer in one word' },
-  ])
-  assert.deepEqual([...required], [], 'history media must not pin the whole conversation to a vision model')
-})
-
-check('a trailing run after an assistant turn is not scanned at all', () => {
-  const required = detectRequiredCapabilities([
-    { role: 'user', content: [{ type: 'image_url', image_url: { url: 'https://x/i.png' } }] },
-    { role: 'assistant', content: 'done' },
-  ])
-  assert.equal(required.size, 0)
-})
-
-check('vision is detected from a block, an ollama images array, a data URI and a gemini part', () => {
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: [{ type: 'input_image', image_url: 'data:image/png;base64,AA' }] }])], ['vision'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', images: ['AAAA'], content: 'describe' }])], ['vision'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: 'see data:image/webp;base64,AA' }])], ['vision'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', parts: [{ inlineData: { mimeType: 'image/webp' } }] }])], ['vision'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', experimental_attachments: [{ contentType: 'image/jpeg', url: 'https://x/i.jpg' }] }])], ['vision'])
-})
-
-check('pdf is detected from a file block, a document mime and a data URI', () => {
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: [{ type: 'file', file: { filename: 'report.pdf' } }] }])], ['pdf'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: [{ type: 'document', source: { media_type: 'application/pdf', data: 'data:application/pdf;base64,AA' } }] }])], ['pdf'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: 'attached: data:application/pdf;base64,AA' }])], ['pdf'])
-})
-
-check('audio is detected from a block, an input_audio format and a mime', () => {
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: [{ type: 'input_audio', input_audio: { format: 'wav', data: 'AA' } }] }])], ['audioInput'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: [{ type: 'file', input_audio: { format: 'mp3' } }] }])], ['audioInput'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: [{ type: 'file', file: { file_data: 'data:audio/mpeg;base64,AA' } }] }])], ['audioInput'])
-})
-
-check('video is detected from a block, a mime and a gemini fileData part', () => {
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: [{ type: 'input_video', video_url: 'https://x/v.mp4' }] }])], ['videoInput'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', content: [{ type: 'file', file: { file_data: 'data:video/mp4;base64,AA' } }] }])], ['videoInput'])
-  assert.deepEqual([...detectRequiredCapabilities([{ role: 'user', parts: [{ fileData: { mimeType: 'video/mp4' } }] }])], ['videoInput'])
-})
-
-check('a text-only request needs nothing', () => {
-  assert.equal(detectRequiredCapabilities([{ role: 'user', content: 'hello there' }]).size, 0)
-  assert.equal(detectRequiredCapabilities([{ role: 'user', content: [{ type: 'text', text: 'hi' }] }, { role: 'assistant', content: 'hey' }]).size, 0)
-  assert.equal(detectRequiredCapabilities(undefined).size, 0)
-})
-
-check('a request body is accepted where a messages array is', () => {
-  assert.deepEqual([...detectRequiredCapabilities({ messages: [{ role: 'user', content: [{ type: 'image_url', image_url: { url: 'https://x/i.png' } }] }] })], ['vision'])
-  assert.deepEqual([...detectRequiredCapabilities({ input: [{ role: 'user', content: [{ type: 'input_image', image_url: 'data:image/png;base64,AA' }] }] })], ['vision'])
-  assert.deepEqual([...detectRequiredCapabilities({ contents: [{ role: 'user', parts: [{ inlineData: { mimeType: 'image/png' } }] }] })], ['vision'])
-})
-
-// ── capability reorder: stable, never drops ──────────────────────────────────
-const REORDER_CANDIDATES = [
-  { modelId: 'text-only', capabilities: { vision: false } },
-  { modelId: 'sees', capabilities: { vision: true } },
-  { modelId: 'sees-too', entry: { vision: true } },
-]
-
-check('reorderByCapabilities floats hard-capable candidates and is stable', () => {
-  const ordered = reorderByCapabilities(REORDER_CANDIDATES, new Set(['vision']))
-  assert.deepEqual(ordered.map(candidate => candidate.modelId), ['sees', 'sees-too', 'text-only'])
-  assert.equal(ordered.length, REORDER_CANDIDATES.length, 'ordering is a preference, not a filter')
-})
-
-check('reorderByCapabilities leaves the array untouched when nothing is required', () => {
-  assert.equal(reorderByCapabilities(REORDER_CANDIDATES, new Set()), REORDER_CANDIDATES)
-  assert.equal(reorderByCapabilities(REORDER_CANDIDATES, null), REORDER_CANDIDATES)
-  assert.equal(reorderByCapabilities(REORDER_CANDIDATES, []), REORDER_CANDIDATES)
-  assert.equal(reorderByCapabilities([{ modelId: 'only' }], new Set(['vision'])).length, 1)
-})
-
-check('a soft capability ranks below a hard one but above nothing', () => {
-  const candidates = [
-    { modelId: 'plain' },
-    { modelId: 'vision', capabilities: { vision: true } },
-    { modelId: 'vision-search', capabilities: { vision: true, search: true } },
-  ]
-  assert.deepEqual(reorderByCapabilities(candidates, ['vision', 'search']).map(candidate => candidate.modelId),
-    ['vision-search', 'vision', 'plain'])
-})
-
-check('candidates with no capability information keep their order', () => {
-  assert.deepEqual(reorderByCapabilities(['a', 'b', 'c'], new Set(['vision'])), ['a', 'b', 'c'])
-})
-
-// ── round-robin: sticky, per combo, and inert for fallback ───────────────────
-const ROTATION_MODELS = ['a', 'b', 'c']
-
-check('round-robin returns one candidate for the sticky count, then moves on', () => {
-  const state = new Map()
-  const options = { strategy: 'round-robin', stickyLimit: 3, comboId: 'combo-1' }
-  const firsts = []
-  for (let call = 0; call < 7; call += 1) firsts.push(rotationOrder(ROTATION_MODELS, state, options)[0])
-  assert.deepEqual(firsts, ['a', 'a', 'a', 'b', 'b', 'b', 'c'])
-  const rotated = rotationOrder(ROTATION_MODELS, state, options)
-  assert.deepEqual(rotated, ['a', 'b', 'c'].slice(2).concat(['a', 'b']), 'the current candidate leads the rotated list')
-})
-
-check('rotation state is keyed by combo id', () => {
-  const state = new Map()
-  const step = comboId => rotationOrder(['a', 'b'], state, { strategy: 'round-robin', comboId })
-  assert.equal(step('one')[0], 'a')
-  assert.equal(step('one')[0], 'b', 'the first combo advanced')
-  assert.equal(step('two')[0], 'a', 'a second combo must start at its own index')
-  assert.equal(step('one')[0], 'a', 'and the first combo kept its own position')
-})
-
-check('fallback ignores rotation state entirely', () => {
-  const state = new Map()
-  const result = rotationOrder(ROTATION_MODELS, state, { strategy: 'fallback', stickyLimit: 3, comboId: 'combo-1' })
-  assert.equal(result, ROTATION_MODELS)
-  assert.equal(state.size, 0)
-  assert.equal(rotationOrder(ROTATION_MODELS, new Map(), {}), ROTATION_MODELS, 'the default strategy is fallback')
-})
-
-check('a missing or invalid sticky limit means one request per candidate', () => {
-  const state = new Map()
-  const step = () => rotationOrder(ROTATION_MODELS, state, { strategy: 'round-robin', stickyLimit: '0', comboId: 'c' })[0]
-  assert.deepEqual([step(), step(), step()], ['a', 'b', 'c'])
-})
-
-check('a legacy numeric rotation entry is still read', () => {
-  const state = new Map([['legacy', 2]])
-  assert.equal(rotationOrder(ROTATION_MODELS, state, { strategy: 'round-robin', comboId: 'legacy' })[0], 'c')
-})
-
-check('rotation never mutates the caller array and a single candidate is a no-op', () => {
-  const models = ['a', 'b', 'c']
-  rotationOrder(models, new Map(), { strategy: 'round-robin', comboId: 'x' })
-  assert.deepEqual(models, ['a', 'b', 'c'])
-  const single = ['only']
-  assert.equal(rotationOrder(single, new Map(), { strategy: 'round-robin', comboId: 'x' }), single)
-})
-
-// ── recovery: the four outcomes and the rules behind them ────────────────────
-// [label, outcome, expected action]
-const RECOVERY_CASES = [
-  ['nothing delivered restarts', {}, 'RESTART'],
-  ['nothing delivered with an unsafe prefix stops', { delivered: false, unsafeReason: 'partial tool json' }, 'STOP'],
-  ['a released text prefix continues', { delivered: true, sawText: true, partialText: 'The answer so far is' }, 'CONTINUE'],
-  ['a released thinking prefix continues', { delivered: true, partialThinking: 'weighing the options' }, 'CONTINUE'],
-  ['released tool calls hand off', { delivered: true, sawToolCall: true }, 'HANDOFF'],
-  ['released tool calls stop when the failure is not retryable', { delivered: true, sawToolCall: true, retryable: false }, 'STOP'],
-  ['released tool calls stop for structured output', { delivered: true, sawToolCall: true, structuredOutput: true }, 'STOP'],
-  ['released tool calls stop when the wire cannot hand off', { delivered: true, sawToolCall: true, canHandoff: false }, 'STOP'],
-  ['a normal stop stops', { delivered: true, sawText: true, partialText: 'done', sawFinish: true, finish: 'stop' }, 'STOP'],
-  ['end_turn stops', { delivered: true, sawText: true, partialText: 'done', sawFinish: true, finish: 'end_turn' }, 'STOP'],
-  ['stop_sequence stops', { delivered: true, sawText: true, partialText: 'done', sawFinish: true, finish: 'stop_sequence' }, 'STOP'],
-  ['a finish chunk with no token is a normal stop', { delivered: true, sawText: true, partialText: 'done', sawFinish: true }, 'STOP'],
-  ['a length cut continues from the prefix', { delivered: true, sawText: true, partialText: 'half', sawFinish: true, finish: 'length' }, 'CONTINUE'],
-  ['a failed ending continues a portable prefix', { delivered: true, sawText: true, partialText: 'half', sawFinish: true, finish: 'failed', failedEnding: true }, 'CONTINUE'],
-  ['structured output stops', { delivered: true, sawText: true, partialText: '{"a":', structuredOutput: true }, 'STOP'],
-  ['an unsafe prefix stops', { delivered: true, sawText: true, partialText: '{"a":', unsafeReason: 'unclosed json' }, 'STOP'],
-  ['a delivered turn with no prefix stops', { delivered: true }, 'STOP'],
-  ['sawText without the bytes to seed from stops', { delivered: true, sawText: true }, 'STOP'],
-]
-for (const [label, outcome, expected] of RECOVERY_CASES) {
-  check(`recovery: ${label} → ${expected}`, () => {
-    assert.equal(assessRecovery(outcome), expected)
-  })
-}
-
-check('continuationSeed always yields two strings', () => {
-  assert.deepEqual(continuationSeed('the answer so far', 'the thinking'), { text: 'the answer so far', thinking: 'the thinking' })
-  assert.deepEqual(continuationSeed(undefined, 5), { text: '', thinking: '' })
-  assert.deepEqual(continuationSeed(null, null), { text: '', thinking: '' })
-})
-
-// ── chain build: primary first, deduped, exclusion honoured ──────────────────
-check('buildChain removes the primary from the fallbacks and dedupes', () => {
-  const chain = buildChain({ primary: 'a', fallbacks: ['a', 'b', 'b', 'c'] })
-  assert.deepEqual(chain.map(candidate => candidate.modelId), ['a', 'b', 'c'])
-})
-
-check('buildChain honours a bare-string exclusion', () => {
-  const chain = buildChain({ primary: 'a', fallbacks: ['b', 'c'], exclude: ['b'] })
-  assert.deepEqual(chain.map(candidate => candidate.modelId), ['a', 'c'])
-})
-
-check('buildChain resolves catalog entries and capability tables', () => {
-  const catalog = [{ id: 'a', vision: true }, { id: 'b', vision: false }]
-  const chain = buildChain({
-    primary: 'a', fallbacks: ['b'], catalog,
-    capabilities: { a: { vision: true }, b: { vision: false } },
-  })
-  assert.equal(chain[0].entry, catalog[0])
-  assert.deepEqual(chain[0].capabilities, { vision: true })
-  assert.equal(chain[1].capabilities.vision, false)
-})
-
-check('buildChain reads a provider-prefixed id back to its catalog entry', () => {
-  const catalog = [{ id: 'a' }]
-  const chain = buildChain({ primary: { modelId: 'p/a', provider: 'p' }, catalog })
-  assert.equal(chain[0].provider, 'p')
-  assert.equal(chain[0].entry, catalog[0])
-})
-
-check('the same model on two providers is two candidates, and a route exclusion hits one', () => {
-  const twoRoutes = buildChain({ primary: { modelId: 'm', provider: 'one' }, fallbacks: [{ modelId: 'm', provider: 'two' }] })
-  assert.equal(twoRoutes.length, 2)
-  const excluded = buildChain({
-    primary: { modelId: 'm', provider: 'one' },
-    fallbacks: [{ modelId: 'm', provider: 'two' }],
-    exclude: [{ provider: 'one', modelId: 'm' }],
-  })
-  assert.deepEqual(excluded.map(candidate => candidate.provider), ['two'])
-})
-
-check('buildChain accepts a capability resolver function', () => {
-  const chain = buildChain({ primary: 'a', fallbacks: ['b'], capabilities: id => ({ vision: id === 'a' }) })
-  assert.equal(chain[0].capabilities.vision, true)
-  assert.equal(chain[1].capabilities.vision, false)
-})
-
-check('an empty request builds an empty chain', () => {
-  assert.deepEqual(buildChain({}), [])
-  assert.deepEqual(buildChain(), [])
-})
-
-check('buildChain composes with capability detection and reorder', () => {
-  const chain = buildChain({
-    primary: 'text', fallbacks: ['sees'],
-    catalog: [{ id: 'text', vision: false }, { id: 'sees', vision: true }],
-  })
-  const required = detectRequiredCapabilities([{ role: 'user', content: [{ type: 'image_url', image_url: { url: 'https://x/i.png' } }] }])
-  assert.deepEqual(reorderByCapabilities(chain, required).map(candidate => candidate.modelId), ['sees', 'text'])
-  const textOnly = detectRequiredCapabilities([{ role: 'user', content: 'hello' }])
-  assert.equal(reorderByCapabilities(chain, textOnly), chain, 'a text turn must not reorder anything')
-})
-
-// ── the modules stay dependency-free ─────────────────────────────────────────
+// ── the module stays dependency-free ─────────────────────────────────────────
 // The port is meant to be droppable into any lane, so an import of another
 // module (or a package) is a contract break, not a style question.
-check('both modules are dependency-free ESM', () => {
+check('classify.js is dependency-free ESM', () => {
   const here = path.dirname(fileURLToPath(import.meta.url))
-  for (const rel of ['../src/route/classify.js', '../src/route/chain.js']) {
-    const source = fs.readFileSync(path.join(here, rel), 'utf8')
-    const imports = source.split('\n').filter(line => /^\s*import\s/.test(line) || /\brequire\s*\(/.test(line))
-    assert.deepEqual(imports, [], `${rel} must not import anything`)
-    assert.ok(!source.includes('@deepseek-ai/'), `${rel} must not name a kernel module`)
-    assert.ok(/@module src\/route\//.test(source), `${rel} must carry its @module docblock`)
-  }
+  const source = fs.readFileSync(path.join(here, '../src/route/classify.js'), 'utf8')
+  const imports = source.split('\n').filter(line => /^\s*import\s/.test(line) || /\brequire\s*\(/.test(line))
+  assert.deepEqual(imports, [], 'classify.js must not import anything')
+  assert.ok(!source.includes('@deepseek-ai/'), 'classify.js must not name a kernel module')
+  assert.ok(/@module src\/route\//.test(source), 'classify.js must carry its @module docblock')
 })
 
 if (failures > 0) console.error(`route-test: ${failures} failure(s)`)
-else console.log('route-test: the failure table, the candidate chain and the recovery assessment agree')
+else console.log('route-test: the failure table, the cooldown contract and the advance policy agree')
 process.exitCode = failures > 0 ? 1 : 0

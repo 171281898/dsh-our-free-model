@@ -354,8 +354,6 @@ src/token-saver/rtk/ tool-output filters: git diff/status/log, grep, find, ls, t
                 build logs, numbered dumps, search listings, duplicate log lines
 src/local-optimize.js the five local answers: quota, prefix, title, suggestion, filepath
 src/combos.js fallback chains: virtual catalog rows, two strategies, intersected capacities
-src/route/chain.js candidate ordering and advance policy: capability reorder, recovery
-                assessment
 src/route/classify.js one failure vocabulary and cooldown policy for every lane
 src/trust.js    request trust fence for the plugin's routes (connection bridge
                 + structural fallback)

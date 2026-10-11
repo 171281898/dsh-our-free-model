@@ -73,6 +73,7 @@ const suites = [
   ['local-optimize', 'local-optimize-test.mjs', []],
   ['registry', 'registry-test.mjs', []],
   ['route', 'route-test.mjs', []],
+  ['combo-advance', 'combo-advance-test.mjs', []],
   ['prompt-saver', 'prompt-saver-test.mjs', []],
   ['anthropic', 'anthropic-test.mjs', []],
   ['aggregate', 'aggregate-test.mjs', []],
