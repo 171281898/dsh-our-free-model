@@ -12,7 +12,9 @@
   <img alt="status" src="https://img.shields.io/badge/status-beta-f0a441?style=flat-square">
   <br>
   <a href="https://trendshift.io/repositories/261203"><img alt="GITHUB TRENDING #1, Repository Of The Day" src="docs/images/trendshift-daily-laurel-gold.svg" width="250" height="55"></a>
-  <a href="https://trendshift.io/repositories/261203"><img alt="GITHUB TRENDING #2, Repository Of The Week" src="docs/images/trendshift-weekly-laurel-purple.svg" width="250" height="55"></a>
+  <a href="https://trendshift.io/weekly?language=JavaScript"><img alt="Trendshift JavaScript Weekly #1 (October 5-11, 2026; ranking in progress)" src="docs/images/trendshift-weekly-laurel-purple.svg" width="250" height="55"></a>
+  <br>
+  <sub>Trendshift JavaScript Weekly #1 · October 5-11, 2026 · Ranking in progress, as of October 11, 2026</sub>
 
 </div>
 
