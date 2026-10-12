@@ -38,6 +38,8 @@ stats.json
 
 # Desktop build artifacts
 packages/desktop/src-tauri/target/
+packages/desktop/src-tauri/resources/
+packages/desktop/src-tauri/.node-license-cache/
 packages/desktop/node_modules/
 
 _audit/

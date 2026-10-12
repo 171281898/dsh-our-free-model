@@ -1,276 +1,172 @@
-use std::process::{Child, Command};
-use std::sync::Mutex;
-use std::time::Duration;
+mod service;
+
+use service::ServiceProcess;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Mutex,
+};
 use tauri::{
+    ipc::CapabilityBuilder,
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, WindowEvent, WebviewUrl, WebviewWindowBuilder,
+    Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent,
 };
 
-#[cfg(windows)]
-use std::os::windows::process::CommandExt;
-
+#[derive(Default)]
 struct ServiceState {
-    child: Mutex<Option<Child>>,
-    port: Mutex<Option<u16>>,
+    process: Mutex<Option<ServiceProcess>>,
+    stopping: AtomicBool,
 }
 
-fn find_service_resources(app: &tauri::AppHandle) -> (String, String) {
-    if let Ok(resource_dir) = app.path().resource_dir() {
-        let cli = resource_dir.join("standalone").join("cli.mjs");
-        if cli.exists() {
-            let node = find_node_binary();
-            return (node, cli.to_string_lossy().to_string());
-        }
-    }
-    let dev_cli = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../standalone/cli.mjs");
-    if dev_cli.exists() {
-        return (find_node_binary(), dev_cli.to_string_lossy().to_string());
-    }
-    (find_node_binary(), "packages/standalone/cli.mjs".to_string())
-}
-
-fn find_node_binary() -> String {
-    let home = dirs::home_dir().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
-    let candidates = vec![
-        "C:\\Program Files\\nodejs\\node.exe".to_string(),
-        "C:\\Program Files (x86)\\nodejs\\node.exe".to_string(),
-        format!("{}\\nodejs\\node.exe", home),
-    ];
-    for path in &candidates {
-        if std::path::Path::new(path).exists() {
-            return path.clone();
-        }
-    }
-    "node".to_string()
-}
-
-fn wait_for_port(port: u16, timeout: Duration) -> Option<u16> {
-    let start = std::time::Instant::now();
-    while start.elapsed() < timeout {
-        if std::net::TcpStream::connect(format!("127.0.0.1:{}", port)).is_ok() {
-            return Some(port);
-        }
-        std::thread::sleep(Duration::from_millis(200));
-    }
-    None
-}
-
-fn build_titlebar_injection() -> String {
-    let base = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let css = std::fs::read_to_string(base.join("../ui/titlebar.css")).unwrap_or_default();
-    let js = std::fs::read_to_string(base.join("../ui/titlebar.js")).unwrap_or_default();
-    if css.is_empty() && js.is_empty() {
-        return String::new();
-    }
+fn titlebar_script(origin: &str) -> String {
+    let css = include_str!("../../ui/titlebar.css");
+    let js = include_str!("../../ui/titlebar.js");
     format!(
-        "(function(){{var s=document.createElement('style');s.textContent={};document.head.appendChild(s);var sc=document.createElement('script');sc.textContent={};document.head.appendChild(sc);}})();",
-        serde_json::to_string(&css).unwrap_or_default(),
-        serde_json::to_string(&js).unwrap_or_default()
+        "if(location.origin === {}) {{ const mount = () => {{ const style=document.createElement('style'); style.textContent={}; document.head.appendChild(style); {} }}; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount,{{once:true}}); else mount(); }}",
+        serde_json::to_string(origin).unwrap(),
+        serde_json::to_string(css).unwrap(),
+        js,
     )
 }
 
-fn read_splash_html() -> String {
-    include_str!("../../splash/splash.html").to_string()
-}
-
-fn show_splash(app: &tauri::AppHandle) -> Result<(), String> {
-    let splash_html = read_splash_html();
-    if splash_html.is_empty() {
-        return Ok(());
+fn start_service(app: &tauri::AppHandle) -> Result<String, String> {
+    let resources = if cfg!(debug_assertions) {
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources")
+    } else {
+        app.path().resource_dir().map_err(|_| "无法定位安装资源")?
+    };
+    let node = resources.join("runtime/node.exe");
+    let host = resources.join("service/packages/desktop/service-host.mjs");
+    if !node.is_file() || !host.is_file() {
+        return Err("安装资源不完整，请重新安装桌面程序".into());
     }
-    let _splash = WebviewWindowBuilder::new(
-        app,
-        "splash",
-        WebviewUrl::App("splash.html".into()),
-    )
-    .title("Our Free Model")
-    .inner_size(400.0, 300.0)
-    .center()
-    .resizable(false)
-    .decorations(false)
-    .transparent(false)
-    .always_on_top(true)
-    .skip_taskbar(true)
-    .build()
-    .map_err(|e| e.to_string())?;
-    Ok(())
-}
-
-fn close_splash(app: &tauri::AppHandle) {
-    if let Some(splash) = app.get_webview_window("splash") {
-        let _ = splash.close();
-    }
-}
-
-
-fn start_service(app: &tauri::AppHandle) -> Result<u16, String> {
+    let data_dir = std::env::var_os("OFM_HOME")
+        .map(std::path::PathBuf::from)
+        .or_else(|| dirs::home_dir().map(|home| home.join(".our-free-model")))
+        .ok_or("无法确定服务数据目录")?;
     let state = app.state::<ServiceState>();
-    let mut guard = state.child.lock().map_err(|e| e.to_string())?;
-    if guard.is_some() {
-        // 已在运行，返回已知端口
-        let port_guard = state.port.lock().map_err(|e| e.to_string())?;
-        return Ok(port_guard.unwrap_or(18900));
+    // 与退出共用锁：退出必须等正在启动的子进程完成交接后再清理。
+    let mut guard = state.process.lock().map_err(|_| "服务状态不可用")?;
+    if state.stopping.load(Ordering::SeqCst) {
+        return Err("应用正在退出".into());
     }
-
-    let (node_bin, cli_script) = find_service_resources(app);
-
-    #[cfg(windows)]
-    let child = Command::new(&node_bin)
-        .arg(&cli_script)
-        .arg("--port").arg("18900")
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .stdin(std::process::Stdio::null())
-        .creation_flags(0x08000000)
-        .spawn()
-        .map_err(|e| format!("failed to start service: {}", e))?;
-
-    #[cfg(not(windows))]
-    let child = Command::new(&node_bin)
-        .arg(&cli_script)
-        .arg("--port").arg("18900")
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .stdin(std::process::Stdio::null())
-        .spawn()
-        .map_err(|e| format!("failed to start service: {}", e))?;
-
-    *guard = Some(child);
-
-    // 等服务端口就绪（TCP 轮询，不读锁文件）
-    let port = wait_for_port(18900, Duration::from_secs(15));
-    if port.is_none() {
-        // 服务启动失败，清理子进程
-        if let Some(mut c) = guard.take() {
-            let _ = c.kill();
-            let _ = c.wait();
-        }
-        return Err("service failed to bind port 18900 within 15s".to_string());
+    let process = ServiceProcess::start(&node, &host, &data_dir)?;
+    if state.stopping.load(Ordering::SeqCst) {
+        return Err("应用正在退出".into());
     }
-
-    let actual_port = port.unwrap();
-    let mut port_guard = state.port.lock().map_err(|e| e.to_string())?;
-    *port_guard = Some(actual_port);
-    Ok(actual_port)
+    let address = process.management_url.clone();
+    *guard = Some(process);
+    Ok(address)
 }
 
 fn stop_service(app: &tauri::AppHandle) {
     if let Some(state) = app.try_state::<ServiceState>() {
-        if let Ok(mut guard) = state.child.lock() {
-            if let Some(mut child) = guard.take() {
-                let _ = child.kill();
-                let _ = child.wait();
+        if let Ok(mut guard) = state.process.lock() {
+            if let Some(mut process) = guard.take() {
+                process.stop();
             }
         }
-        if let Ok(mut port_guard) = state.port.lock() {
-            *port_guard = None;
-        }
+    }
+}
+
+fn show_main(app: &tauri::AppHandle, address: &str) -> tauri::Result<()> {
+    let url: tauri::Url = address.parse().expect("服务握手已校验 URL");
+    let origin = url.origin().ascii_serialization();
+    let mut capability = CapabilityBuilder::new("desktop-service-window")
+        .window("main")
+        .local(false)
+        .remote(format!("{origin}/*"));
+    for permission in [
+        "core:window:allow-minimize",
+        "core:window:allow-maximize",
+        "core:window:allow-unmaximize",
+        "core:window:allow-is-maximized",
+        "core:window:allow-hide",
+        "core:window:allow-start-dragging",
+    ] {
+        capability = capability.permission(permission);
+    }
+    app.add_capability(capability)?;
+    WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url))
+        .title("Our Free Model")
+        .inner_size(1280.0, 800.0)
+        .min_inner_size(960.0, 600.0)
+        .center()
+        .decorations(false)
+        .initialization_script(titlebar_script(&origin))
+        .on_navigation(move |url| url.origin().ascii_serialization() == origin)
+        .build()?;
+    Ok(())
+}
+
+fn show_existing(app: &tauri::AppHandle) {
+    if let Some(window) = app
+        .get_webview_window("main")
+        .or_else(|| app.get_webview_window("splash"))
+    {
+        let _ = window.show();
+        let _ = window.set_focus();
     }
 }
 
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| show_existing(app)))
         .setup(|app| {
-            app.manage(ServiceState {
-                child: Mutex::new(None),
-                port: Mutex::new(None),
-            });
-
-            // 显示启动动画
-            show_splash(app.handle())?;
-
-            // 启动后端服务（同步等待端口就绪）
-            let service_port = match start_service(app.handle()) {
-                Ok(port) => {
-                    log::info!("service ready on port {}", port);
-                    Some(port)
-                }
-                Err(e) => {
-                    log::error!("failed to start service: {}", e);
-                    None
-                }
-            };
-
-            // 关闭启动动画
-            close_splash(app.handle());
-
-            // 显示主窗口
-            if let Some(window) = app.get_webview_window("main") {
-                // 注入标题栏
-                let injection = build_titlebar_injection();
-                if !injection.is_empty() {
-                    let _ = window.eval(&injection);
-                }
-
-                // 如果服务就绪，导航到实际服务地址
-                if let Some(port) = service_port {
-                    let url = format!("http://127.0.0.1:{}", port);
-                    let _ = window.navigate(url.parse().unwrap());
-                }
-
-                let _ = window.show();
-                let _ = window.set_focus();
-            }
-
-            // 系统托盘
+            app.manage(ServiceState::default());
+            WebviewWindowBuilder::new(app, "splash", WebviewUrl::App("splash.html".into()))
+                .title("Our Free Model").inner_size(400.0, 300.0).center()
+                .resizable(false).decorations(false).always_on_top(true).skip_taskbar(true)
+                .build()?;
             let show = MenuItem::with_id(app, "show", "打开面板", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show, &quit])?;
-
-            let _tray = TrayIconBuilder::new()
-                .icon(app.default_window_icon().unwrap().clone())
-                .menu(&menu)
-                .tooltip("Our Free Model")
+            TrayIconBuilder::new()
+                .icon(app.default_window_icon().expect("已配置应用图标").clone())
+                .menu(&menu).tooltip("Our Free Model")
                 .on_menu_event(|app, event| match event.id.as_ref() {
-                    "show" => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            let _ = window.show();
-                            let _ = window.set_focus();
-                        }
-                    }
-                    "quit" => {
-                        stop_service(app);
-                        app.exit(0);
-                    }
-                    _ => {}
+                    "show" => show_existing(app), "quit" => app.exit(0), _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click {
-                        button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        let app = tray.app_handle();
-                        if let Some(window) = app.get_webview_window("main") {
-                            if window.is_visible().unwrap_or(false) {
-                                let _ = window.hide();
-                            } else {
-                                let _ = window.show();
-                                let _ = window.set_focus();
-                            }
+                    if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+                        if let Some(window) = tray.app_handle().get_webview_window("main") {
+                            if window.is_visible().unwrap_or(false) { let _ = window.hide(); }
+                            else { show_existing(tray.app_handle()); }
                         }
                     }
-                })
-                .build(app)?;
-
+                }).build(app)?;
+            // 后端握手放在后台，让启动窗口能继续绘制。
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                let result = start_service(&handle);
+                let window_handle = handle.clone();
+                // 在主线程串行处理窗口创建和退出，防止退出后重新创建窗口。
+                let _ = handle.run_on_main_thread(move || {
+                let handle = window_handle;
+                if handle.state::<ServiceState>().stopping.load(Ordering::SeqCst) { return; }
+                let result = result.and_then(|address| show_main(&handle, &address).map_err(|_| "无法打开管理窗口".into()));
+                if let Err(message) = result {
+                    stop_service(&handle);
+                    let message = serde_json::to_string(&message).unwrap();
+                    let _ = WebviewWindowBuilder::new(&handle, "main", WebviewUrl::App("error.html".into()))
+                        .title("Our Free Model — 启动失败").inner_size(620.0, 300.0).center()
+                        .initialization_script(format!("document.addEventListener('DOMContentLoaded',()=>{{document.getElementById('reason').textContent={message};}})"))
+                        .build();
+                }
+                if let Some(splash) = handle.get_webview_window("splash") { let _ = splash.close(); }
+                });
+            });
             Ok(())
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
-                if window.label() == "main" {
-                    api.prevent_close();
-                    let _ = window.hide();
-                }
+                if window.label() == "main" { api.prevent_close(); let _ = window.hide(); }
             }
         })
-        .build(tauri::generate_context!())
-        .expect("error while building tauri application")
+        .build(tauri::generate_context!()).expect("无法构建桌面应用")
         .run(|app, event| {
-            if let tauri::RunEvent::Exit = event {
+            if matches!(event, tauri::RunEvent::ExitRequested { .. } | tauri::RunEvent::Exit) {
+                app.state::<ServiceState>().stopping.store(true, Ordering::SeqCst);
                 stop_service(app);
             }
         });

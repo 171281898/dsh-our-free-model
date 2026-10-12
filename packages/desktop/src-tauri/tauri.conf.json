@@ -4,25 +4,12 @@
   "version": "0.1.0",
   "identifier": "com.ourfreemodel.desktop",
   "build": {
-    "frontendDist": "../../standalone/web",
-    "devUrl": "http://127.0.0.1:18900"
+    "frontendDist": "../splash",
+    "beforeBuildCommand": "node ../../scripts/prepare-desktop.mjs",
+    "beforeDevCommand": "node ../../scripts/prepare-desktop.mjs"
   },
   "app": {
-    "windows": [
-      {
-        "title": "Our Free Model",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 960,
-        "minHeight": 600,
-        "resizable": true,
-        "fullscreen": false,
-        "decorations": false,
-        "transparent": false,
-        "center": true,
-        "visible": false
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     },
@@ -52,10 +39,9 @@
         "displayLanguageSelector": false
       }
     },
-    "resources": [
-      "../../standalone/cli.mjs",
-      "../../standalone/web",
-      "../../standalone/service.mjs"
-    ]
+    "resources": {
+      "resources/service/": "service/",
+      "resources/runtime/": "runtime/"
+    }
   }
 }
