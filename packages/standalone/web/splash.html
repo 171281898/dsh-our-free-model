@@ -313,10 +313,7 @@ const interval = setInterval(() => {
     setTimeout(() => {
       document.body.classList.add('fade-out');
       setTimeout(() => {
-        // 通知 Tauri 关闭 splash
-        if (window.__TAURI__) {
-          window.__TAURI__.window.getCurrent().close();
-        }
+        // 窗口由 Rust 在真实服务握手结束后关闭。
       }, 300);
     }, 200);
   }

@@ -1,4 +1,4 @@
-﻿/* ===== OFM 桌面版·自定义标题栏 ===== */
+/* ===== OFM 桌面版·自定义标题栏 ===== */
 /* 注入到 webview，替换系统标题栏 */
 
 /* 标题栏容器 */
@@ -17,8 +17,19 @@
 }
 
 /* 给主内容留出标题栏空间 */
-#root, #app, .app-shell {
+#root {
   padding-top: 36px !important;
+}
+#root .app-shell {
+  padding-top: 0 !important;
+  min-height: calc(100vh - 36px);
+}
+#root .app-shell > main {
+  min-height: calc(100vh - 36px) !important;
+}
+#root .sidebar {
+  height: calc(100vh - 36px);
+  top: 36px;
 }
 
 /* ===== 夜·赛博终端 ===== */
