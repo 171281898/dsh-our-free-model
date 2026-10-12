@@ -104,6 +104,7 @@ fn show_existing(app: &tauri::AppHandle) {
         .get_webview_window("main")
         .or_else(|| app.get_webview_window("splash"))
     {
+        let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
     }
