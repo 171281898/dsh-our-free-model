@@ -32,7 +32,6 @@ import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { callRoute, fakeContext, until } from './lib/fake-kernel.mjs'
 
 let failures = 0
 const check = (name, actual, expected) => {
@@ -42,6 +41,82 @@ const check = (name, actual, expected) => {
 }
 
 const repo = fileURLToPath(new URL('..', import.meta.url))
+
+// PR #279 / issue #278: count received bytes, including non-ASCII boundaries.
+// This focused mode never imports vault.js or opens the shipped seal:
+// node scripts/vault-test.mjs --body-limit-only
+async function checkBodyLimits() {
+  const workerDirectory = path.join(repo, 'worker')
+  if (fs.existsSync(path.join(workerDirectory, '.env'))) {
+    throw new Error('Body-limit tests require a clean checkout without worker/.env')
+  }
+  const gateway = await import('../worker/worker.js')
+  const { createGatewayServer, resetAnalytics } = await import('../worker/gateway-node.mjs')
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'ofm-body-limit-'))
+  const cap = 128
+  const env = {
+    MAX_BODY_BYTES: String(cap),
+    SIGNING_SECRETS: 'body-limit-synthetic-secret-0123456789abcdef',
+    RATE_LIMIT_PER_MINUTE: '0', RATE_LIMIT_PER_DAY: '0',
+    REQUIRE_USER_TOKEN: '0', GITHUB_STARS_OVERRIDE: '0',
+    USER_STORE_PATH: path.join(temporary, 'users.json'),
+    STATS_PATH: path.join(temporary, 'stats.json'),
+  }
+  const multibyteBody = JSON.stringify({ model: 'm', messages: [{ role: 'user', content: '中'.repeat(40) }] })
+  check('the Chinese fixture exceeds the byte cap but not the code-unit cap',
+    [multibyteBody.length > cap, Buffer.byteLength(multibyteBody, 'utf8') > cap], [false, true])
+  const cases = [
+    ['ASCII below cap', 'a'.repeat(127), 127, 401],
+    ['ASCII exactly at cap', 'a'.repeat(128), 128, 401],
+    ['ASCII above cap', 'a'.repeat(129), 129, 413],
+    ['Chinese JSON above cap', multibyteBody, 175, 413],
+    ['Chinese exactly at cap', '中'.repeat(42) + 'aa', 128, 401],
+    ['Chinese one byte above cap', '中'.repeat(43), 129, 413],
+    ['emoji exactly at cap', '😀'.repeat(32), 128, 401],
+    ['emoji above cap', '😀'.repeat(40), 160, 413],
+  ]
+  let server
+  try {
+    server = createGatewayServer(env)
+    await new Promise((resolve, reject) => {
+      server.once('error', reject)
+      server.listen(0, '127.0.0.1', resolve)
+    })
+    const endpoint = 'http://127.0.0.1:' + server.address().port + '/v1/chat/completions'
+    for (const [name, body, bytes, expected] of cases) {
+      check(name + ': fixture bytes', Buffer.byteLength(body, 'utf8'), bytes)
+      // Deliberately invalid signatures: 401 proves an in-limit body reached
+      // authentication; 413 proves rejection before authentication/relay work.
+      const init = {
+        method: 'POST', body,
+        headers: { 'x-ofm-timestamp': String(Date.now()), 'x-ofm-signature': 'x'.repeat(64) },
+      }
+      const workerResponse = await gateway.default.fetch(new Request('https://gateway.test/v1/chat/completions', init), env, {})
+      check(name + ': Worker status', workerResponse.status, expected)
+      await workerResponse.text()
+      const nodeResponse = await fetch(endpoint, { ...init, signal: AbortSignal.timeout(5000) })
+      check(name + ': Node status', nodeResponse.status, expected)
+      await nodeResponse.text()
+    }
+  } finally {
+    if (server !== undefined) {
+      server.authGate.close()
+      await new Promise((resolve, reject) => {
+        server.close(error => error ? reject(error) : resolve())
+        server.closeAllConnections()
+      })
+    }
+    resetAnalytics()
+    fs.rmdirSync(temporary)
+  }
+}
+
+await checkBodyLimits()
+if (process.argv.includes('--body-limit-only')) {
+  console.log(failures === 0 ? '\nvault-test (body limits): all checks passed' : '\nvault-test (body limits): ' + failures + ' check(s) FAILED')
+  process.exit(failures === 0 ? 0 : 1)
+}
+const { callRoute, fakeContext, until } = await import('./lib/fake-kernel.mjs')
 
 // The lane's wire module reads UPSTREAM_BASE once for the free lane; the sealed
 // lane has its own base from the seal. Import order matters for the boot blocks.

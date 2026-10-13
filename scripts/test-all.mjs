@@ -47,6 +47,7 @@ const suites = [
   ['forward', 'forward-test.mjs', []],
   ['chan-relay', 'chan-relay-test.mjs', []],
   ['channel-pack', 'channel-pack-test.mjs', []],
+  ['gateway-source', 'gateway-source-test.mjs', []],
   ['channel-network', 'channel-network-test.mjs', []],
   ['forward-boot', 'forward-boot-test.mjs', []],
   ['standalone', 'standalone-test.mjs', []],
@@ -77,6 +78,7 @@ const suites = [
   // module with its own offline suite; `aggregate-wiring` is the one that
   // proves the host actually reaches them.
   ['rtk', 'rtk-test.mjs', []],
+  ['rtk-shape', 'rtk-shape-test.mjs', []],
   ['local-optimize', 'local-optimize-test.mjs', []],
   ['registry', 'registry-test.mjs', []],
   ['route', 'route-test.mjs', []],
