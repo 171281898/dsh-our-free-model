@@ -31,7 +31,8 @@ import fs from 'node:fs'
 import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { spawnSync } from 'node:child_process'
 
 let failures = 0
 const check = (name, actual, expected) => {
@@ -45,14 +46,9 @@ const repo = fileURLToPath(new URL('..', import.meta.url))
 // PR #279 / issue #278: count received bytes, including non-ASCII boundaries.
 // This focused mode never imports vault.js or opens the shipped seal:
 // node scripts/vault-test.mjs --body-limit-only
-async function checkBodyLimits() {
-  const workerDirectory = path.join(repo, 'worker')
-  if (fs.existsSync(path.join(workerDirectory, '.env'))) {
-    throw new Error('Body-limit tests require a clean checkout without worker/.env')
-  }
-  const gateway = await import('../worker/worker.js')
-  const { createGatewayServer, resetAnalytics } = await import('../worker/gateway-node.mjs')
-  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'ofm-body-limit-'))
+async function checkBodyLimits(temporary) {
+  const gateway = await import(pathToFileURL(path.join(temporary, 'worker.js')).href)
+  const { createGatewayServer, resetAnalytics } = await import(pathToFileURL(path.join(temporary, 'gateway-node.mjs')).href)
   const cap = 128
   const env = {
     MAX_BODY_BYTES: String(cap),
@@ -107,11 +103,29 @@ async function checkBodyLimits() {
       })
     }
     resetAnalytics()
-    fs.rmdirSync(temporary)
   }
 }
 
-await checkBodyLimits()
+// A separate process also disposes the gateway's private event-loop sampler.
+// Keep local .env files and module state out of both this check and later suites.
+if (process.argv[2] === '--body-limit-child') {
+  await checkBodyLimits(process.argv[3])
+  process.exit(failures === 0 ? 0 : 1)
+}
+const bodyLimitDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'ofm-body-limit-'))
+try {
+  for (const name of ['worker.js', 'gateway-node.mjs', 'auth-github.mjs']) {
+    fs.copyFileSync(path.join(repo, 'worker', name), path.join(bodyLimitDirectory, name))
+  }
+  fs.writeFileSync(path.join(bodyLimitDirectory, 'package.json'), JSON.stringify({ type: 'module' }))
+  const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--body-limit-child', bodyLimitDirectory], {
+    stdio: 'inherit', timeout: 30_000,
+  })
+  if (child.error) throw child.error
+  check('isolated body-limit process passes', { status: child.status, signal: child.signal }, { status: 0, signal: null })
+} finally {
+  fs.rmSync(bodyLimitDirectory, { recursive: true, force: true })
+}
 if (process.argv.includes('--body-limit-only')) {
   console.log(failures === 0 ? '\nvault-test (body limits): all checks passed' : '\nvault-test (body limits): ' + failures + ' check(s) FAILED')
   process.exit(failures === 0 ? 0 : 1)

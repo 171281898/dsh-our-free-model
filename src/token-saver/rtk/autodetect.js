@@ -72,7 +72,16 @@ export function autoDetectFilter(text) {
   // Inspect whole lines, not a line cut by DETECT_WINDOW. A candidate may be
   // a webpage timestamp or source citation. If the complete blob is mixed,
   // return null immediately: another lossy fallback must not claim its prose.
-  const first5 = text.split('\n').filter(line => line.trim()).slice(0, 5)
+  // Stop sampling at the fifth non-empty row; only a candidate needs the
+  // complete-output validation below.
+  const first5 = []
+  for (let start = 0; start < text.length && first5.length < 5;) {
+    const newline = text.indexOf('\n', start)
+    const end = newline === -1 ? text.length : newline
+    const line = text.slice(start, end)
+    if (line.trim()) first5.push(line)
+    start = end + 1
+  }
   const hasCandidate = first5.some(line => {
     const hit = splitGrepHit(line)
     return hit !== null && /^\d+$/.test(hit.line)

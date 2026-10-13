@@ -47,7 +47,6 @@ const suites = [
   ['forward', 'forward-test.mjs', []],
   ['chan-relay', 'chan-relay-test.mjs', []],
   ['channel-pack', 'channel-pack-test.mjs', []],
-  ['gateway-source', 'gateway-source-test.mjs', []],
   ['channel-network', 'channel-network-test.mjs', []],
   ['forward-boot', 'forward-boot-test.mjs', []],
   ['standalone', 'standalone-test.mjs', []],
@@ -87,6 +86,7 @@ const suites = [
   ['anthropic', 'anthropic-test.mjs', []],
   ['aggregate', 'aggregate-test.mjs', []],
   ['aggregate-wiring', 'aggregate-wiring-test.mjs', []],
+  ['gateway-source', 'gateway-source-test.mjs', []],
 ].filter(([name]) => (mode === 'contributor' ? !['manifest', 'release'].includes(name)
   : mode === 'release' ? releaseSuites.has(name) : true)
   && (only === null || name.startsWith(only)))

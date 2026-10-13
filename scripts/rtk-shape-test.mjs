@@ -76,5 +76,49 @@ check('colon-bearing match content survives', () => {
 check('blank lines are accepted around genuine hits', () => {
   assert.ok(grep('\nsrc/a.js:12: match\n\n').startsWith('1 matches in 1F:'))
 })
+// Conservative detection intentionally leaves these standalone searches intact.
+// They must not depend on a preceding ordinary filename to exercise the guard.
+for (const file of ['README', 'my file.js']) {
+  const text = Array.from({ length: 30 }, (_, i) => file + ':' + (i + 1) + ': MATCH ' + 'search content '.repeat(8)).join('\n')
+  check('standalone conservative filename: ' + file + ': detector', () => {
+    assert.ok(text.length > MIN_COMPRESS_SIZE)
+    assert.equal(autoDetectFilter(text), null)
+  })
+  for (const wire of Object.keys(wires)) check('standalone conservative filename: ' + file + ': ' + wire, () => {
+    const { output, stats } = shipped(text, wire)
+    assert.equal(output, text)
+    assert.equal(stats.saved, 0)
+    assert.equal(stats.hits.length, 0)
+  })
+}
+const longHit = file => file + ':12: MATCH ' + 'search content '.repeat(8)
+check('fifth non-empty row at EOF is sampled without a final newline', () => {
+  const text = [...Array(4).fill(longHit('README')), longHit('src/a.js')].join('\n')
+  assert.equal(autoDetectFilter(text)?.filterName, 'grep')
+})
+const scanCases = [
+  { name: 'fifth non-empty row seeds detection across blank CRLF rows', rows: [...Array(4).fill(longHit('README')), ...Array(21).fill(longHit('src/a.js'))], compress: true },
+  { name: 'sixth non-empty row cannot seed detection', rows: [...Array(5).fill(longHit('README')), longHit('src/a.js')], compress: false },
+  { name: 'prose after five valid hits still prevents compression', rows: [...Array(5).fill(longHit('src/a.js')), prose], compress: false },
+]
+for (const { name, rows, compress } of scanCases) {
+  // No final newline: exercise both blank-row skipping and the final row.
+  const text = '\r\n \t\r\n' + rows.join('\r\n \t\r\n')
+  check(name + ': detector', () => {
+    assert.ok(text.length > MIN_COMPRESS_SIZE)
+    assert.equal(autoDetectFilter(text)?.filterName ?? null, compress ? 'grep' : null)
+  })
+  for (const wire of Object.keys(wires)) check(name + ': ' + wire, () => {
+    const { output, stats } = shipped(text, wire)
+    if (compress) {
+      assert.ok(stats.saved > 0)
+      assert.ok(output.startsWith('25 matches in 2F:'))
+    } else {
+      assert.equal(output, text)
+      assert.equal(stats.saved, 0)
+      assert.equal(stats.hits.length, 0)
+    }
+  })
+}
 console.log(checks + ' checks; ' + failures + ' failures')
 process.exitCode = failures ? 1 : 0
