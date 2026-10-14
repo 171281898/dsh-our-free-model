@@ -2,7 +2,7 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 import { deriveSealKey, openSealFrom, SEAL_AAD, IV_BYTES, TAG_BYTES } from '../src/vault.js'
 
 const repo = fileURLToPath(new URL('..', import.meta.url))
@@ -56,8 +56,10 @@ export async function generateFiles(input, output) {
   const banner = '// Generated offline. Review and install this pair together.\n'
   await fs.writeFile(dataFile, `${banner}export const LANE_SHARDS = ${JSON.stringify(rows.slice(0, 2))}\nexport const LANE_SEAL = ${JSON.stringify(seal)}\n`, { flag: 'wx', mode: 0o600 })
   await fs.writeFile(anchorFile, `${banner}export const LANE_ANCHOR = ${JSON.stringify(rows[2])}\n`, { flag: 'wx', mode: 0o600 })
-  const data = await import(pathToFileURL(dataFile).href)
-  const anchor = await import(pathToFileURL(anchorFile).href)
+  // 从实际落盘字节构建显式 ESM，避免继承输出目录上级的 CommonJS 类型。
+  const readModule = async file => import(`data:text/javascript;base64,${(await fs.readFile(file)).toString('base64')}`)
+  const data = await readModule(dataFile)
+  const anchor = await readModule(anchorFile)
   const opened = openSealFrom([...data.LANE_SHARDS, anchor.LANE_ANCHOR], data.LANE_SEAL)
   if (opened?.mode !== 'worker' || opened.base !== config.workerBase || opened.signingSecret !== config.signingSecret) throw new Error('Written seal verification failed')
 }
