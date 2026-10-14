@@ -1,7 +1,7 @@
 {
   "version": "2.1.0",
   "base": "../",
-  "publishedAt": "2026-10-13T15:45:36.611Z",
+  "publishedAt": "2026-10-14T01:58:34.511Z",
   "notes": "",
   "files": [
     {
@@ -336,13 +336,13 @@
     },
     {
       "path": "src/vault-anchor.js",
-      "size": 262,
-      "sha256": "28a156e0da6853e9b72b840637f79ea1a8e005bf7e432878a98ee8cb3eefe897"
+      "size": 192,
+      "sha256": "0ac4dfb79cc037af8a0c568eaa067bfac0402ac84030cb3ad709a7feaafae7f6"
     },
     {
       "path": "src/vault-data.js",
-      "size": 677,
-      "sha256": "4db83a43440a0bddb27e5dd0ef9ecd911ed24d96b7e29f9f940ee20a55cd1147"
+      "size": 566,
+      "sha256": "c5d33a4607a8834615da00c32daa81899bb73f6096bc0a2b0b74f45ba4232f57"
     },
     {
       "path": "src/vault.js",
@@ -370,5 +370,5 @@
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
   ],
-  "signature": "uMI4dz2oxZwE4KjOpprALcQ2EFoIyx5ghc+1m16sxQJPhzmyy/4IoWapXHcFwJDZhi5QM9dsVBedqE7cG1WLDg=="
+  "signature": "3t79QAPrAcCF8kbw9/RG66DPs0kHN4Gxc9lBQ9wvDxYoDgnH0545BUmqB2SKRVVHhQ2vvXoCFwp2NS5LwlAmDw=="
 }
