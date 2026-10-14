@@ -395,6 +395,14 @@ const { createGatewayServer, resetAnalytics, poolProbe } = await import('../work
   const workerPacked = Buffer.concat([workerIv, workerCipher.update(Buffer.from(JSON.stringify(sealBody))), workerCipher.final(), workerCipher.getAuthTag()])
   const workerOpened = openSealWith(workerShards, workerPacked)
   check('a worker-mode seal opens to gateway url + signing secret', workerOpened, { mode: 'worker', base: 'https://gateway.test/v1', signingSecret: GATEWAY_SECRET })
+  // Migration keeps the mounted path inside the seal; use synthetic material only.
+  const mountedIv = crypto.randomBytes(IV_BYTES)
+  const mountedCipher = crypto.createCipheriv('aes-256-gcm', deriveSealKey(workerShards), mountedIv, { authTagLength: TAG_BYTES })
+  mountedCipher.setAAD(Buffer.from(SEAL_AAD, 'utf8'))
+  const mountedPacked = Buffer.concat([mountedIv, mountedCipher.update(Buffer.from(JSON.stringify({ ...sealBody, u: 'https://gateway.test/eac/v1' }))), mountedCipher.final(), mountedCipher.getAuthTag()])
+  check('a mounted worker seal preserves the complete gateway base', openSealWith(workerShards, mountedPacked), {
+    mode: 'worker', base: 'https://gateway.test/eac/v1', signingSecret: GATEWAY_SECRET,
+  })
   const shortSecretShards = workerShards
   const shortIv = crypto.randomBytes(IV_BYTES)
   const shortCipher = crypto.createCipheriv('aes-256-gcm', deriveSealKey(shortSecretShards), shortIv, { authTagLength: TAG_BYTES })
@@ -530,6 +538,26 @@ const { createGatewayServer, resetAnalytics, poolProbe } = await import('../work
   check('a mounted prefix serves the lane under an existing site', await callGateway('GET', '/eac/v1/models', {}, mounted), 200)
   check('the mount prefix is part of the signature (root path goes dark)', await callGateway('GET', '/v1/models', {}, mounted), 404)
   check('a foreign prefix is refused', await callGateway('GET', '/other/v1/models', {}, mounted), 404)
+
+  // Exercise the actual client poster too: hand-built signed requests alone
+  // cannot catch a client that drops /eac while constructing URLs or signing.
+  env.MOUNT_PREFIX = '/eac'
+  try {
+    const mountedCredential = { ...workerCredential, base: gatewayBase.replace('/v1', '/eac/v1'), userToken: null }
+    const mountedListing = await fetchSealedListing(mountedCredential)
+    check('the client lists models through the mounted signed gateway', mountedListing?.data?.[0]?.id, 'deepseek-ai/deepseek-v4.1-flash')
+    let mountedText = ''
+    const mountedTurn = await postSealedStreamed({
+      credential: mountedCredential,
+      body: { model: 'deepseek-ai/deepseek-v4.1-flash', messages: [{ role: 'user', content: 'hi' }], stream: true },
+      onData: payload => {
+        try { const frame = JSON.parse(payload); const content = frame.choices?.[0]?.delta?.content; if (typeof content === 'string') mountedText += content } catch { /* scripted frames only */ }
+      },
+    })
+    check('the client streams through the mounted signed gateway', [mountedTurn?.status, mountedText], [200, 'via-gateway'])
+  } finally {
+    delete env.MOUNT_PREFIX
+  }
 
   const tinyEnv = { ...env, MAX_BODY_BYTES: '16' }
   const tinyResponse = await gateway.default.fetch(new Request('https://gateway.test/v1/chat/completions', {
