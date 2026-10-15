@@ -36,6 +36,10 @@ export const CODE = {
   // a refusal neither wipes the cached roster nor sends anyone chasing a
   // re-install; the settings page answers it with a login prompt instead.
   authorization: 'AUTHORIZATION_REQUIRED',
+  // The free lane's client gate: the gateway judged *this client* and refused
+  // the whole lane (403 FreeTierError). Not a credential, not a model, not
+  // retryable — a refusal this install cannot retry away.
+  laneLocked: 'LANE_LOCKED',
   transport: 'TRANSPORT',
   timeout: 'TIMEOUT',
   server: 'SERVER',
@@ -123,6 +127,18 @@ export function classifyFailure(status, payload, retryAfterMs) {
   // gets its own code and the settings page answers with a login prompt.
   if (type === 'AuthorizationRequired' || /需要 GitHub 授权|GitHub 授权无效/.test(raw)) {
     return new UpstreamError(message, CODE.authorization, { status, type, reason: typeof error.reason === 'string' ? error.reason : '' })
+  }
+  // The free lane's client gate (issue #310): 403 FreeTierError — "OpenCode's
+  // free tier can only be used from within OpenCode" — names the client, not
+  // the credential or the model. The stock classifier filed it as
+  // INVALID_CREDENTIAL, which wiped the cached roster and sent users chasing
+  // a re-login that cannot help: the upstream refuses this client's fingerprint
+  // and no credential change alters that. Its own code keeps it out of both
+  // the credential branch and the generic 4xx fallthrough, and the availability
+  // probe reads it as a lane-level lock (src/probe.js) instead of leaving the
+  // model in the picker as "unknown".
+  if (type === 'FreeTierError' || /free tier can only be used from within/i.test(flat)) {
+    return new UpstreamError(message, CODE.laneLocked, { status, type })
   }
   // An HTML page at 401/403 is the front proxy speaking, not the credential
   // store: fall through to the 4xx branch so users are not sent re-logging for
