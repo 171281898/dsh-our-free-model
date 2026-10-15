@@ -3,9 +3,10 @@
  *
  * ## 门禁依据（设计文档 §0.6，opencode2dsh 2026-09-18 实测）
  *
- * 匿名通道拒绝**不带 agent 形状**的 body，回 403 FreeTierError，除非
- * `stream: true` 且 `tools` 里有名为 `bash` 与 `read` 的 function 工具
- * （描述 / parameters / 全部请求头都不检查）。
+ * 匿名通道拒绝**不带 agent 形状**的 body，回 403 FreeTierError。当前门禁
+ * 要求 `stream: true`，并且 `tools` 中包含 `bash`、`glob`、`grep`、`read`
+ * 四个 function 工具；`bash` 与 `read` 的参数 schema 还必须至少声明一个
+ * property。桌面端必须和插件端保持同一套线协议。
  *
  * ⚠️ 门禁参数**收敛在本文件**，不散落到适配器 —— 服务端再收紧时只改一处。
  * ⚠️ 账号槽（带 API key）**同样注入**：免费通道与认证通道的服务端策略
@@ -26,17 +27,22 @@ export interface OpencodeWireTool {
   function: { name: string; description?: string; parameters?: Record<string, unknown> }
 }
 
-/** 门禁工具名（服务端只认这两个名字）。 */
-export const FREE_LANE_GATE_TOOLS = ['bash', 'read'] as const
+/** 门禁工具名（服务端按这四个名字识别官方客户端形状）。 */
+export const FREE_LANE_GATE_TOOLS = ['bash', 'glob', 'grep', 'read'] as const
 
 /** 门禁桩工具：描述固定为「不要调用」，参数为空对象。 */
+const FINGERPRINT_PROPERTY = {
+  type: 'string',
+  description: 'This tool is currently unavailable and must not be used.',
+}
+
 function gateTool(name: string): OpencodeWireTool {
   return {
     type: 'function',
     function: {
       name,
       description: 'Reserved for the host runtime; do not call it.',
-      parameters: { type: 'object', properties: {} },
+      parameters: { type: 'object', properties: { input: FINGERPRINT_PROPERTY } },
     },
   }
 }
@@ -72,17 +78,39 @@ export function buildOpencodeTools(tools: readonly OpencodeHarnessTool[] | undef
 export function ensureFreeLaneShape(payload: Record<string, unknown>): Record<string, unknown> {
   if (!Array.isArray(payload.messages)) return payload
   const tools = Array.isArray(payload.tools) ? (payload.tools as unknown[]) : []
-  const names = new Set<string>()
-  for (const tool of tools) {
+  const next = tools.map((tool) => {
+    if (typeof tool !== 'object' || tool === null) return tool
+    const row = tool as { function?: { name?: unknown; parameters?: unknown } }
+    const name = row.function?.name
+    if (name !== 'bash' && name !== 'read') return tool
+    const schema = row.function?.parameters
+    const properties = schema !== null && typeof schema === 'object'
+      ? (schema as { properties?: unknown }).properties
+      : undefined
+    if (properties !== null && typeof properties === 'object' && Object.keys(properties as object).length > 0) return tool
+    return {
+      ...row,
+      function: {
+        ...row.function,
+        parameters: {
+          ...(schema !== null && typeof schema === 'object' ? schema : {}),
+          type: 'object',
+          properties: { input: FINGERPRINT_PROPERTY },
+        },
+      },
+    }
+  })
+  const present = new Set<string>()
+  for (const tool of next) {
     if (typeof tool !== 'object' || tool === null) continue
-    const fn = (tool as { function?: { name?: unknown } }).function
-    if (typeof fn?.name === 'string') names.add(fn.name)
+    const name = (tool as { function?: { name?: unknown } }).function?.name
+    if (typeof name === 'string') present.add(name.toLowerCase())
   }
-  const missing = FREE_LANE_GATE_TOOLS.filter((name) => !names.has(name))
-  if (missing.length === 0) return payload
+  const missing = FREE_LANE_GATE_TOOLS.filter((name) => !present.has(name))
+  if (missing.length === 0 && next.length === tools.length && next.every((tool, index) => tool === tools[index])) return payload
   return {
     ...payload,
-    tools: [...tools, ...missing.map(gateTool)],
+    tools: [...next, ...missing.map(gateTool)],
     ...(tools.length === 0 ? { tool_choice: 'none' } : {}),
   }
 }

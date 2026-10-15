@@ -1,5 +1,5 @@
 /**
- * OpenCode Zen 产品配置与错误分类。
+ * OpenCode 免费推理产品配置与错误分类。
  *
  * ## 数据来源（设计文档 §0）
  *
@@ -55,7 +55,9 @@ export const OPENCODE: OpencodeProduct = {
   // ⚠️ 必须与客户端 `PROVIDERS` 里的 label 逐字一致（rail 宽度算式依赖它，
   // 且 `opencode-client-panel.spec.ts` 有跨文件一致性断言）。
   displayName: 'OpenCode',
-  baseUrl: 'https://opencode.ai/zen',
+  // 免费模型的新入口统一挂在 /inference/v1；/zen/v1 对匿名免费模型
+  // 会返回 FreeTierError。这里保留 v1 后缀拆分，便于复用下方路径字段。
+  baseUrl: 'https://opencode.ai/inference',
   chatPath: '/v1/chat/completions',
   modelsPath: '/v1/models',
   // ⚠️ 与本仓库其余 provider 的流式超时常量同档（保守值）。
