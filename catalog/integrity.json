@@ -14,8 +14,8 @@
     },
     {
       "path": "client.js",
-      "size": 452989,
-      "sha256": "df7666e53b5812ea74df754e2d318cddd09ee1bd6b9938df568d6b691ac9c125"
+      "size": 453441,
+      "sha256": "af269a805f90028a9aa66fceeb9e52225e3fa3fb24ac164be62155a8d1308f78"
     },
     {
       "path": "cordis.patch.yml",
@@ -139,8 +139,8 @@
     },
     {
       "path": "src/http.js",
-      "size": 24912,
-      "sha256": "2afb523e410495c1af90105a1c2e9732a34fd306cf7b3829621836f48b866b83"
+      "size": 25987,
+      "sha256": "f4a035ed8e81a7ed4edeea5fc1ac43edc03b83ea270094f1e8aeda92db0a1cc3"
     },
     {
       "path": "src/image-pricing.d.ts",
@@ -169,8 +169,8 @@
     },
     {
       "path": "src/probe.js",
-      "size": 9775,
-      "sha256": "b3a65d3c2be6d8e5e3c9b305a4df64cce699915dc8c6e44273809bef689b2642"
+      "size": 10298,
+      "sha256": "cac99bbacd9067500e2c0e56843bdb82b6ace150d62ab32c57baf5268860e46a"
     },
     {
       "path": "src/providers/index.js",
