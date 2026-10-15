@@ -93,30 +93,40 @@ export function deriveProjectId(identity: string, generation: number): string {
  * 官方 `id/index.ts` 里写的是 `const LENGTH = 26`，但那是**整段尾部长度**
  * （`randomBase62(LENGTH - 12)`），不是随机段长度。我第一版误读成「随机 26 位」，
  * 产出 `ses_` + 38 字符，形状不对 ⇒ 匿名通道一律 403 `FreeTierError`
- * （"free tier can only be used from within OpenCode"）。
- *
- * 证据（本机官方 CLI 1.18.22 真实 session id，日志实证）：
- *   ses_f078262d9ffeFwtz1QB7VnN4kM   ← 12 hex + 14 base62 = 26
- * 与 opencode2dsh 记录的门禁正则 `ses_[0-9a-f]{12}[0-9A-Za-z]{14}` 一致。
+ * （"free tier can only be used from within OpenCode"）。此外，前 12 位也不能
+ * 只是任意随机 hex，网关会校验它是否来自官方的时间铸造算法。
  *
  * ⚠️ **每次调用都是新值**：调用方负责在**一次 DSH 会话内**缓存复用
  * （见 `opencode-adapter.ts` 的 `sessionIds`）。每次都随机会让同一会话
  * 在服务端被看成多个独立会话，反而破坏亲和。
  */
 export function deriveSessionId(): string {
-  const time = Buffer.alloc(6)
-  let now = BigInt(Date.now())
-  for (let i = 0; i < 6; i++) {
-    time[i] = Number(now & 0xffn)
-    now >>= 8n
+  const timestamp = Date.now()
+  if (timestamp !== lastSessionStamp) {
+    lastSessionStamp = timestamp
+    sessionSequence = 0
+  }
+  sessionSequence += 1
+  const value = ~(BigInt(timestamp) * 0x1000n + BigInt(sessionSequence))
+  let hex = ''
+  for (let i = 0; i < 6; i += 1) {
+    hex += Number((value >> BigInt(40 - 8 * i)) & 0xffn).toString(16).padStart(2, '0')
   }
   // ⚠️ 随机段固定 14 位（26 - 12）；写成 26 会让总长变成 38 而被门禁拒绝。
-  return `ses_${time.toString('hex')}${randomBase62(SESSION_RANDOM_LENGTH)}`
+  return `ses_${hex}${randomBase62(SESSION_RANDOM_LENGTH)}`
 }
 
-/** 派生 request id（每请求一个，官方形态 `msg_` 前缀改 `req_`）。 */
+let lastSessionStamp = 0
+let sessionSequence = 0
+
+/** 派生 request id（每请求一个，采用网关接受的 `msg_` 铸造形状）。 */
 export function deriveRequestId(): string {
-  return `req_${randomBytes(16).toString('hex')}`
+  const value = BigInt(Date.now()) * 0x1000n + 1n
+  let hex = ''
+  for (let i = 0; i < 6; i += 1) {
+    hex += Number((value >> BigInt(40 - 8 * i)) & 0xffn).toString(16).padStart(2, '0')
+  }
+  return `msg_${hex}${randomBase62(SESSION_RANDOM_LENGTH)}`
 }
 
 /** UA：缺省用产品常量（`opencode/<version>`），接线层用真机安装版本覆盖。 */
@@ -135,6 +145,9 @@ export function opencodeHeaders(
   return {
     'x-opencode-project': fingerprint.projectId,
     'x-opencode-session': sessionId,
+    // 新版免费车道要求这个别名头与 session 保持一致；缺失时即使
+    // session 形状正确也会被判为 FreeTierError。
+    'x-opencode-session-id': sessionId,
     'x-opencode-request': requestId,
     'x-opencode-client': 'cli',
     'user-agent': userAgent,

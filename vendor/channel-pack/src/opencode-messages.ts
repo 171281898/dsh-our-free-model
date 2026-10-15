@@ -3,9 +3,10 @@
  *
  * ## 门禁依据（设计文档 §0.6，opencode2dsh 2026-09-18 实测）
  *
- * 匿名通道拒绝**不带 agent 形状**的 body，回 403 FreeTierError，除非
- * `stream: true` 且 `tools` 里有名为 `bash` 与 `read` 的 function 工具
- * （描述 / parameters / 全部请求头都不检查）。
+ * 匿名通道拒绝**不带 agent 形状**的 body，回 403 FreeTierError。当前门禁
+ * 要求 `stream: true`，并且 `tools` 中包含 `bash`、`glob`、`grep`、`read`
+ * 四个 function 工具；`bash` 与 `read` 的参数 schema 还必须至少声明一个
+ * property。桌面端必须和插件端保持同一套线协议。
  *
  * ⚠️ 门禁参数**收敛在本文件**，不散落到适配器 —— 服务端再收紧时只改一处。
  * ⚠️ 账号槽（带 API key）**同样注入**：免费通道与认证通道的服务端策略
@@ -26,19 +27,69 @@ export interface OpencodeWireTool {
   function: { name: string; description?: string; parameters?: Record<string, unknown> }
 }
 
-/** 门禁工具名（服务端只认这两个名字）。 */
-export const FREE_LANE_GATE_TOOLS = ['bash', 'read'] as const
+/** 门禁工具名（服务端按这四个名字识别官方客户端形状）。 */
+export const FREE_LANE_GATE_TOOLS = ['bash', 'glob', 'grep', 'read'] as const
+const FREE_LANE_GATE_TOOL_SET = new Set<string>(FREE_LANE_GATE_TOOLS)
+
+/** wire 名称 → 调用方名称；响应工具调用时需要还原调用方名称。 */
+export type OpencodeToolNameMap = ReadonlyMap<string, string>
 
 /** 门禁桩工具：描述固定为「不要调用」，参数为空对象。 */
+const FINGERPRINT_PROPERTY = {
+  type: 'string',
+  description: 'This tool is currently unavailable and must not be used.',
+}
+
 function gateTool(name: string): OpencodeWireTool {
   return {
     type: 'function',
     function: {
       name,
       description: 'Reserved for the host runtime; do not call it.',
-      parameters: { type: 'object', properties: {} },
+      parameters: { type: 'object', properties: { input: FINGERPRINT_PROPERTY } },
     },
   }
+}
+
+function canonicalGateToolName(name: string): string {
+  const lower = name.toLowerCase()
+  return FREE_LANE_GATE_TOOL_SET.has(lower) ? lower : name
+}
+
+function canonicalizeWireTools(
+  tools: readonly unknown[],
+  toolNameMap?: Map<string, string>,
+): unknown[] {
+  const seen = new Set<string>()
+  const next: unknown[] = []
+  for (const tool of tools) {
+    if (typeof tool !== 'object' || tool === null) {
+      next.push(tool)
+      continue
+    }
+    const row = tool as { function?: { name?: unknown } }
+    const name = row.function?.name
+    if (typeof name !== 'string') {
+      next.push(tool)
+      continue
+    }
+    const canonical = canonicalGateToolName(name)
+    const isGateTool = FREE_LANE_GATE_TOOL_SET.has(canonical)
+    if (isGateTool) {
+      if (seen.has(canonical)) continue
+      seen.add(canonical)
+    }
+    if (toolNameMap !== undefined && canonical !== name) toolNameMap.set(canonical, name)
+    if (canonical === name) {
+      next.push(tool)
+      continue
+    }
+    next.push({
+      ...row,
+      function: { ...row.function, name: canonical },
+    })
+  }
+  return next
 }
 
 /**
@@ -48,9 +99,12 @@ function gateTool(name: string): OpencodeWireTool {
  * 任何函数定义，只能用正文里的 XML 臆造工具调用 —— qoder 的用户报障
  * 「执行任务出现任务调用 xml 泄露任务终止」就是这个根因。
  */
-export function buildOpencodeTools(tools: readonly OpencodeHarnessTool[] | undefined): OpencodeWireTool[] {
+export function buildOpencodeTools(
+  tools: readonly OpencodeHarnessTool[] | undefined,
+  toolNameMap?: Map<string, string>,
+): OpencodeWireTool[] {
   if (tools === undefined || tools.length === 0) return []
-  return tools.map((tool) => ({
+  const wireTools = tools.map((tool) => ({
     type: 'function' as const,
     function: {
       name: tool.name,
@@ -58,6 +112,7 @@ export function buildOpencodeTools(tools: readonly OpencodeHarnessTool[] | undef
       ...(tool.parameters === undefined ? {} : { parameters: tool.parameters }),
     },
   }))
+  return canonicalizeWireTools(wireTools, toolNameMap) as OpencodeWireTool[]
 }
 
 /**
@@ -72,17 +127,40 @@ export function buildOpencodeTools(tools: readonly OpencodeHarnessTool[] | undef
 export function ensureFreeLaneShape(payload: Record<string, unknown>): Record<string, unknown> {
   if (!Array.isArray(payload.messages)) return payload
   const tools = Array.isArray(payload.tools) ? (payload.tools as unknown[]) : []
-  const names = new Set<string>()
-  for (const tool of tools) {
+  const canonicalTools = canonicalizeWireTools(tools)
+  const next = canonicalTools.map((tool) => {
+    if (typeof tool !== 'object' || tool === null) return tool
+    const row = tool as { function?: { name?: unknown; parameters?: unknown } }
+    const name = row.function?.name
+    if (name !== 'bash' && name !== 'read') return tool
+    const schema = row.function?.parameters
+    const properties = schema !== null && typeof schema === 'object'
+      ? (schema as { properties?: unknown }).properties
+      : undefined
+    if (properties !== null && typeof properties === 'object' && Object.keys(properties as object).length > 0) return tool
+    return {
+      ...row,
+      function: {
+        ...row.function,
+        parameters: {
+          ...(schema !== null && typeof schema === 'object' ? schema : {}),
+          type: 'object',
+          properties: { input: FINGERPRINT_PROPERTY },
+        },
+      },
+    }
+  })
+  const present = new Set<string>()
+  for (const tool of next) {
     if (typeof tool !== 'object' || tool === null) continue
-    const fn = (tool as { function?: { name?: unknown } }).function
-    if (typeof fn?.name === 'string') names.add(fn.name)
+    const name = (tool as { function?: { name?: unknown } }).function?.name
+    if (typeof name === 'string') present.add(name.toLowerCase())
   }
-  const missing = FREE_LANE_GATE_TOOLS.filter((name) => !names.has(name))
-  if (missing.length === 0) return payload
+  const missing = FREE_LANE_GATE_TOOLS.filter((name) => !present.has(name))
+  if (missing.length === 0 && next.length === tools.length && next.every((tool, index) => tool === tools[index])) return payload
   return {
     ...payload,
-    tools: [...tools, ...missing.map(gateTool)],
+    tools: [...next, ...missing.map(gateTool)],
     ...(tools.length === 0 ? { tool_choice: 'none' } : {}),
   }
 }
@@ -105,13 +183,17 @@ export interface OpencodePayloadInput {
 }
 
 /** 构造一次 chat 请求的完整 body（已过门禁）。 */
-export function buildOpencodePayload(input: OpencodePayloadInput): Record<string, unknown> {
+export function buildOpencodePayloadWithToolMap(input: OpencodePayloadInput): {
+  payload: Record<string, unknown>
+  toolNameMap: OpencodeToolNameMap
+} {
+  const toolNameMap = new Map<string, string>()
   const base: Record<string, unknown> = {
     model: input.model,
     messages: input.messages,
     // ⚠️ 恒 true：这是门禁的一半要求。
     stream: true,
-    tools: buildOpencodeTools(input.tools),
+    tools: buildOpencodeTools(input.tools, toolNameMap),
     ...input.system !== undefined && input.system.length > 0 ? { system: input.system } : {},
     ...typeof input.temperature === 'number' && Number.isFinite(input.temperature)
       ? { temperature: input.temperature }
@@ -134,5 +216,10 @@ export function buildOpencodePayload(input: OpencodePayloadInput): Record<string
       ? { reasoning_effort: input.reasoningEffort }
       : {},
   }
-  return ensureFreeLaneShape(base)
+  return { payload: ensureFreeLaneShape(base), toolNameMap }
+}
+
+/** 构造一次 chat 请求的完整 body（已过门禁）。 */
+export function buildOpencodePayload(input: OpencodePayloadInput): Record<string, unknown> {
+  return buildOpencodePayloadWithToolMap(input).payload
 }

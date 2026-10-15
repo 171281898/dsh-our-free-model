@@ -386,6 +386,8 @@ export interface ConsumeOpenAiSseOptions {
    * ⚠️ 回调**抛错会被吞掉**：观测失败绝不能把一次正常推理打死。
    */
   onFrame?: (data: Record<string, unknown>) => void
+  /** 将 wire 侧规范化的工具名还原为调用方名称。 */
+  restoreToolName?: (name: string) => string
 }
 
 /**
@@ -414,6 +416,7 @@ export async function* consumeOpenAiSse(
   config: ConsumeOpenAiSseOptions,
 ): AsyncIterable<StreamChunk> {
   const { label } = config
+  const restoreToolName = config.restoreToolName ?? ((name: string) => name)
   if (!response.body) throw new LlmError(`${label}: empty model response body`, 'EMPTY_RESPONSE')
 
   const blocks: Array<{ index: number; kind: 'text' | 'reasoning'; text: string }> = []
@@ -864,7 +867,7 @@ export async function* consumeOpenAiSse(
               type: 'tool-call-delta',
               index: block.index,
               id: ToolCallId(callId),
-              name: block.name!,
+              name: restoreToolName(block.name!),
               argumentsDelta: block.text,
             }
             continue
@@ -873,7 +876,7 @@ export async function* consumeOpenAiSse(
             type: 'tool-call-delta',
             index: block.index,
             id: ToolCallId(callId),
-            ...block.name !== undefined ? { name: block.name } : {},
+            ...block.name !== undefined ? { name: restoreToolName(block.name) } : {},
             argumentsDelta: fragment,
           }
         }
@@ -958,7 +961,7 @@ export async function* consumeOpenAiSse(
       block: {
         type: 'tool-call',
         id: ToolCallId(block.callId ?? ''),
-        name: block.name!,
+        name: restoreToolName(block.name!),
         // 仅把「无参数工具下发的空分片」补成 {}；**残缺参数保持原样**，
         // 由 max-tokens 判定触发重试 —— 把残缺 JSON 补成 {} 会伪造出
         // 合法外观，让 harness 报 missing required property 而非重试。
