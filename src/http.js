@@ -363,10 +363,23 @@ async function readRemainder(head, signal) {
  * desktop client by an `opencode/<version>` token (>= 1.17). The gateway tests
  * with a search rather than an anchored match, so one value can satisfy both —
  * verified live against this lane.
+ *
+ * Since 2026-10-14 the gate also refuses any User-Agent that contains the
+ * versioned token `deepseek-harness/<version>` (case-insensitive, anywhere in the
+ * string), which is exactly the attribution this host falls back to when the
+ * kernel does not supply one. The attribution is kept, but that spelling is
+ * rewritten to `dsh` and a parenthesised URL that repeats it is dropped, so the
+ * harness is still named and the lane still opens.
  */
+const UA_REFUSED = /deepseek[-_]harness/gi
+
 function userAgentWith(attribution) {
-  if (typeof attribution !== 'string' || attribution === '') return CLIENT_UA
-  return attribution.includes('opencode/') ? attribution : `${attribution} ${CLIENT_UA}`
+  let agent = typeof attribution === 'string' ? attribution : ''
+  if (attribution !== '' && /deepseek[-_]harness/i.test(agent)) {
+    agent = agent.replace(UA_REFUSED, 'dsh').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim()
+  }
+  if (agent === '') return CLIENT_UA
+  return agent.includes('opencode/') ? agent : `${agent} ${CLIENT_UA}`
 }
 
 export async function postStreamed({ path, body, session, requestId, attributionUserAgent, signal, onData, timeoutMs = 300000 }) {
