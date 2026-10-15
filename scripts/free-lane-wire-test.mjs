@@ -10,6 +10,12 @@
  */
 
 import http from 'node:http'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'ofm-wire-'))
+process.env.DSH_HOME = scratch
 
 const seen = []
 const server = http.createServer((req, res) => {
@@ -75,6 +81,8 @@ console.log('\n=== 3. the session id has to be minted, not derived ===')
   check('hex carries the mint time', Math.abs(stamp - (Date.now() % 2 ** 36)) < 5000, true)
   check('one conversation, one session', up.sessionForConversation('wire:conversation'), id)
   check('another conversation, another session', up.sessionForConversation('wire:other') !== id, true)
+  const saved = JSON.parse(fs.readFileSync(path.join(scratch, 'our-free-model', 'session-map.json'), 'utf8'))
+  check('session mapping is persisted outside the user directory', saved.sessions['wire:conversation'], id)
   const caller = 'ses_ffffffffffffABCDEFGHIJKLMN'
   check('a canonical caller id passes through', up.sessionForConversation(caller), caller)
 }
@@ -120,5 +128,6 @@ console.log('\n=== 5. a User-Agent naming deepseek-harness is refused by the gat
 }
 
 server.close()
+fs.rmSync(scratch, { recursive: true, force: true })
 console.log(failures === 0 ? '\nall wire checks passed' : `\n${failures} wire check(s) failed`)
 process.exitCode = failures === 0 ? 0 : 1

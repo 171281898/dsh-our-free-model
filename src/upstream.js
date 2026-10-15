@@ -20,6 +20,9 @@
  */
 
 import crypto from 'node:crypto'
+import fs from 'node:fs'
+import path from 'node:path'
+import { DATA_DIR_NAME, resolveDshHome } from './store.js'
 
 /**
  * Overridable so the selftest can point the adapter at a dead port and exercise
@@ -90,6 +93,39 @@ export function mintRequestId(timestamp = Date.now()) {
   return `msg_${hex}${base62From(crypto.randomBytes(14))}`
 }
 
+const SESSION_MAP_FILE = 'session-map.json'
+let sessions
+
+function sessionStorePath() {
+  try { return path.join(path.resolve(resolveDshHome(), DATA_DIR_NAME), SESSION_MAP_FILE) } catch { return undefined }
+}
+
+function loadSessions() {
+  if (sessions !== undefined) return sessions
+  sessions = new Map()
+  try {
+    const file = sessionStorePath()
+    if (file === undefined) return sessions
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'))
+    for (const [seed, id] of Object.entries(parsed?.sessions ?? {})) {
+      if (typeof id === 'string' && SESSION_RE.test(id)) sessions.set(seed, id)
+    }
+  } catch { /* first run or unreadable store: start empty */ }
+  return sessions
+}
+
+function rememberSession(seed, id) {
+  loadSessions().set(seed, id)
+  try {
+    const file = sessionStorePath()
+    if (file === undefined) return
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    const temp = `${file}.tmp`
+    fs.writeFileSync(temp, JSON.stringify({ version: 1, at: Date.now(), sessions: Object.fromEntries(sessions) }, undefined, 2))
+    fs.renameSync(temp, file)
+  } catch { /* non-fatal: the id still works, it just will not survive a restart */ }
+}
+
 /**
  * Map one downstream conversation onto one stable upstream session.
  *
@@ -101,20 +137,13 @@ export function mintRequestId(timestamp = Date.now()) {
  * (measured 2026-10-14). Mint once per conversation and cache it, which keeps
  * both properties: one stable session per conversation, and the canonical shape.
  */
-const mintedSessions = new Map()
-const MINTED_SESSION_CAP = 256
-
 export function sessionForConversation(sessionId) {
   if (typeof sessionId === 'string' && SESSION_RE.test(sessionId.trim())) return sessionId.trim()
   const seed = typeof sessionId === 'string' && sessionId.trim() ? sessionId.trim() : 'global'
-  const cached = mintedSessions.get(seed)
-  if (cached !== undefined) return cached
+  const remembered = loadSessions().get(seed)
+  if (remembered !== undefined) return remembered
   const minted = mintSessionId()
-  if (mintedSessions.size >= MINTED_SESSION_CAP) {
-    const oldest = mintedSessions.keys().next().value
-    if (oldest !== undefined) mintedSessions.delete(oldest)
-  }
-  mintedSessions.set(seed, minted)
+  rememberSession(seed, minted)
   return minted
 }
 
