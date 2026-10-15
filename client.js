@@ -364,6 +364,7 @@ window.__ModuleLoader__.load({
         'nav.tab.ledger': '数据看板',
         'nav.tab.logs': '运行日志',
         'nav.tab.gateway': '网关设置',
+        'nav.tab.upgrade': '插件升级',
         'chan.titleSingle': '渠道',
         'dash.title': '数据看板',
         'dash.sub': '渠道模型的 Token 消耗与推理指标：输入/输出/思考/缓存逐项统计，账号与模型双维度透视。',
@@ -976,6 +977,7 @@ window.__ModuleLoader__.load({
         'nav.tab.ledger': 'Dashboard',
         'nav.tab.logs': 'Request log',
         'nav.tab.gateway': 'Gateway',
+        'nav.tab.upgrade': 'Plugin upgrade',
         'chan.titleSingle': 'Channel',
         'dash.title': 'Usage dashboard',
         'dash.sub': 'Token spend and inference metrics for the channel models: input/output/reasoning/cache, pivoted by account and by model.',
@@ -3528,6 +3530,13 @@ window.__ModuleLoader__.load({
           h('span', { className: 'ofm_note' }, t('reload.done').replace('{n}', String(settings.reloadCount ?? 0)))))
     }
 
+    function UpgradePage(props) {
+      const { t, settings, onApply, busy } = props
+      return h('div', { className: 'ofm_page' },
+        h(PageHero, { title: t('section.upgrade'), sub: t('section.upgradeHint') }),
+        h(UpgradePanel, { t, settings, onApply, busy }))
+    }
+
     // ── 白嫖模型接入页 ────────────────────────────────────────────────────────
     // Real channel logos carried over from the upstream Channel Pack client (see
     // vendor/channel-pack/NOTICE.md) — the same artwork users know from those
@@ -5533,7 +5542,7 @@ window.__ModuleLoader__.load({
     // The active page lives in localStorage so a reload — or the hot reload the
     // upgrader triggers — comes back to the page the user was reading.
     const TAB_KEY = 'ofm.tab'
-    const TABS = ['free', 'eac', 'channels', 'aggregate', 'saver', 'routing', 'ledger', 'logs', 'gateway']
+    const TABS = ['free', 'eac', 'channels', 'aggregate', 'saver', 'routing', 'ledger', 'logs', 'gateway', 'upgrade']
 
     function Shell(props) {
       const { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, setBusy, apply, bench, benches, ctx } = props
@@ -5573,6 +5582,7 @@ window.__ModuleLoader__.load({
         ['ledger', t('nav.tab.ledger'), null],
         ['logs', t('nav.tab.logs'), null],
         ['gateway', t('nav.tab.gateway'), null],
+        ['upgrade', t('nav.tab.upgrade'), null],
       ]
       const nav = h('nav', { className: 'ofm_nav' },
         h('span', { className: 'ofm_navbrand' },
@@ -5604,6 +5614,8 @@ window.__ModuleLoader__.load({
                   ? h(LogsPage, { t, ctx })
                   : tab === 'gateway'
                     ? h(GatewayPage, { t, ctx })
+                    : tab === 'upgrade'
+                      ? h(UpgradePage, { t, settings: data.settings, onApply: apply, busy })
                     : tab === 'eac'
                       ? h(EacPage, { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
                       : h(FreePage, { t, data, counts, summary, stats, eacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
@@ -5670,8 +5682,7 @@ window.__ModuleLoader__.load({
         h(Section, { title: t('section.forward'), hint: t('section.forwardHint') }, h(Forward, { settings: data.settings, t, onApply: apply, busy })),
         h(Section, { title: t('section.egress'), hint: t('section.egressHint') }, h(Egress, { settings: data.settings, t, onApply: apply, busy })),
         h(Section, { title: t('section.prefs'), hint: t('section.prefsHint') }, h(Preferences, { summary: data, t, onApply: apply, busy })),
-        h(Section, { title: t('section.news'), hint: t('section.newsHint') }, h(NewsPanel, { t })),
-        h(Section, { title: t('section.upgrade'), hint: t('section.upgradeHint') }, h(UpgradePanel, { t, settings: data.settings, onApply: apply, busy })))
+        h(Section, { title: t('section.news'), hint: t('section.newsHint') }, h(NewsPanel, { t })))
     }
 
     function EacPage(props) {
