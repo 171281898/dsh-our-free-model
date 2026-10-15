@@ -77,4 +77,6 @@ check('a region refusal still reads as region-blocked', region.code, CODE.region
 
 await stub.close()
 console.log(failures === 0 ? '\nall checks passed' : `\n${failures} check(s) FAILED`)
-process.exit(failures === 0 ? 0 : 1)
+// Let Node drain the closed fetch/server handles. Calling process.exit here
+// races libuv's Windows socket teardown and can assert after all checks pass.
+process.exitCode = failures === 0 ? 0 : 1
