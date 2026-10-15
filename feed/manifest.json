@@ -1,7 +1,7 @@
 {
-  "version": "2.2.0",
+  "version": "2.3.0",
   "base": "../",
-  "publishedAt": "2026-10-15T05:12:14.181Z",
+  "publishedAt": "2026-10-15T06:57:02.741Z",
   "notes": "",
   "files": [
     {
@@ -52,7 +52,7 @@
     {
       "path": "package.json",
       "size": 2941,
-      "sha256": "1e6e34df59cf782f9a95c05c14f282857db28fc9b0837d57d1ac689298a26e2e"
+      "sha256": "cc652ab7e93ad5e109b69830e81d7e99f15ed64b99a065c12eabf8f9e5c5d31c"
     },
     {
       "path": "src/adapter.js",
@@ -370,5 +370,5 @@
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
   ],
-  "signature": "lGX1bu80lYeO6sQDcUB9IIW9uO0azVMXm1mFhH4tXKglI8gN7h49GiA73t2c4DULJSaoH76rPedkYlfsYwzJAg=="
+  "signature": "qLae9oPUf7rctrJt5vGdeo9DmIaP76N3mzCeUdrMZ9dHTrhwCDbH4520Q1moL1yFs4GJ5slsfF+/SEc9SnTrDw=="
 }
