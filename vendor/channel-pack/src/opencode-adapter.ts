@@ -44,7 +44,7 @@ import {
 } from './opencode-product.js'
 import { listIdentitySlots, type IdentitySlot } from './opencode-auth.js'
 import { deriveRequestId, deriveSessionId, opencodeHeaders, opencodeUserAgent } from './opencode.js'
-import { buildOpencodePayload } from './opencode-messages.js'
+import { buildOpencodePayloadWithToolMap } from './opencode-messages.js'
 import {
   getOpencodeCapabilitiesSync, opencodeEffortName, supportsOpencodeImage,
   type OpencodeModelCapability,
@@ -515,7 +515,7 @@ export class OpencodeAdapter extends LlmAdapter {
     // 否则图片会被静默丢掉（Qoder 图片丢失事故的同型缺陷）。
     const imageUrls = await this.resolveImageUrls(options.model, options.messages)
     const messages = serializeMessages(options.messages, imageUrls)
-    const payload = buildOpencodePayload({
+    const { payload, toolNameMap } = buildOpencodePayloadWithToolMap({
       model: options.model,
       messages,
       ...options.system !== undefined && options.system.length > 0 ? { system: options.system } : {},
@@ -570,6 +570,7 @@ export class OpencodeAdapter extends LlmAdapter {
       firstTokenTimeoutMs: OPENCODE.chatHeaderTimeoutMs,
       chunkTimeoutMs: OPENCODE.chatChunkTimeoutMs,
       ...options.maxTokens !== undefined ? { maxTokens: options.maxTokens } : {},
+      restoreToolName: (name) => toolNameMap.get(name) ?? name,
     })
   }
 }

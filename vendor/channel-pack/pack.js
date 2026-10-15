@@ -38221,6 +38221,7 @@ function isTransportError4(error) {
 var RAW_SNIPPET_LIMIT = 400;
 async function* consumeOpenAiSse(response, options, config) {
   const { label } = config;
+  const restoreToolName = config.restoreToolName ?? ((name) => name);
   if (!response.body) throw new LlmError6(`${label}: empty model response body`, "EMPTY_RESPONSE");
   const blocks = [];
   let nextIndex = 0;
@@ -38407,7 +38408,7 @@ async function* consumeOpenAiSse(response, options, config) {
               type: "tool-call-delta",
               index: block.index,
               id: ToolCallId4(callId),
-              name: block.name,
+              name: restoreToolName(block.name),
               argumentsDelta: block.text
             };
             continue;
@@ -38416,7 +38417,7 @@ async function* consumeOpenAiSse(response, options, config) {
             type: "tool-call-delta",
             index: block.index,
             id: ToolCallId4(callId),
-            ...block.name !== void 0 ? { name: block.name } : {},
+            ...block.name !== void 0 ? { name: restoreToolName(block.name) } : {},
             argumentsDelta: fragment
           };
         }
@@ -38459,7 +38460,7 @@ async function* consumeOpenAiSse(response, options, config) {
       block: {
         type: "tool-call",
         id: ToolCallId4(block.callId ?? ""),
-        name: block.name,
+        name: restoreToolName(block.name),
         // 仅把「无参数工具下发的空分片」补成 {}；**残缺参数保持原样**，
         // 由 max-tokens 判定触发重试 —— 把残缺 JSON 补成 {} 会伪造出
         // 合法外观，让 harness 报 missing required property 而非重试。
@@ -67193,6 +67194,7 @@ import { LlmAdapter as LlmAdapter12, LlmError as LlmError19, ReasoningEffortId a
 
 // src/opencode-messages.ts
 var FREE_LANE_GATE_TOOLS = ["bash", "glob", "grep", "read"];
+var FREE_LANE_GATE_TOOL_SET = new Set(FREE_LANE_GATE_TOOLS);
 var FINGERPRINT_PROPERTY = {
   type: "string",
   description: "This tool is currently unavailable and must not be used."
@@ -67207,9 +67209,42 @@ function gateTool(name2) {
     }
   };
 }
-function buildOpencodeTools(tools) {
+function canonicalGateToolName(name2) {
+  const lower = name2.toLowerCase();
+  return FREE_LANE_GATE_TOOL_SET.has(lower) ? lower : name2;
+}
+function canonicalizeWireTools(tools, toolNameMap) {
+  const seen = /* @__PURE__ */ new Set();
+  const next = [];
+  for (const tool of tools) {
+    if (typeof tool !== "object" || tool === null) {
+      next.push(tool);
+      continue;
+    }
+    const row = tool;
+    const name2 = row.function?.name;
+    if (typeof name2 !== "string") {
+      next.push(tool);
+      continue;
+    }
+    const canonical = canonicalGateToolName(name2);
+    const isGateTool = FREE_LANE_GATE_TOOL_SET.has(canonical);
+    if (isGateTool) {
+      if (seen.has(canonical)) continue;
+      seen.add(canonical);
+    }
+    if (toolNameMap !== void 0 && canonical !== name2) toolNameMap.set(canonical, name2);
+    if (canonical === name2) {
+      next.push(tool);
+      continue;
+    }
+    next.push({ ...row, function: { ...row.function, name: canonical } });
+  }
+  return next;
+}
+function buildOpencodeTools(tools, toolNameMap) {
   if (tools === void 0 || tools.length === 0) return [];
-  return tools.map((tool) => ({
+  const wireTools = tools.map((tool) => ({
     type: "function",
     function: {
       name: tool.name,
@@ -67217,11 +67252,13 @@ function buildOpencodeTools(tools) {
       ...tool.parameters === void 0 ? {} : { parameters: tool.parameters }
     }
   }));
+  return canonicalizeWireTools(wireTools, toolNameMap);
 }
 function ensureFreeLaneShape(payload) {
   if (!Array.isArray(payload.messages)) return payload;
   const tools = Array.isArray(payload.tools) ? payload.tools : [];
-  const next = tools.map((tool) => {
+  const canonicalTools = canonicalizeWireTools(tools);
+  const next = canonicalTools.map((tool) => {
     if (typeof tool !== "object" || tool === null) return tool;
     const row = tool;
     const name2 = row.function?.name;
@@ -67245,7 +67282,7 @@ function ensureFreeLaneShape(payload) {
   for (const tool of next) {
     if (typeof tool !== "object" || tool === null) continue;
     const name2 = tool.function?.name;
-    if (typeof name2 === "string") present.add(name2.toLowerCase());
+    if (typeof name2 === "string") present.add(name2);
   }
   const missing = FREE_LANE_GATE_TOOLS.filter((name2) => !present.has(name2));
   if (missing.length === 0 && next.length === tools.length && next.every((tool, index) => tool === tools[index])) return payload;
@@ -67255,30 +67292,22 @@ function ensureFreeLaneShape(payload) {
     ...tools.length === 0 ? { tool_choice: "none" } : {}
   };
 }
-function buildOpencodePayload(input) {
+function buildOpencodePayloadWithToolMap(input) {
+  const toolNameMap = /* @__PURE__ */ new Map();
   const base = {
     model: input.model,
     messages: input.messages,
-    // ⚠️ 恒 true：这是门禁的一半要求。
     stream: true,
-    tools: buildOpencodeTools(input.tools),
+    tools: buildOpencodeTools(input.tools, toolNameMap),
     ...input.system !== void 0 && input.system.length > 0 ? { system: input.system } : {},
     ...typeof input.temperature === "number" && Number.isFinite(input.temperature) ? { temperature: input.temperature } : {},
-    // ⚠️ 只放行安全正整数：0 / 负数 / NaN 会让 DSH 侧抛
-    // INVALID_MODEL_MAX_TOKENS，把整轮对话搞崩（不是降级，是崩）。
     ...Number.isSafeInteger(input.maxTokens) && (input.maxTokens ?? 0) > 0 ? { max_tokens: input.maxTokens } : {},
-    // ⚠️ 思考档位（issue IKJJ0V）。**声明了档位就必须真的发出去**，
-    // 否则选择器只是 UI 装饰 —— 用户选了「高」却拿不到任何效果。
-    //
-    // 参数名 `reasoning_effort` 由**实测**确定（2026-10-02）：给
-    // `ling-3.0-flash-fin-free` 传非法值时，错误信息变成 `[400] reasoning_…`
-    // （与基线的 `Endpoint is unavailable` 不同），说明 Zen 侧确实解析并校验它。
-    //
-    // ⚠️ `none`（关闭思考）照发：models.dev 的 `toggle` 形态就产出这一档，
-    // 上游靠它区分「关」与「最低档开」。
     ...typeof input.reasoningEffort === "string" && input.reasoningEffort.length > 0 ? { reasoning_effort: input.reasoningEffort } : {}
   };
-  return ensureFreeLaneShape(base);
+  return { payload: ensureFreeLaneShape(base), toolNameMap };
+}
+function buildOpencodePayload(input) {
+  return buildOpencodePayloadWithToolMap(input).payload;
 }
 
 // src/opencode-capability.ts
@@ -67695,7 +67724,7 @@ var OpencodeAdapter = class extends LlmAdapter12 {
   async *streamVia(slot2, options) {
     const imageUrls = await this.resolveImageUrls(options.model, options.messages);
     const messages = serializeMessages4(options.messages, imageUrls);
-    const payload = buildOpencodePayload({
+    const { payload, toolNameMap } = buildOpencodePayloadWithToolMap({
       model: options.model,
       messages,
       ...options.system !== void 0 && options.system.length > 0 ? { system: options.system } : {},
@@ -67740,7 +67769,8 @@ var OpencodeAdapter = class extends LlmAdapter12 {
       label: "opencode",
       firstTokenTimeoutMs: OPENCODE.chatHeaderTimeoutMs,
       chunkTimeoutMs: OPENCODE.chatChunkTimeoutMs,
-      ...options.maxTokens !== void 0 ? { maxTokens: options.maxTokens } : {}
+      ...options.maxTokens !== void 0 ? { maxTokens: options.maxTokens } : {},
+      restoreToolName: (name) => toolNameMap.get(name) ?? name
     });
   }
 };
