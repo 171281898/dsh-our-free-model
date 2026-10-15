@@ -58,6 +58,7 @@ const suites = [
   ['effort', 'effort-test.mjs', []],
   ['projection', 'projection-test.mjs', []],
   ['fingerprint', 'fingerprint-test.mjs', []],
+  ['freetier-gate', 'freetier-gate-test.mjs', []],
   ['sniff', 'sniff-test.mjs', []],
   ['truncation', 'truncation-test.mjs', []],
   ['recovery', 'recovery-test.mjs', []],
