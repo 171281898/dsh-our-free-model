@@ -37,6 +37,18 @@
 
 ---
 
+## Community
+
+<div align="center">
+  <img src="docs/images/qq-group-qr.png" alt="AI technical discussion QQ group QR code" width="300">
+  <br>
+  <b>QQ group: 386179533（AI 技术交流学习群）</b>
+  <br>
+  Scan the QR code to join the group, discuss the plugin, report issues and share tips.
+</div>
+
+---
+
 ## Highlights
 
 - **Nothing to configure** — install, restart, pick a model. No account, no key, no quota dashboard to register on.
