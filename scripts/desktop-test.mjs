@@ -111,6 +111,80 @@ try {
     const earlyClosed = launch({ endInput: true }); await earlyClosed.stop(true)
     assert.ok(!fs.existsSync(path.join(dataDir, 'service.lock')))
   })
+  if (process.platform === 'win32' || process.platform === 'linux') {
+    let crashedPid
+    const crash = async directory => {
+      const instance = launch({ directory })
+      assert.equal((await instance.ready()).protocol, 'ofm-desktop-ready/v1')
+      const lockFile = path.join(directory, 'service.lock')
+      assert.equal(JSON.parse(fs.readFileSync(lockFile)).pid, instance.child.pid)
+      instance.child.kill('SIGKILL')
+      await instance.exit
+      children.delete(instance.child)
+      assert.ok(fs.existsSync(lockFile), '强杀应确实遗留锁，不能把正常退出当成恢复测试')
+      return instance.child.pid
+    }
+    await check('强杀服务留下陈旧锁后可直接重启，保留密钥和已有数据', async () => {
+      const key = JSON.parse(fs.readFileSync(path.join(dataDir, 'settings.json'))).forwardKey
+      const savedData = path.join(dataDir, 'user-sentinel.json')
+      fs.writeFileSync(savedData, '{"preserved":true}')
+      crashedPid = await crash(dataDir)
+      const recovered = launch()
+      const recoveredReady = await recovered.ready()
+      assert.equal(recoveredReady.protocol, 'ofm-desktop-ready/v1')
+      assert.notEqual(recoveredReady.pid, crashedPid)
+      assert.equal(JSON.parse(fs.readFileSync(path.join(dataDir, 'service.lock'))).pid, recoveredReady.pid)
+      assert.equal(JSON.parse(fs.readFileSync(path.join(dataDir, 'settings.json'))).forwardKey, key)
+      assert.equal(fs.readFileSync(savedData, 'utf8'), '{"preserved":true}')
+      assert.equal((await fetch(`http://127.0.0.1:${recoveredReady.port}/health`)).status, 200)
+      await recovered.stop()
+    })
+    await check('四个进程同时恢复同一个陈旧锁，只有一个能启动且其锁不会被误删', async () => {
+      const directory = path.join(scratch, 'concurrent-recovery')
+      await crash(directory)
+      const instances = Array.from({ length: 4 }, () => launch({ directory }))
+      const results = await Promise.all(instances.map(instance => instance.ready()))
+      const winners = results.flatMap((result, index) => result.protocol === 'ofm-desktop-ready/v1' ? [index] : [])
+      assert.equal(winners.length, 1)
+      const winner = winners[0]
+      for (let index = 0; index < instances.length; index++) {
+        if (index === winner) continue
+        assert.equal(results[index].code, 'DATA_DIRECTORY_IN_USE')
+        const [code] = await instances[index].exit
+        assert.equal(code, 1)
+        children.delete(instances[index].child)
+      }
+      assert.equal(JSON.parse(fs.readFileSync(path.join(directory, 'service.lock'))).pid, results[winner].pid)
+      assert.equal((await fetch(`http://127.0.0.1:${results[winner].port}/health`)).status, 200)
+      await instances[winner].stop()
+    })
+    await check('旧版活进程、无效 PID、损坏内容及未知归属的锁均保留，拒绝后可再次启动', async () => {
+      const directory = path.join(scratch, 'unverifiable-lock')
+      const lockFile = path.join(directory, 'service.lock')
+      fs.mkdirSync(directory)
+      for (const owner of [
+        { pid: process.pid, product: 'our-free-model-standalone' },
+        { pid: 0, product: 'our-free-model-standalone' },
+        { pid: -1, product: 'our-free-model-standalone' },
+        { pid: String(crashedPid), product: 'our-free-model-standalone' },
+        { pid: crashedPid, product: 'another-service' },
+        null,
+      ]) {
+        const original = owner === null ? '{incomplete' : JSON.stringify(owner)
+        fs.writeFileSync(lockFile, original)
+        const rejected = launch({ directory })
+        assert.equal((await rejected.ready()).code, 'DATA_DIRECTORY_IN_USE')
+        const [code] = await rejected.exit
+        assert.equal(code, 1)
+        children.delete(rejected.child)
+        assert.equal(fs.readFileSync(lockFile, 'utf8'), original)
+      }
+      fs.writeFileSync(lockFile, JSON.stringify({ pid: crashedPid, product: 'our-free-model-standalone' }))
+      const recovered = launch({ directory })
+      assert.equal((await recovered.ready()).protocol, 'ofm-desktop-ready/v1')
+      await recovered.stop()
+    })
+  }
   await check('桌面配置使用明确资源映射，启动不依赖系统 Node；标题栏 API 使用 v2', () => {
     const config = JSON.parse(fs.readFileSync(path.join(repositoryRoot, 'packages/desktop/src-tauri/tauri.conf.json')))
     assert.equal(config.bundle.resources['resources/service/'], 'service/')
