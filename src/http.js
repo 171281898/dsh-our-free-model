@@ -372,9 +372,12 @@ async function readRemainder(head, signal) {
  * harness is still named and the lane still opens.
  */
 const UA_REFUSED = /deepseek[-_]harness/gi
+// 匿名车道拒绝独立服务的完整名称；使用真实简称，保留版本及其他归属信息。
+const STANDALONE_UA_TOKEN = /(^|\s)our-free-model-standalone(?=\/|\s|$)/gi
 
 function userAgentWith(attribution) {
   let agent = typeof attribution === 'string' ? attribution : ''
+  agent = agent.replace(STANDALONE_UA_TOKEN, '$1ofm-standalone')
   if (attribution !== '' && /deepseek[-_]harness/i.test(agent)) {
     agent = agent.replace(UA_REFUSED, 'dsh').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim()
   }

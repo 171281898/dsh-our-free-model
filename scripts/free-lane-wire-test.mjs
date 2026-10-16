@@ -37,7 +37,7 @@ server.unref()
 process.env.OUR_FREE_MODEL_BASE = `http://127.0.0.1:${server.address().port}`
 
 const up = await import('../src/upstream.js')
-const { postStreamed } = await import('../src/http.js')
+const { postStreamed, getJson } = await import('../src/http.js')
 
 let failures = 0
 const check = (name, actual, expected) => {
@@ -125,6 +125,26 @@ console.log('\n=== 5. a User-Agent naming deepseek-harness is refused by the gat
   check('the refused token is gone', /deepseek[-_]harness/i.test(sent.headers['user-agent'] ?? ''), false)
   check('an offline harness attribution still rides along', /dsh\//.test(sent.headers['user-agent'] ?? ''), true)
   check('session-id went out', typeof sent.headers['x-opencode-session-id'] === 'string', true)
+}
+
+console.log('\n=== 6. 独立服务的客户端简称同时适用于目录和推理 ===')
+{
+  const attributionUserAgent = 'our-free-model-standalone/2.3.0'
+  await getJson('/inference/v1/models', { attributionUserAgent })
+  check('目录请求使用真实的独立服务简称', seen.at(-1).headers['user-agent'], `ofm-standalone/2.3.0 ${up.CLIENT_UA}`)
+  await postStreamed({
+    path: up.endpointFor('mimo-v2.6-flash-free'),
+    body: { model: 'mimo-v2.6-flash-free', messages: [{ role: 'user', content: 'ping' }], stream: true },
+    session: up.sessionForConversation('wire:standalone'),
+    requestId: up.mintRequestId(),
+    attributionUserAgent,
+    onData: () => {},
+    timeoutMs: 5000,
+  })
+  check('推理请求保留独立服务身份及版本', seen.at(-1).headers['user-agent'], `ofm-standalone/2.3.0 ${up.CLIENT_UA}`)
+  const unrelated = 'other-client/3.0 (+https://example.com/our-free-model-standalone)'
+  await getJson('/inference/v1/models', { attributionUserAgent: unrelated })
+  check('不改写其他客户端或括号里的归属链接', seen.at(-1).headers['user-agent'], `${unrelated} ${up.CLIENT_UA}`)
 }
 
 server.close()
