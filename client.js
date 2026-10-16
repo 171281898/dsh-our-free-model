@@ -306,8 +306,37 @@ window.__ModuleLoader__.load({
         'nav.tab.free': '免费模型',
         'nav.tab.eac': 'EAC 模型',
         'nav.tab.channels': '白嫖模型接入',
+        'nav.tab.picks': '推荐项目',
         'star.cta': '点个 Star',
         'star.title': '在 GitHub 上给本仓库点 Star',
+        'picks.title': '推荐项目',
+        'picks.sub': '同一作者的两个开源项目：一个把 Agent 装进原生桌面，一个让上百个插件和谐共存。用得上，就顺手点个 Star。',
+        'picks.foot': 'Star 是开源项目唯一的「工资条」——它决定作者还能投入多少时间。两个项目都免费、开源、无广告，点一下就是最实在的支持。',
+        'picks.stars': 'Stars',
+        'picks.forks': 'Forks',
+        'picks.fork': 'Fork',
+        'picks.totalStars': '两个项目共 {n} 个 Star',
+        'picks.updated': '最近更新',
+        'picks.stale': '缓存数据',
+        'picks.liveFailed': '暂时读不到 GitHub 数据，数字稍后自动补上——不影响下面的链接。',
+        'picks.getDesktop': '下载安装',
+        'picks.getPack': '安装说明',
+        'picks.star': '点个 Star',
+        'picks.starHint': '在 GitHub 上打开并点 Star',
+        'picks.desktop.badge': '桌面工作台',
+        'picks.desktop.tagline': '把 Agent 的能力，组织成一张真正能工作的桌面。',
+        'picks.desktop.body': '基于 DeepSeek Harness 的开源桌面工作台：Tauri 原生窗口、随包 Node 运行时，双击即进入工作。项目文件、会话变更、插件目录与皮肤市场都在一处，Windows / Linux / macOS 都有安装包。',
+        'picks.desktop.tag1': 'Tauri 原生窗口',
+        'picks.desktop.tag2': '随包运行时',
+        'picks.desktop.tag3': '文件协作与还原',
+        'picks.desktop.tag4': '插件市场与皮肤',
+        'picks.pack.badge': '插件整合包',
+        'picks.pack.tagline': '揽尽万象：让数百个 DSH 插件和谐共存。',
+        'picks.pack.body': '为 DSH Desktop 提供插件目录、批量安装、更新与移除管理，内置 72 个基线子插件、皮肤预览与 Prompt 合集；固定摘要清单逐字节校验，装出来的环境完整可信。',
+        'picks.pack.tag1': '72 个基线插件',
+        'picks.pack.tag2': '批量安装 / 更新',
+        'picks.pack.tag3': '皮肤预览',
+        'picks.pack.tag4': '摘要校验',
         'free.title': '免费模型',
         'free.sub': '免登录、免 Key、免配置：模型清单跟随上游刷新，可用性由这台机器实测。',
         'free.tankLabel': '免费车道可用度',
@@ -919,8 +948,37 @@ window.__ModuleLoader__.load({
         'nav.tab.free': 'Free models',
         'nav.tab.eac': 'EAC models',
         'nav.tab.channels': 'Free channels',
+        'nav.tab.picks': 'Picks',
         'star.cta': 'Star',
         'star.title': 'Star this repository on GitHub',
+        'picks.title': 'Recommended projects',
+        'picks.sub': 'Two open-source projects by the same author: one puts the agent on a native desktop, the other keeps hundreds of plugins living together. If they are useful, a star is the thanks they understand.',
+        'picks.foot': 'A star is the only payslip an open-source project gets — it decides how much more time the author can spend. Both projects are free, open source and ad-free; one click is the most concrete support there is.',
+        'picks.stars': 'Stars',
+        'picks.forks': 'Forks',
+        'picks.fork': 'Fork',
+        'picks.totalStars': '{n} stars across both projects',
+        'picks.updated': 'Last push',
+        'picks.stale': 'cached',
+        'picks.liveFailed': 'GitHub numbers are unreachable right now; they will fill in later — the links below are unaffected.',
+        'picks.getDesktop': 'Download',
+        'picks.getPack': 'Install guide',
+        'picks.star': 'Star it',
+        'picks.starHint': 'Open GitHub and star',
+        'picks.desktop.badge': 'Desktop workbench',
+        'picks.desktop.tagline': 'Agent capability, organized into a desktop that actually works.',
+        'picks.desktop.body': 'An open-source desktop workbench built on DeepSeek Harness: a Tauri native window with Node bundled in, so a double-click lands you in the work. Project files, session changes, a plugin catalog and a skin market in one place — with installers for Windows, Linux and macOS.',
+        'picks.desktop.tag1': 'Tauri native window',
+        'picks.desktop.tag2': 'Bundled runtime',
+        'picks.desktop.tag3': 'File changes & revert',
+        'picks.desktop.tag4': 'Plugin market & skins',
+        'picks.pack.badge': 'Plugin suite',
+        'picks.pack.tagline': 'Embracing all creation: hundreds of DSH plugins, living together.',
+        'picks.pack.body': 'A catalog, batch install, update and removal manager for DSH Desktop, carrying 72 baseline sub-plugins, skin previews and prompt sets; a pinned digest manifest verifies every byte, so an install is complete and trustworthy.',
+        'picks.pack.tag1': '72 baseline plugins',
+        'picks.pack.tag2': 'Batch install / update',
+        'picks.pack.tag3': 'Skin previews',
+        'picks.pack.tag4': 'Digest verification',
         'free.title': 'Free models',
         'free.sub': 'No login, no key, no setup: the roster follows upstream, availability is measured from this machine.',
         'free.tankLabel': 'Free-lane availability',
@@ -2131,6 +2189,54 @@ window.__ModuleLoader__.load({
 .ofm_snippet{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.6;padding:9px 11px;border-radius:10px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l1);color:var(--dsw-alias-label-secondary);white-space:pre;overflow:auto;max-height:230px}
 @media (max-width:600px){.ofm_duo{grid-template-columns:1fr}.ofm_picklist{grid-template-columns:1fr}.ofm_member{flex-wrap:wrap}}
 @media (prefers-reduced-motion:reduce){.ofm_rise,.ofm_page{animation:none}.ofm_pickrow,.ofm_member,.ofm_meter i,.ofm_card,.ofm_kpi,.ofm_chan{transition:none}.ofm_root .ofm_card:hover,.ofm_pickrow:hover:not(:disabled){transform:none}}
+
+/* ── 推荐项目页：两张「去点 Star」的卡片 ─────────────────────────────────
+   这一页只有一件事要促成——点开仓库、点下 Star。所以卡片比常规模型卡大一档，
+   入场逐张错峰（--i 由调用方给），悬停抬升；主 CTA 是渐变星按钮，带一圈呼吸
+   光环与悬停扫光；数字用 count-up 落地。全部只动 transform/opacity/颜色。
+   动效降级：文件末尾的 reduced-motion 块统一关掉位移与动画。 */
+.ofm_recogrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:14px;align-items:stretch}
+.ofm_recocard{position:relative;display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:18px;border:1px solid var(--dsw-alias-border-l2);background:linear-gradient(168deg,color-mix(in srgb,var(--dsw-alias-bg-layer-3) 86%,transparent),color-mix(in srgb,var(--dsw-alias-bg-layer-2) 80%,transparent));box-shadow:inset 0 1px 0 rgb(255 255 255 / 7%),0 2px 8px rgb(0 0 0 / 5%),0 14px 34px color-mix(in srgb,var(--dsw-alias-state-business-primary) 6%,transparent);overflow:hidden;animation:ofm-reco-in .5s var(--ease-instrument) backwards;animation-delay:calc(var(--i,0)*90ms);transition:transform .24s var(--ease-instrument),box-shadow .28s ease,border-color .2s ease}
+.ofm_recocard::before{content:"";position:absolute;inset:-45% 45% 50% -35%;pointer-events:none;opacity:0;background:radial-gradient(58% 58% at 32% 32%,color-mix(in srgb,var(--dsw-alias-state-business-primary) 13%,transparent),transparent 72%);transition:opacity .4s ease}
+.ofm_recocard:hover::before{opacity:1}
+.ofm_recocard:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,var(--dsw-alias-border-l2));box-shadow:inset 0 1px 0 rgb(255 255 255 / 10%),0 18px 44px color-mix(in srgb,var(--dsw-alias-state-business-primary) 15%,transparent)}
+@keyframes ofm-reco-in{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+.ofm_recotop{display:flex;align-items:center;gap:11px;min-width:0}
+.ofm_recomark{display:flex;align-items:center;justify-content:center;width:42px;height:42px;flex:none;border-radius:13px;color:var(--dsw-alias-label-on-accent,#fff);background:linear-gradient(145deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 55%,var(--dsw-alias-label-primary)));box-shadow:inset 0 1px 0 rgb(255 255 255 / 28%),0 4px 12px color-mix(in srgb,var(--dsw-alias-state-business-primary) 24%,transparent);transition:transform .3s var(--ease-settle)}
+.ofm_recomark svg{width:22px;height:22px;fill:currentColor}
+.ofm_recocard:hover .ofm_recomark{transform:rotate(-4deg) scale(1.06)}
+.ofm_recoid{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ofm_reconame{font-size:15px;font-weight:700;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ofm_recorepo{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--dsw-alias-label-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ofm_recobadge{margin-left:auto;flex:none;font-size:10.5px;font-weight:650;padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-business-primary) 45%,transparent);background:color-mix(in srgb,var(--dsw-alias-state-business-primary) 10%,transparent);color:var(--dsw-alias-state-business-primary);white-space:nowrap}
+.ofm_recotagline{margin:0;font-size:13.5px;font-weight:650;line-height:1.5;letter-spacing:-.1px}
+.ofm_recobody{margin:0;flex:1;font-size:12px;line-height:1.75;color:var(--dsw-alias-label-secondary)}
+.ofm_recochips{display:flex;gap:6px;flex-wrap:wrap}
+.ofm_recochip{font-size:10.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 66%,transparent);color:var(--dsw-alias-label-secondary);transition:border-color .16s ease,color .16s ease,transform .16s ease}
+.ofm_recochip:hover{border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 45%,var(--dsw-alias-border-l1));color:var(--dsw-alias-label-primary);transform:translateY(-1px)}
+.ofm_recofoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--dsw-alias-border-l1)}
+.ofm_recofacts{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--dsw-alias-label-tertiary)}
+.ofm_recofact{display:flex;align-items:baseline;gap:5px}
+.ofm_recofact b{font-size:13.5px;font-weight:700;color:var(--dsw-alias-label-primary);font-variant-numeric:tabular-nums}
+.ofm_recoacts{display:flex;gap:8px;align-items:center;margin-left:auto}
+.ofm_recogo{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:999px;border:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 58%,transparent);color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;transition:border-color .16s ease,color .16s ease,transform .16s ease,background .16s ease}
+.ofm_recogo:hover{border-color:color-mix(in srgb,var(--dsw-alias-state-business-primary) 50%,var(--dsw-alias-border-l2));color:var(--dsw-alias-label-primary);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 82%,transparent);transform:translateY(-1px)}
+.ofm_recogo svg{width:12px;height:12px;fill:currentColor;opacity:.7;transition:transform .2s var(--ease-instrument)}
+.ofm_recogo:hover svg{transform:translateX(2px)}
+.ofm_recostar{position:relative;display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;overflow:hidden;font-size:13px;font-weight:700;letter-spacing:.1px;text-decoration:none;white-space:nowrap;color:var(--dsw-alias-label-on-accent,#fff);background:linear-gradient(135deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 58%,var(--dsw-alias-label-primary)));box-shadow:inset 0 1px 0 rgb(255 255 255 / 26%),0 6px 18px color-mix(in srgb,var(--dsw-alias-state-business-primary) 28%,transparent);transition:transform .18s var(--ease-settle),box-shadow .24s var(--ease-instrument),filter .2s ease}
+.ofm_recostar:hover{transform:translateY(-2px) scale(1.02);filter:saturate(1.06);box-shadow:inset 0 1px 0 rgb(255 255 255 / 32%),0 12px 28px color-mix(in srgb,var(--dsw-alias-state-business-primary) 34%,transparent)}
+.ofm_recostar:active{transform:scale(.97)}
+.ofm_recostar svg{width:16px;height:16px;fill:currentColor;transition:transform .5s var(--ease-settle)}
+.ofm_recostar:hover svg{transform:rotate(72deg) scale(1.15)}
+.ofm_recostar::after{content:"";position:absolute;top:0;bottom:0;width:36%;left:-45%;pointer-events:none;background:linear-gradient(100deg,transparent,rgb(255 255 255 / 38%),transparent);transform:skewX(-18deg);transition:left .6s var(--ease-instrument)}
+.ofm_recostar:hover::after{left:115%}
+.ofm_recostarring{position:absolute;inset:0;border-radius:inherit;pointer-events:none;border:1px solid color-mix(in srgb,var(--dsw-alias-state-business-primary) 62%,transparent);animation:ofm-reco-ring 2.8s var(--ease-instrument) infinite}
+@keyframes ofm-reco-ring{0%{opacity:.6;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.22)}}
+.ofm_recoglow{position:absolute;inset:-50% -12% auto;height:175%;z-index:0;pointer-events:none;background:radial-gradient(42% 52% at 24% 62%,color-mix(in srgb,var(--dsw-alias-state-business-primary) 15%,transparent),transparent 70%),radial-gradient(38% 46% at 78% 38%,color-mix(in srgb,var(--dsw-alias-state-success-primary) 11%,transparent),transparent 72%);filter:blur(10px);animation:ofm-reco-aurora 18s ease-in-out infinite alternate}
+@keyframes ofm-reco-aurora{from{transform:translate3d(-3%,1%,0) scale(1)}to{transform:translate3d(3%,-2%,0) scale(1.08)}}
+.ofm_reconote{margin:0;font-size:11px;line-height:1.6;color:var(--dsw-alias-label-tertiary)}
+@media (max-width:600px){.ofm_recogrid{grid-template-columns:1fr}.ofm_recoacts{width:100%;margin-left:0}}
+@media (prefers-reduced-motion:reduce){.ofm_recocard,.ofm_recostar,.ofm_recogo,.ofm_recochip,.ofm_recomark{animation:none;transition:border-color .12s ease,background .12s ease,box-shadow .12s ease,opacity .12s ease,color .12s ease}.ofm_recocard:hover,.ofm_recostar:hover,.ofm_recostar:active,.ofm_recogo:hover,.ofm_recochip:hover,.ofm_recocard:hover .ofm_recomark{transform:none}.ofm_recostar::after,.ofm_recostarring,.ofm_recoglow{display:none}}
 `
 
     // ── helpers ───────────────────────────────────────────────────────────────
@@ -2796,6 +2902,9 @@ window.__ModuleLoader__.load({
       return { active, capacityKnown, pct, rawPct, level }
     }
 
+    /** The GitHub star every call to action on this page carries. */
+    const STAR_GLYPH = 'M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z'
+
     /** The repository every page's star button points at, opened in a new tab. */
     function StarButton(props) {
       const { t, repo = POOL_REPO_URL } = props
@@ -2807,7 +2916,7 @@ window.__ModuleLoader__.load({
         rel: 'noreferrer noopener',
         title: `${t('star.title')} · ${repo}`,
       }, h('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true' },
-        h('path', { d: 'M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z' })),
+        h('path', { d: STAR_GLYPH })),
         label)
     }
     /** Where the pool's capacity number comes from, in one sentence. */
@@ -3535,6 +3644,143 @@ window.__ModuleLoader__.load({
       return h('div', { className: 'ofm_page' },
         h(PageHero, { title: t('section.upgrade'), sub: t('section.upgradeHint') }),
         h(UpgradePanel, { t, settings, onApply, busy }))
+    }
+
+    // ── 推荐项目页 ────────────────────────────────────────────────────────────
+    // 这一页只有一个任务：让人点开仓库、点下 Star。所以文案是「说清它解决什么
+    // 问题」，动作是「一眼能看到的星按钮」，数字是宿主 /picks 取回的真实 Star /
+    // Fork / 最近提交——拿不到就整块不显示，绝不用占位数字凑版面（这块页面的
+    // 全部说服力都在数字是真的）。每张卡片的文案按语言直写 t('字面量')，字典
+    // 保持可 grep；两个仓库的地址与「第二个动作」在这里各写一份。
+    const RECO_LINKS = {
+      desktop: { repo: 'https://github.com/Ebony-Vinyl/EAC-Desktop', extra: 'https://github.com/Ebony-Vinyl/EAC-Desktop/releases' },
+      pack: { repo: 'https://github.com/Ebony-Vinyl/EAC-Pack', extra: 'https://github.com/Ebony-Vinyl/EAC-Pack#git-安装' },
+    }
+    const RECO_DESKTOP_MARK = 'M1.4 3.1h13.2a.7.7 0 01.7.7v6a.7.7 0 01-.7.7H1.4a.7.7 0 01-.7-.7v-6a.7.7 0 01.7-.7zM5.6 12h4.8v1.4H5.6z'
+    const RECO_PACK_MARK = 'M8 1.2l6.3 3.2L8 7.6 1.7 4.4 8 1.2zM12.9 7.3l1.4.7L8 11.2 1.7 8l1.4-.7L8 9.8l4.9-2.5zM12.9 10.6l1.4.7L8 14.5 1.7 11.3l1.4-.7L8 13.1l4.9-2.5z'
+    const RECO_EXT_MARK = 'M3.75 2A1.75 1.75 0 002 3.75v8.5C2 13.216 2.784 14 3.75 14h8.5A1.75 1.75 0 0014 12.25v-4.5a.75.75 0 00-1.5 0v4.5a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-8.5a.25.25 0 01.25-.25h4.5a.75.75 0 000-1.5h-4.5zM9.5 2a.75.75 0 000 1.5h2.19L7.22 7.97a.75.75 0 101.06 1.06l4.47-4.47v2.19a.75.75 0 001.5 0v-4a.75.75 0 00-.75-.75h-4z'
+
+    /** 2,034 — a star count is read, not computed, so it keeps its separators. */
+    const grouped = value => String(Math.max(0, Math.round(Number(value) || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+    /**
+     * 0 → n in about a second, once per arrival.
+     *
+     * The page's whole argument is that these numbers are real and moving, and a
+     * number that counts up reads as a live reading rather than a printed one.
+     * Reduced motion skips straight to the value — the number is the point, the
+     * motion is not.
+     */
+    function useCountUp(target) {
+      const [value, setValue] = useState(target ?? null)
+      useEffect(() => {
+        if (typeof target !== 'number') return
+        const reduced = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+          && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (reduced) { setValue(target); return }
+        const started = Date.now()
+        let raf = 0
+        const tick = () => {
+          const progress = Math.min(1, (Date.now() - started) / 900)
+          setValue(Math.round(target * (1 - Math.pow(1 - progress, 3))))
+          if (progress < 1) raf = requestAnimationFrame(tick)
+        }
+        raf = requestAnimationFrame(tick)
+        return () => cancelAnimationFrame(raf)
+      }, [target])
+      return value
+    }
+
+    function RecoCard(props) {
+      const { t, index, stat, mark, name, repo, badge, tagline, body, chips, repoUrl, extraUrl, extraLabel } = props
+      const stars = stat !== null && typeof stat.stars === 'number' ? stat.stars : null
+      const shown = useCountUp(stars)
+      const forks = stat !== null && typeof stat.forks === 'number' ? stat.forks : null
+      const pushedAt = stat !== null && typeof stat.pushedAt === 'number' ? stat.pushedAt : null
+      const stale = stat !== null && stat.stale === true
+      // One fork is one fork; the label is the only place the page can tell.
+      const forkLabel = forks === 1 ? t('picks.fork') : t('picks.forks')
+      return h('article', { className: 'ofm_recocard', style: { '--i': String(index) } },
+        h('div', { className: 'ofm_recotop' },
+          h('span', { className: 'ofm_recomark', 'aria-hidden': 'true' }, h('svg', { viewBox: '0 0 16 16' }, h('path', { d: mark }))),
+          h('div', { className: 'ofm_recoid' },
+            h('span', { className: 'ofm_reconame' }, name),
+            h('span', { className: 'ofm_recorepo' }, repo)),
+          h('span', { className: 'ofm_recobadge' }, badge)),
+        h('p', { className: 'ofm_recotagline' }, tagline),
+        h('p', { className: 'ofm_recobody' }, body),
+        h('div', { className: 'ofm_recochips' }, chips.map(chip => h('span', { key: chip, className: 'ofm_recochip' }, chip))),
+        h('div', { className: 'ofm_recofoot' },
+          h('div', { className: 'ofm_recofacts' },
+            stars === null ? null : h('span', { className: 'ofm_recofact' },
+              h('b', null, grouped(shown ?? stars)),
+              h('span', null, t('picks.stars')),
+              stale ? h('span', { className: 'ofm_reconote' }, t('picks.stale')) : null),
+            forks === null ? null : h('span', { className: 'ofm_recofact' }, h('b', null, grouped(forks)), h('span', null, forkLabel)),
+            pushedAt === null ? null : h('span', { className: 'ofm_recofact' }, h('b', null, ago(pushedAt, t.locale)), h('span', null, t('picks.updated')))),
+          h('div', { className: 'ofm_recoacts' },
+            h('a', { className: 'ofm_recogo', href: extraUrl, target: '_blank', rel: 'noreferrer noopener' },
+              extraLabel,
+              h('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true' }, h('path', { d: RECO_EXT_MARK }))),
+            h('a', {
+              className: 'ofm_recostar', href: repoUrl, target: '_blank', rel: 'noreferrer noopener',
+              title: `${t('picks.starHint')} · ${repo}`,
+            },
+              h('span', { className: 'ofm_recostarring', 'aria-hidden': 'true' }),
+              h('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true' }, h('path', { d: STAR_GLYPH })),
+              t('picks.star')))))
+    }
+
+    function PicksPage(props) {
+      const { t } = props
+      const picks = useAsync(() => api('/picks'), [])
+      const repos = picks.data?.repos ?? []
+      const statOf = id => repos.find(row => row.id === id) ?? null
+      // A cold read gives the host four seconds to reach GitHub, so a slow first
+      // answer can land after the page is already on screen. One delayed re-read
+      // fills the numbers in; the flag makes sure it is one, not a poll.
+      const [retried, setRetried] = useState(false)
+      const numbers = repos.some(row => typeof row.stars === 'number')
+      useEffect(() => {
+        if (retried || numbers || picks.status !== 'ready') return undefined
+        const timer = setTimeout(() => { setRetried(true); picks.reload() }, 6000)
+        return () => clearTimeout(timer)
+      }, [retried, numbers, picks.status, picks.reload])
+      // The two counts the page is asking for, added up — social proof the reader
+      // can check against the cards below, and nothing at all when GitHub has not
+      // answered (an invented total would poison the one claim this page makes).
+      const total = repos.reduce((sum, row) => sum + (typeof row.stars === 'number' ? row.stars : 0), 0)
+      return h('div', { className: 'ofm_page' },
+        h('header', { className: 'ofm_hero ofm_glass' },
+          h('span', { className: 'ofm_recoglow', 'aria-hidden': 'true' }),
+          h('div', { className: 'ofm_pagehead' },
+            h('div', { className: 'ofm_pagetitle' },
+              h('h2', null, t('picks.title')),
+              h('p', { className: 'ofm_pagesub' }, t('picks.sub'))),
+            h('div', { className: 'ofm_pills' },
+              total > 0 ? h(Pill, { strong: true }, t('picks.totalStars').replace('{n}', grouped(total))) : null,
+              h(StarButton, { t })))),
+        h('div', { className: 'ofm_recogrid' },
+          h(RecoCard, {
+            t, index: 0, stat: statOf('eac-desktop'), mark: RECO_DESKTOP_MARK,
+            name: 'EAC-Desktop', repo: 'Ebony-Vinyl/EAC-Desktop',
+            badge: t('picks.desktop.badge'),
+            tagline: t('picks.desktop.tagline'),
+            body: t('picks.desktop.body'),
+            chips: [t('picks.desktop.tag1'), t('picks.desktop.tag2'), t('picks.desktop.tag3'), t('picks.desktop.tag4')],
+            repoUrl: RECO_LINKS.desktop.repo, extraUrl: RECO_LINKS.desktop.extra, extraLabel: t('picks.getDesktop'),
+          }),
+          h(RecoCard, {
+            t, index: 1, stat: statOf('eac-pack'), mark: RECO_PACK_MARK,
+            name: 'EAC-Pack', repo: 'Ebony-Vinyl/EAC-Pack',
+            badge: t('picks.pack.badge'),
+            tagline: t('picks.pack.tagline'),
+            body: t('picks.pack.body'),
+            chips: [t('picks.pack.tag1'), t('picks.pack.tag2'), t('picks.pack.tag3'), t('picks.pack.tag4')],
+            repoUrl: RECO_LINKS.pack.repo, extraUrl: RECO_LINKS.pack.extra, extraLabel: t('picks.getPack'),
+          })),
+        picks.status === 'error' ? h('p', { className: 'ofm_reconote' }, t('picks.liveFailed')) : null,
+        h('p', { className: 'ofm_reconote' }, t('picks.foot')))
     }
 
     // ── 白嫖模型接入页 ────────────────────────────────────────────────────────
@@ -5542,7 +5788,7 @@ window.__ModuleLoader__.load({
     // The active page lives in localStorage so a reload — or the hot reload the
     // upgrader triggers — comes back to the page the user was reading.
     const TAB_KEY = 'ofm.tab'
-    const TABS = ['free', 'eac', 'channels', 'aggregate', 'saver', 'routing', 'ledger', 'logs', 'gateway', 'upgrade']
+    const TABS = ['free', 'eac', 'channels', 'aggregate', 'saver', 'routing', 'ledger', 'logs', 'gateway', 'upgrade', 'picks']
 
     function Shell(props) {
       const { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, setBusy, apply, bench, benches, ctx } = props
@@ -5583,6 +5829,7 @@ window.__ModuleLoader__.load({
         ['logs', t('nav.tab.logs'), null],
         ['gateway', t('nav.tab.gateway'), null],
         ['upgrade', t('nav.tab.upgrade'), null],
+        ['picks', t('nav.tab.picks'), null],
       ]
       const nav = h('nav', { className: 'ofm_nav' },
         h('span', { className: 'ofm_navbrand' },
@@ -5616,6 +5863,8 @@ window.__ModuleLoader__.load({
                     ? h(GatewayPage, { t, ctx })
                     : tab === 'upgrade'
                       ? h(UpgradePage, { t, settings: data.settings, onApply: apply, busy })
+                    : tab === 'picks'
+                      ? h(PicksPage, { t })
                     : tab === 'eac'
                       ? h(EacPage, { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
                       : h(FreePage, { t, data, counts, summary, stats, eacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
@@ -6011,7 +6260,7 @@ window.__ModuleLoader__.load({
     exports.inject = inject
     exports.name = 'our-free-model'
     // Headless test seams use the same stub React as scripts/client-lint.mjs.
-    exports.__test = { parseSafeHtml, safeUrl, sanitizeStyle, htmlToDom, buildHeatCells, Heatmap, ChannelsPage, UpgradePanel, useEacLogin, EacAuth }
+    exports.__test = { parseSafeHtml, safeUrl, sanitizeStyle, htmlToDom, buildHeatCells, Heatmap, ChannelsPage, UpgradePanel, useEacLogin, EacAuth, PicksPage, RecoCard }
     return module.exports
   },
 })

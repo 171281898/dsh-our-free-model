@@ -1,10 +1,12 @@
 /**
- * The free lane's wire facts, re-measured against the live gateway on 2026-10-14.
+ * The free lane's wire facts, re-measured against the live gateway on 2026-10-14
+ * and re-checked against the **v2** client fingerprint on 2026-10-16.
  *
- * These are the four things that changed and that a future edit can silently
- * break: the lane's base path, the session-id header, the shape of the session
- * id, and the User-Agent the gateway refuses by name. The tool gate's own
- * contract lives in `fingerprint-test.mjs`.
+ * These are the things that changed and that a future edit can silently break:
+ * the lane's base path, the four session headers, the shape of the session id,
+ * the User-Agent (now the canonical v2 token and nothing else), and the absence
+ * of the v1-only `x-opencode-request` header. The tool gate's own contract lives
+ * in `fingerprint-test.mjs`.
  *
  * Run: node scripts/free-lane-wire-test.mjs
  */
@@ -46,7 +48,6 @@ const check = (name, actual, expected) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}${ok ? '' : `\n       got      ${JSON.stringify(actual)}\n       expected ${JSON.stringify(expected)}`}`)
 }
 const declared = (body, name) => (body.tools ?? []).find(tool => (tool.function?.name ?? tool.name) === name)
-const propertiesOf = (tool, claude) => (claude ? tool?.input_schema : tool?.function?.parameters ?? tool?.parameters)?.properties ?? {}
 
 console.log('=== 1. the lane lives under /inference/v1 ===')
 {
@@ -58,14 +59,19 @@ console.log('=== 1. the lane lives under /inference/v1 ===')
   check('wire for messages', up.wireFor('union-alpha'), 'messages')
 }
 
-console.log('\n=== 2. the gateway needs x-opencode-session-id beside x-opencode-session ===')
+console.log('\n=== 2. the four v2 session headers, and no v1-only request header ===')
 {
   const session = 'ses_0123456789abABCDEFGHIJKLMN'
-  const headers = up.gatewayHeaders({ session, requestId: 'msg_0123456789abABCDEFGHIJKLMN', stream: true })
+  const headers = up.gatewayHeaders({ session, stream: true })
   check('pooled credential', headers.authorization, 'Bearer public')
   check('reported as the cli client', headers['x-opencode-client'], 'cli')
   check('session header', headers['x-opencode-session'], session)
   check('session-id header repeats it', headers['x-opencode-session-id'], session)
+  check('session affinity repeats it', headers['x-session-affinity'], session)
+  check('session id repeats it', headers['x-session-id'], session)
+  // v1 sent `x-opencode-request`; v2 answers that header with 403 FreeTierError.
+  check('no x-opencode-request', 'x-opencode-request' in headers, false)
+  check('the User-Agent is the canonical v2 token', headers['user-agent'], 'opencode/latest/2.0.26/cli')
   check('streaming accept', headers.accept, 'text/event-stream')
 }
 
@@ -75,10 +81,13 @@ console.log('\n=== 3. the session id has to be minted, not derived ===')
   check('canonical shape', up.SESSION_RE.test(id), true)
   // The twelve hex digits are the 48-bit complement of `ms * 0x1000 + seq`, so
   // they only carry the mint time modulo 2^36 ms — enough to prove the id was
-  // minted rather than digested, which is what the gateway checks.
+  // minted rather than digested, which is what the gateway checks. The counter
+  // inside that encoding has to stay small (upstream: 0–16 pass, ≥ 100 is a 403).
   const encoded = BigInt(`0x${id.slice(4, 16)}`)
   const stamp = Number(((~encoded) & 0xffffffffffffn) >> 12n) % 2 ** 36
+  const counter = Number((~encoded) & 0xfffn)
   check('hex carries the mint time', Math.abs(stamp - (Date.now() % 2 ** 36)) < 5000, true)
+  check('the counter stays real', counter > 0 && counter <= 16, true)
   check('one conversation, one session', up.sessionForConversation('wire:conversation'), id)
   check('another conversation, another session', up.sessionForConversation('wire:other') !== id, true)
   const saved = JSON.parse(fs.readFileSync(path.join(scratch, 'our-free-model', 'session-map.json'), 'utf8'))
@@ -87,35 +96,39 @@ console.log('\n=== 3. the session id has to be minted, not derived ===')
   check('a canonical caller id passes through', up.sessionForConversation(caller), caller)
 }
 
-console.log('\n=== 4. the tool gate wants bash and read with a declared property ===')
+console.log('\n=== 4. the v2 tool gate: read + shell, official definitions, no tool_choice none ===')
 {
-  const empty = {}
+  const empty = { tool_choice: 'none' }
   up.applyFingerprint(empty, false)
-  check('bash is declared', declared(empty, 'bash') !== undefined, true)
   check('read is declared', declared(empty, 'read') !== undefined, true)
-  check('bash declares a property', Object.keys(propertiesOf(declared(empty, 'bash'))).length > 0, true)
-  check('read declares a property', Object.keys(propertiesOf(declared(empty, 'read'))).length > 0, true)
+  check('shell is declared', declared(empty, 'shell') !== undefined, true)
+  check('the read schema is the official one', declared(empty, 'read').function.parameters.required, ['path'])
+  check('the shell schema is the official one', declared(empty, 'shell').function.parameters.required, ['command'])
+  check('a caller tool_choice none is dropped', empty.tool_choice, undefined)
 
   const claude = {}
   up.applyFingerprint(claude, 'claude')
-  check('Messages shape declares a property too', Object.keys(propertiesOf(declared(claude, 'bash'), true)).length > 0, true)
+  check('Messages shape uses input_schema', declared(claude, 'read').input_schema.required, ['path'])
 
-  // A caller tool that occupies the slot with an empty schema must be stamped,
-  // not duplicated and not renamed.
-  const caller = { tools: [{ type: 'function', function: { name: 'bash', description: 'the caller shell', parameters: { type: 'object', properties: {} } } }] }
-  up.applyFingerprint(caller, false)
-  check('caller bash is kept once', caller.tools.filter(tool => tool.function.name === 'bash').length, 1)
-  check('caller bash keeps its description', declared(caller, 'bash').function.description, 'the caller shell')
-  check('caller bash gains a property', Object.keys(propertiesOf(declared(caller, 'bash'))).length > 0, true)
+  // A caller tool that reuses a gate name with another definition moves aside,
+  // and the response side still restores the caller's own spelling.
+  const caller = { tools: [{ type: 'function', function: { name: 'read', description: 'the caller read', parameters: { type: 'object', properties: {} } } }] }
+  const map = up.applyFingerprint(caller, false)
+  check('only one declaration carries the gate name', caller.tools.filter(tool => tool.function.name === 'read').length, 1)
+  check('…and it is the official definition', declared(caller, 'read').function.parameters.required, ['path'])
+  check('the caller declaration survived under an alias', caller.tools.find(tool => tool.function.name === 'read_client').function.description, 'the caller read')
+  check('…and the alias restores the caller name', up.restoreToolName('read_client', map), 'read')
 }
 
-console.log('\n=== 5. a User-Agent naming deepseek-harness is refused by the gateway ===')
+console.log('\n=== 5. the User-Agent is the canonical v2 token, whatever the host attributes ===')
 {
+  // v2 matches the whole string against `opencode/<channel>/<version>/<client>`,
+  // so the harness attribution cannot ride along any more: a v1 token is refused
+  // by name, and a prefixed/suffixed string is no longer a v2 client.
   await postStreamed({
     path: up.endpointFor('cat-jam-free'),
     body: { model: 'cat-jam-free', messages: [{ role: 'user', content: 'ping' }], stream: true },
     session: up.sessionForConversation('wire:ua'),
-    requestId: up.mintRequestId(),
     attributionUserAgent: 'deepseek-harness/0.1.7 (+https://github.com/deepseek-ai/deepseek-harness)',
     onData: () => {},
     timeoutMs: 5000,
@@ -123,28 +136,36 @@ console.log('\n=== 5. a User-Agent naming deepseek-harness is refused by the gat
   const sent = seen[seen.length - 1]
   check('the request reached the chat path', sent.url, '/inference/v1/chat/completions')
   check('the refused token is gone', /deepseek[-_]harness/i.test(sent.headers['user-agent'] ?? ''), false)
-  check('an offline harness attribution still rides along', /dsh\//.test(sent.headers['user-agent'] ?? ''), true)
+  check('the UA is the canonical v2 token', sent.headers['user-agent'], up.CLIENT_UA)
+  check('…and carries no attribution suffix', sent.headers['user-agent'].includes(' '), false)
   check('session-id went out', typeof sent.headers['x-opencode-session-id'] === 'string', true)
+  check('the four session headers agree', [
+    sent.headers['x-opencode-session'],
+    sent.headers['x-session-affinity'],
+    sent.headers['x-session-id'],
+  ].every(value => value === sent.headers['x-opencode-session-id']), true)
+  check('no v1 request header went out', 'x-opencode-request' in sent.headers, false)
 }
 
-console.log('\n=== 6. 独立服务的客户端简称同时适用于目录和推理 ===')
+console.log('\n=== 6. 目录请求与推理请求使用同一串 v2 UA ===')
 {
+  // The host still passes an attribution UA (its API is unchanged); the v2
+  // fingerprint means this lane cannot put it on the wire.
   const attributionUserAgent = 'our-free-model-standalone/2.3.0'
   await getJson('/inference/v1/models', { attributionUserAgent })
-  check('目录请求使用真实的独立服务简称', seen.at(-1).headers['user-agent'], `ofm-standalone/2.3.0 ${up.CLIENT_UA}`)
+  check('目录请求使用 v2 指纹 UA', seen.at(-1).headers['user-agent'], up.CLIENT_UA)
   await postStreamed({
     path: up.endpointFor('mimo-v2.6-flash-free'),
     body: { model: 'mimo-v2.6-flash-free', messages: [{ role: 'user', content: 'ping' }], stream: true },
     session: up.sessionForConversation('wire:standalone'),
-    requestId: up.mintRequestId(),
     attributionUserAgent,
     onData: () => {},
     timeoutMs: 5000,
   })
-  check('推理请求保留独立服务身份及版本', seen.at(-1).headers['user-agent'], `ofm-standalone/2.3.0 ${up.CLIENT_UA}`)
+  check('推理请求使用同一串', seen.at(-1).headers['user-agent'], up.CLIENT_UA)
   const unrelated = 'other-client/3.0 (+https://example.com/our-free-model-standalone)'
   await getJson('/inference/v1/models', { attributionUserAgent: unrelated })
-  check('不改写其他客户端或括号里的归属链接', seen.at(-1).headers['user-agent'], `${unrelated} ${up.CLIENT_UA}`)
+  check('任何归属串都不再改变线上 UA', seen.at(-1).headers['user-agent'], up.CLIENT_UA)
 }
 
 server.close()

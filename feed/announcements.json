@@ -2,6 +2,27 @@
   "$schema": "./announcements.schema.md",
   "announcements": [
     {
+      "id": "2026-10-17-v2.4.0-release",
+      "title": "v2.4.0：免费车道对齐 OpenCode v2 客户端指纹；推荐项目页；聚合渠道行修正",
+      "level": "update",
+      "pinned": true,
+      "createdAt": "2026-10-17T12:00:00Z",
+      "link": {
+        "url": "https://github.com/Ebony-Vinyl/dsh-our-free-model/releases/tag/v2.4.0",
+        "label": "查看完整说明"
+      },
+      "html": "<p><b>免费车道</b>：按上游 2026-10-14 起的 <b>v2 客户端</b>重做指纹——User-Agent 换成 <code>opencode/latest/2.0.26/cli</code>，会话头补齐四个同值镜像并去掉 v1 专用的 <code>x-opencode-request</code>，工具闸门改为 <code>read</code>/<code>shell</code> 两个名字且定义逐字对齐官方客户端，<code>tool_choice: none</code> 不再下发。调用方若正好用了这两个名字，会改名成 <code>_client</code> 并在响应侧还原。</p><p><b>推荐项目页</b>：设置页新增「推荐项目」页，两张卡片分别指向 EAC-Desktop 与 EAC-Pack，Star / Fork / 最近提交数实时取自 GitHub，取不到就整块不显示，绝不用占位数字。</p><p><b>聚合渠道</b>：移除 OpenCode 免密池这一行——它要求每请求的会话指纹，聚合车道的通用传输承载不了；这 10 个模型本来就在免费车道里原生提供。注册表现为 75 家。</p><p>插件、独立本地服务和 Windows 桌面壳统一升级到 <b>2.4.0</b>。请在设置 → 插件升级中检查更新。</p>"
+    },
+    {
+      "id": "2026-10-16-picks-page",
+      "title": "推荐项目页上线：EAC-Desktop 与 EAC-Pack——用得上，就顺手点个 Star",
+      "level": "update",
+      "pinned": true,
+      "createdAt": "2026-10-16T12:00:00Z",
+      "expiresAt": "2026-11-30T00:00:00Z",
+      "html": "<p><b>设置页新增「推荐项目」页</b>：两个与本插件同源的开源项目——它们把 Agent 装进原生桌面、让上百个插件和谐共存，也是 EAC 协付渠道背后的桌面工作台。用得上，就顺手点个 Star。</p><p><b>EAC-Desktop · 桌面工作台</b><br/>基于 DeepSeek Harness 的 Tauri 原生桌面：随包 Node 运行时，双击即进入工作；项目文件、会话变更、插件市场与皮肤都在一处，Windows / Linux / macOS 均有安装包。<br/><a href=\"https://github.com/Ebony-Vinyl/EAC-Desktop\">github.com/Ebony-Vinyl/EAC-Desktop</a> · <a href=\"https://github.com/Ebony-Vinyl/EAC-Desktop/releases\">下载安装</a></p><p><b>EAC-Pack · 插件整合包</b><br/>DSH Desktop 的插件目录与批量安装、更新管理：内置 72 个基线子插件、皮肤预览与 Prompt 合集，固定摘要清单逐字节校验，装出来的环境完整可信。<br/><a href=\"https://github.com/Ebony-Vinyl/EAC-Pack\">github.com/Ebony-Vinyl/EAC-Pack</a></p><p>两个项目都免费、开源、无广告。Star 是它们唯一的「工资条」——每多一个 Star，作者就多一分把项目做下去的理由。</p>"
+    },
+    {
       "id": "2026-10-15-v2.3.0-release",
       "title": "v2.3.0：免费车道迁移与插件升级页独立化",
       "level": "update",

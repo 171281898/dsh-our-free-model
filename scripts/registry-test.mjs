@@ -43,9 +43,12 @@ const raw = fs.readFileSync(path.join(repo, 'src/providers/registry.json'), 'utf
 
 // Tripwires, not preferences: bump them together with a deliberate data change
 // so an accidental truncation of registry.json cannot pass as a smaller catalog.
-const EXPECTED_PROVIDERS = 76
-const EXPECTED_BY_CATEGORY = { apikey: 60, free: 1, 'free-tier': 10, local: 3, oauth: 2 }
-const EXPECTED_MODELS = 504
+// The `free` category is empty on purpose: OpenCode's keyless pool needs a
+// per-request fingerprint the aggregate transport cannot carry, so it is not a
+// row here (see README's aggregate section) — the free lane serves it instead.
+const EXPECTED_PROVIDERS = 75
+const EXPECTED_BY_CATEGORY = { apikey: 60, 'free-tier': 10, local: 3, oauth: 2 }
+const EXPECTED_MODELS = 500
 
 const byCategory = {}
 for (const provider of PROVIDERS) byCategory[provider.category] = (byCategory[provider.category] ?? 0) + 1
@@ -250,7 +253,6 @@ check('chatEndpoint covers the three formats on real records', () => {
 
 check('modelsEndpoint returns a declared listing URL or null', () => {
   assert.equal(modelsEndpoint('nvidia_nim'), 'https://integrate.api.nvidia.com/v1/models')
-  assert.equal(modelsEndpoint('opencode'), 'https://opencode.ai/zen/v1/models')
   assert.equal(modelsEndpoint('groq'), 'https://api.groq.com/openai/v1/models')
   assert.equal(modelsEndpoint('anthropic'), null)
   assert.equal(modelsEndpoint('no-such-provider'), null)
@@ -270,6 +272,9 @@ check('defaultHeaders attaches a bearer token for apiKey providers only', () => 
         assert.equal(headers.authorization, 'Bearer k-test', `${provider.id}: bearer`)
       }
     } else {
+      // A keyless row never gains a credential: the aggregate transport is
+      // generic, and a provider that needs its own fingerprint cannot be driven
+      // through it — see the note on the removed OpenCode row in registry.json.
       assert.equal(headers.authorization, undefined, `${provider.id}: unexpected bearer`)
       assert.equal(headers['x-api-key'], undefined, `${provider.id}: unexpected x-api-key`)
     }
@@ -280,8 +285,6 @@ check('defaultHeaders attaches a bearer token for apiKey providers only', () => 
 
 check('defaultHeaders without a key never invents one, and merges declared headers', () => {
   assert.equal(defaultHeaders('nvidia_nim').authorization, undefined)
-  assert.equal(defaultHeaders('opencode', 'ignored').authorization, undefined)
-  assert.equal(defaultHeaders('opencode')['x-opencode-client'], 'desktop')
   assert.equal(defaultHeaders('minimax-cn', 'k')['anthropic-beta'], 'claude-code-20250219,interleaved-thinking-2025-05-14')
   assert.equal(defaultHeaders('kimchi', 'k')['user-agent'], 'kimchi/0.1.50')
   assert.deepEqual(defaultHeaders('no-such-provider', 'k'), {})
@@ -290,7 +293,6 @@ check('defaultHeaders without a key never invents one, and merges declared heade
 // ── lookups and filters ───────────────────────────────────────────────────────
 check('getProvider finds records and refuses unknown ids', () => {
   assert.equal(getProvider('nvidia_nim').name, 'NVIDIA NIM')
-  assert.equal(getProvider(' opencode ').name, 'OpenCode Free')
   assert.equal(getProvider('no-such-provider'), null)
   assert.equal(getProvider(undefined), null)
 })
@@ -299,7 +301,9 @@ check('listProviders filters by category, format and auth kind', () => {
   assert.equal(listProviders().length, EXPECTED_PROVIDERS)
   for (const category of CATEGORY_VALUES) {
     const rows = listProviders({ category })
-    assert.equal(rows.length, EXPECTED_BY_CATEGORY[category], `category ${category}`)
+    // A category with no rows today (`free`) still has to be a legal filter that
+    // answers empty, not an error — the picker offers it either way.
+    assert.equal(rows.length, EXPECTED_BY_CATEGORY[category] ?? 0, `category ${category}`)
     assert.ok(rows.every(provider => provider.category === category), `category ${category} leaked`)
   }
   const responses = listProviders({ format: 'openai-responses' })
@@ -307,7 +311,7 @@ check('listProviders filters by category, format and auth kind', () => {
   const messages = listProviders({ format: 'anthropic-messages' })
   assert.deepEqual(messages.map(provider => provider.id).sort(), ['anthropic', 'glm', 'minimax-cn'])
   const keyless = listProviders({ authKind: 'none' })
-  assert.deepEqual(keyless.map(provider => provider.id).sort(), ['llamacpp', 'lmstudio', 'ollama', 'opencode'])
+  assert.deepEqual(keyless.map(provider => provider.id).sort(), ['llamacpp', 'lmstudio', 'ollama'])
   const oauth = listProviders({ authKind: 'oauth' })
   assert.deepEqual(oauth.map(provider => provider.id).sort(), ['github_copilot', 'openai'])
   const adc = listProviders({ authKind: 'adc' })

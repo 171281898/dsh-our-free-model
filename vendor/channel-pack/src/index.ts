@@ -70,7 +70,7 @@ import {
   ensureDefaultAnonymousSlot, listIdentitySlots, type PoolEntrySnapshot,
 } from './opencode-auth.js'
 import { OPENCODE } from './opencode-product.js'
-import { deriveProjectId, opencodeUserAgent } from './opencode.js'
+import { deriveProjectId, opencodeUserAgent, opencodeUserAgentForVersion } from './opencode.js'
 import { primeOpencodeCapabilities, refreshOpencodeCapabilities } from './opencode-capability.js'
 import { closeAllProxyDispatchers } from './opencode-proxy.js'
 import { createChannelFetch, type ChannelOutlet } from './channel-fetch.js'
@@ -97,7 +97,10 @@ function lazyOpencodeUserAgent(): () => string {
     })
       .then((out) => {
         const version = out.match(/(\d+\.\d+\.\d+)/)?.[1]
-        return version === undefined ? OPENCODE.defaultUserAgent : `opencode/${version}`
+        // ⚠️ 探测值必须转成 **v2 形状**（`opencode/latest/<version>/cli`）：
+        // 旧实现直接拼 `opencode/<version>` 是 v1 形状，v2 门禁一律 403
+        // （见 `opencode.ts` 模块头）。
+        return opencodeUserAgentForVersion(version) ?? OPENCODE.defaultUserAgent
       })
       .catch(() => OPENCODE.defaultUserAgent)
     // 同步取值：缓存命中时立刻有值；未命中时用产品默认（不阻塞首个请求）。

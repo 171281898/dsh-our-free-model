@@ -243,11 +243,18 @@ try {
       assert.equal(first.body.model, model)
       assert.equal(continuation.body.model, model)
       assert.equal(first.headers['x-opencode-session'], continuation.headers['x-opencode-session'], '续写保留原逻辑会话')
-      assert.notEqual(first.headers['x-opencode-request'], continuation.headers['x-opencode-request'], '每次 HTTP 请求使用独立请求标识')
+      // v2 指纹：v1 的 `x-opencode-request` 头已被上游按名字拒掉（403），四个会话头
+      // 必须同值，且这个头不能再出现。
+      assert.equal('x-opencode-request' in continuation.headers, false, '不得再发 v1 的 x-opencode-request')
+      assert.equal(continuation.headers['x-session-affinity'], continuation.headers['x-opencode-session'], 'v2 会话头同值')
+      assert.equal(continuation.headers['x-session-id'], continuation.headers['x-opencode-session'], 'v2 会话头同值')
       assert.ok(JSON.stringify(continuation.body).includes(TASK), '续写必须携带原任务')
       assert.ok(JSON.stringify(continuation.body).includes(CHECKPOINT), '续写必须携带已完成推理检查点')
       assert.notDeepEqual(continuation.body, first.body, '不能原样重发整轮')
-      assert.equal(continuation.body.tool_choice?.type ?? continuation.body.tool_choice, 'none', '续写禁止工具选择')
+      // 续写压制工具调用改为靠指令正文（v2 见到 tool_choice: 'none' 就 403）。
+      // Responses 线会补官方默认的 `auto`，所以这里只禁止 `none`。
+      assert.notEqual(continuation.body.tool_choice, 'none', '续写不得下发 tool_choice: none')
+      assert.ok(JSON.stringify(continuation.body).includes('Do not call tools'), '续写指令须自带「不要调工具」')
       assert.equal(run.records.length, 2, '每次真实 HTTP 调用独立记账')
       assert.deepEqual(run.turns, [{ at: run.turns[0].at, model, ok: true, recovered: true, attempts: 2, origin: 'harness' }])
       assert.deepEqual(run.records.map(row => row.attempt), [0, 1])
@@ -325,7 +332,8 @@ try {
       assert.equal(run.records[1].recovered, true)
       const continuation = run.scenario.requests[1].body
       assert.ok(JSON.stringify(continuation).includes(CHECKPOINT), '续写必须携带思考检查点')
-      assert.equal(continuation.tool_choice?.type ?? continuation.tool_choice, 'none', '续写禁止工具选择')
+      assert.notEqual(continuation.tool_choice, 'none', '续写不得下发 tool_choice: none（v2 见到即 403）')
+      assert.ok(JSON.stringify(continuation).includes('Do not call tools'), '续写指令须自带「不要调工具」')
       assert.ok(warns.some(message => message.includes('stopped turn held only its reasoning')), '空停续写须上报告警')
     })
     await check(`${wire}: 续写段仍只有思考时按断流失败`, async () => {
@@ -702,7 +710,7 @@ try {
         const requests = scenario.requests
         assert.equal(requests.length, 2, 'Forward 实际向上游发送首段和续写两次请求')
         assert.ok(JSON.stringify(requests[1].body).includes(CHECKPOINT))
-        assert.equal(requests[1].body.tool_choice, 'none')
+        assert.equal(requests[1].body.tool_choice, undefined, 'v2 门禁拒绝 tool_choice: none，续写只靠指令正文压制工具调用')
         const saved = await savedStats(2)
         assert.equal(saved.requests, 2)
         assert.deepEqual(saved.samples.map(row => row.attempt), [0, 1])

@@ -44,6 +44,7 @@ import { unlockSealedLane } from './src/vault.js'
 import { DEFAULT_LEVEL, budgetLadder } from './src/effort.js'
 import { windowTokens } from './src/stream.js'
 import { AnnouncementFeed } from './src/feed.js'
+import { createPickStats } from './src/picks.js'
 import { PluginUpdater } from './src/updater.js'
 import { selfReload, watchPackage, isReloading } from './src/reload.js'
 import { createPushHub } from './src/push.js'
@@ -370,6 +371,14 @@ export function apply(ctx, config) {
     log: message => logger.info?.(message),
   })
   feed.load()
+
+  // The recommendation page's star counts. Not part of the feed: the feed is
+  // the owner's channel to the user, this is a read of GitHub's public numbers,
+  // and a failure here only ever costs the page its figures.
+  const picks = createPickStats({
+    cacheFile: path.join(dataDir, 'picks.json'),
+    log: message => logger.info?.(message),
+  })
 
   /**
    * The announcement view the settings page reads. A managed install polls no
@@ -1069,6 +1078,7 @@ export function apply(ctx, config) {
     refreshCatalog, refreshAvailability, syncForward, syncRelay, syncEgress,
     pool: fetchPoolSnapshot,
     eacAuth,
+    picks,
     // ── the aggregate lane's settings surface ────────────────────────────────
     // The registry is static data; the configured half is the settings file with
     // every key masked. Writing one provider rebuilds the catalog and re-emits
@@ -1820,6 +1830,9 @@ function createApiRoutes(deps) {
       if (method === 'GET' && routePath === '/announcements') {
         const view = deps.announcements.view()
         return send(200, { ...view, acked: [...ackedSet(deps)], notifyOs: deps.settings.get().notifyOs === true })
+      }
+      if (method === 'GET' && routePath === '/picks') {
+        return send(200, await deps.picks.view())
       }
       if (method === 'POST' && routePath === '/announcements/ack') {
         const body = await readJson(req)
