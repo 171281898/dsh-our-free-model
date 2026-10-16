@@ -24,6 +24,7 @@ let holdListing
 let signalListingStarted
 let listingStarted
 let turns = []
+const anonymousRequests = []
 let throttleTurns = false
 let kiloListing = { data: [{ id: kiloModel, name: 'Test free model', isFree: true }] }
 const frames = text => [
@@ -35,6 +36,14 @@ const upstream = http.createServer((req, res) => {
   const chunks = []
   req.on('data', chunk => chunks.push(chunk))
   req.on('end', () => {
+    if (req.url.startsWith('/inference/v1/')) {
+      anonymousRequests.push({ method: req.method, headers: req.headers })
+      if (req.method === 'POST' && /our-free-model-standalone/i.test(req.headers['user-agent'] ?? '')) {
+        res.writeHead(403, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ error: { name: 'FreeTierError', message: 'OpenCode free tier client rejected' } }))
+        return
+      }
+    }
     if (req.method === 'GET' && req.url === '/inference/v1/models') {
       listingCalls++
       signalListingStarted?.()
@@ -209,6 +218,13 @@ try {
     }, key)
     assert.equal(kilo.status, 200)
     assert.equal((await kilo.json()).choices[0].message.content, 'kilo-ok')
+  })
+  await check('独立服务的目录、探测和推理保留兼容的客户端归属及版本', () => {
+    assert.ok(anonymousRequests.some(req => req.method === 'GET'))
+    assert.ok(anonymousRequests.filter(req => req.method === 'POST').length >= 4)
+    for (const req of anonymousRequests) {
+      assert.match(req.headers['user-agent'], /^ofm-standalone\/\S+ opencode\/\S+$/)
+    }
   })
   await check('unknown models are refused before spending an upstream call', async () => {
     const before = turns.length
