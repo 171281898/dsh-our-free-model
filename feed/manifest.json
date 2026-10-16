@@ -1,7 +1,7 @@
 {
   "version": "2.3.0",
   "base": "../",
-  "publishedAt": "2026-10-15T14:21:42.119Z",
+  "publishedAt": "2026-10-16T07:53:07.000Z",
   "notes": "",
   "files": [
     {
@@ -141,8 +141,8 @@
     },
     {
       "path": "src/http.js",
-      "size": 26656,
-      "sha256": "43b3cb0a62a0476c2602d0500da542090391fa7a81048af721c8c454c9339ac9"
+      "size": 26905,
+      "sha256": "09eb03470553594f2d9a0588dee88709382b7d1241d9472101babe660356acb5"
     },
     {
       "path": "src/image-pricing.d.ts",
@@ -370,5 +370,5 @@
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
   ],
-  "signature": "M9I0ggIKOuaQuCPUiduifPsdj/xA+M5Jnl8IKJyM8oAcLer5Eq651ogd5VFENtE4Zt+P8ffOAV74jhm4LofZDA=="
+  "signature": "zU8LQGlIayHYGB16yxiZBvwS7cs7Nv73k1jRSXDF3sFsUUTjEJSneXaD6x0qQLmwRsKec1Ds+n9fZdpK4nIKBg=="
 }
