@@ -405,6 +405,11 @@ export function buildEacCatalog(ids) {
     entries.push({
       id,
       name: eacDisplayName(id),
+      // The card's small line under the name. The `id` keeps its `org/` prefix —
+      // that is what keeps this row distinct from the free lane's same-named
+      // model during the merge — but the prefix is routing detail, so the line
+      // shows the model's own id.
+      label: id.includes('/') ? id.slice(id.indexOf('/') + 1) : id,
       channel: EAC_CHANNEL,
       wire: 'chat',
       vision: caps.vision === true,

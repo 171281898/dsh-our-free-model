@@ -800,6 +800,12 @@ const { createGatewayServer, resetAnalytics, poolProbe } = await import('../work
   ])
   check('an unknown id still shows its own name, tagged', roster[3].name, 'EAC Some Model 9')
   check('the ids stay the raw namespaced ids', roster[0].id, 'deepseek-ai/deepseek-v4.1-flash')
+  // The card's small line shows the model's own id: the `org/` prefix is what
+  // keeps this row distinct from the free lane's same-named model during the
+  // merge, but it is routing detail the reader never needs to see.
+  check('the card label drops the org prefix', roster.map(entry => entry.label), [
+    'deepseek-v4.1-flash', 'kimi-k3', 'glm-5.3-flash', 'some-model-9',
+  ])
   check('isEacEntry answers the channel field', [isEacEntry(roster[0]), isEacEntry({ id: 'mimo-v2.6-flash-free' })], [true, false])
   check('display names never leak the org prefix', roster.every(entry => !entry.name.includes('deepseek-ai/') && !entry.name.includes('moonshotai/')), true)
 }
