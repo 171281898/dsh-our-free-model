@@ -186,14 +186,21 @@ export class AnnouncementFeed {  /**
 
   /** Read the cached copy from disk; fresh installs start empty and stay silent on first poll. */
   load(disk = this.readDisk()) {
+    let rememberedIds = []
     try {
       const parsed = JSON.parse(disk ?? '')
       const feed = parseFeed(parsed)
       this.cache = { at: Number(parsed.fetchedAt) || 0, source: String(parsed.source ?? ''), announcements: feed.announcements }
+      if (Array.isArray(parsed.knownIds)) {
+        rememberedIds = parsed.knownIds.filter(id => typeof id === 'string' && id.length > 0 && id.length <= 160)
+      }
     } catch {
       this.cache = { at: 0, source: '', announcements: [] }
     }
-    this.knownIds = new Set(this.cache.announcements.map(item => item.id))
+    this.knownIds = new Set([
+      ...this.cache.announcements.map(item => item.id),
+      ...rememberedIds,
+    ])
     return this.cache
   }
 
@@ -242,10 +249,11 @@ export class AnnouncementFeed {  /**
     this.polling = (async () => {
       try {
         const { feed, source } = await fetchFeed(this.sources())
-        const hadCache = this.knownIds.size > 0
+        const hadCache = !this.neverFetched
         const previousIds = new Set(this.knownIds)
         this.cache = { at: Date.now(), source, announcements: feed.announcements }
-        this.knownIds = new Set(feed.announcements.map(item => item.id))
+        // Mirrors may serve an older subset; seeing an id again is not arrival.
+        this.knownIds = new Set([...previousIds, ...feed.announcements.map(item => item.id)])
         this.error = ''
         const arrived = hadCache && this.deps.onArrival !== undefined
           ? feed.announcements.filter(item => !previousIds.has(item.id))
@@ -270,7 +278,8 @@ export class AnnouncementFeed {  /**
     try {
       fs.mkdirSync(path.dirname(this.deps.cacheFile), { recursive: true })
       const temp = `${this.deps.cacheFile}.${process.pid}.tmp`
-      fs.writeFileSync(temp, JSON.stringify({ fetchedAt: this.cache.at, source: this.cache.source, announcements: this.cache.announcements }))
+      fs.writeFileSync(temp, JSON.stringify({ fetchedAt: this.cache.at, source: this.cache.source,
+        announcements: this.cache.announcements, knownIds: [...this.knownIds] }))
       fs.renameSync(temp, this.deps.cacheFile)
     } catch (error) {
       this.deps.log?.(`our-free-model: could not persist the feed cache (${error?.message ?? error})`)

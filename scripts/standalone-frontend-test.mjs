@@ -162,6 +162,7 @@ assert.equal(cumulative.logicalEstimated, true)
 assert.equal(cumulative.requestFailures, 3)
 const savedSettings = {
   enabled: true, exposeRegionModels: true, streamRecovery: true, standaloneProbe: false,
+  hideFreeModels: false, hideEacModels: false,
   defaultMaxTokens: 32768, probeIntervalMinutes: 15,
 }
 const cleanDraft = settingsDraft(savedSettings)
@@ -200,6 +201,7 @@ assert.equal(settingsChanged({ ...editedDraft, defaultMaxTokens: '32768', enable
   '改回原值不应继续提示未保存')
 assert.deepEqual(savedSettings, {
   enabled: true, exposeRegionModels: true, streamRecovery: true, standaloneProbe: false,
+  hideFreeModels: false, hideEacModels: false,
   defaultMaxTokens: 32768, probeIntervalMinutes: 15,
 }, '草稿操作不能改动输入配置')
 await verifySettingsHost()

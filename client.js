@@ -227,6 +227,15 @@ window.__ModuleLoader__.load({
         'forward.lanAlso': '其它地址：{list}',
         'pref.enabled': '启用免费模型',
         'pref.exposeRegion': '展示地区受限模型',
+        'pref.hideFreeModels': '隐藏匿名与 Kilo 免费模型',
+        'pref.hideEacModels': '隐藏 EAC 模型',
+        'visibility.showModel': '在模型选择器中显示',
+        'visibility.hidden': '已隐藏',
+        'visibility.unlisted': '未公开模型',
+        'visibility.groupHidden': '整组已隐藏，请先关闭上方的整组隐藏开关。',
+        'visibility.hint': '隐藏仅影响模型选择器和网关清单，不影响历史会话；仍可在这里恢复显示。',
+        'routing.capacity': '链路能力交集',
+        'routing.capacityUnavailable': '暂时无法读取链路能力交集，请重试。',
         'pref.interval': '自动探测间隔（分钟）',
         'pref.maxTokens': '单次输出上限（token）',
         'pref.egress': '当前出口',
@@ -329,12 +338,12 @@ window.__ModuleLoader__.load({
         'star.cta': '点个 Star',
         'star.title': '在 GitHub 上给本仓库点 Star',
         'picks.title': '推荐项目',
-        'picks.sub': '同一作者的两个开源项目：一个把 Agent 装进原生桌面，一个让上百个插件和谐共存。用得上，就顺手点个 Star。',
-        'picks.foot': 'Star 是开源项目唯一的「工资条」——它决定作者还能投入多少时间。两个项目都免费、开源、无广告，点一下就是最实在的支持。',
+        'picks.sub': '同一作者的一组开源项目：把 Agent 装进原生桌面、让上百个插件和谐共存、把视频和设计留在这台机器上。用得上，就顺手点个 Star。',
+        'picks.foot': 'Star 是开源项目唯一的「工资条」——它决定作者还能投入多少时间。这里的项目都免费、开源、无广告，点一下就是最实在的支持。',
         'picks.stars': 'Stars',
         'picks.forks': 'Forks',
         'picks.fork': 'Fork',
-        'picks.totalStars': '两个项目共 {n} 个 Star',
+        'picks.totalStars': '{c} 个推荐项目共 {n} 个 Star',
         'picks.updated': '最近更新',
         'picks.stale': '缓存数据',
         'picks.liveFailed': '暂时读不到 GitHub 数据，数字稍后自动补上——不影响下面的链接。',
@@ -382,6 +391,9 @@ window.__ModuleLoader__.load({
         'chan.meta.accounts': '账号',
         'chan.meta.models': '模型',
         'chan.act.add': '添加账号',
+        'chan.zcode.provider': '登录渠道',
+        'chan.zcode.bigmodel': 'bigmodel.cn',
+        'chan.zcode.zai': 'z.ai 国际版',
         'chan.act.refresh': '续期',
         'chan.act.test': '测试',
         'chan.act.delete': '移除',
@@ -389,9 +401,11 @@ window.__ModuleLoader__.load({
         'chan.fold.accounts': '账号',
         'chan.fold.models': '模型',
         'chan.noAccount': '还没有账号——点「添加账号」开始登录。',
-        'chan.enabled': '启用',
+        'chan.enabled': '已启用',
+        'chan.act.enable': '启用',
+        'chan.act.disable': '停用',
         'chan.expires.never': '长效',
-        'chan.disabled': '已关闭',
+        'chan.disabled': '已停用',
         'chan.login.title': '登录 {name}',
         'chan.login.step1': '在浏览器中完成登录（若没有自动打开，点下面的按钮）。',
         'chan.login.step2': '登录成功后本页会自动完成，无需复制任何东西。',
@@ -408,6 +422,8 @@ window.__ModuleLoader__.load({
         'chan.credit.today': '今日已领 {credit}',
         'chan.model.free': '免费额度',
         'chan.model.dead': '已下架',
+        'chan.model.hidden': '已隐藏',
+        'chan.model.restore': '恢复显示',
         'chan.model.off': '关闭',
         'chan.model.on': '开启',
         'chan.model.enableAll': '全部开启',
@@ -896,6 +912,15 @@ window.__ModuleLoader__.load({
         'forward.lanAlso': 'Also reachable at {list}',
         'pref.enabled': 'Enable free models',
         'pref.exposeRegion': 'Show region-limited models',
+        'pref.hideFreeModels': 'Hide anonymous and Kilo free models',
+        'pref.hideEacModels': 'Hide EAC models',
+        'visibility.showModel': 'Show in model picker',
+        'visibility.hidden': 'Hidden',
+        'visibility.unlisted': 'Unlisted models',
+        'visibility.groupHidden': 'This group is hidden. Turn off the group switch above first.',
+        'visibility.hint': 'Hiding affects the model picker and gateway listing only. Existing sessions keep working; restore visibility here.',
+        'routing.capacity': 'Chain capability intersection',
+        'routing.capacityUnavailable': 'Cannot load chain capacities right now. Please retry.',
         'pref.interval': 'Auto-probe interval (minutes)',
         'pref.maxTokens': 'Output ceiling per call (tokens)',
         'pref.egress': 'Current egress',
@@ -998,12 +1023,12 @@ window.__ModuleLoader__.load({
         'star.cta': 'Star',
         'star.title': 'Star this repository on GitHub',
         'picks.title': 'Recommended projects',
-        'picks.sub': 'Two open-source projects by the same author: one puts the agent on a native desktop, the other keeps hundreds of plugins living together. If they are useful, a star is the thanks they understand.',
-        'picks.foot': 'A star is the only payslip an open-source project gets — it decides how much more time the author can spend. Both projects are free, open source and ad-free; one click is the most concrete support there is.',
+        'picks.sub': 'A set of open-source projects by the same author: bringing the agent to a native desktop, keeping hundreds of plugins working together, and keeping video and design work on this machine. If they are useful, a star is the thanks they understand.',
+        'picks.foot': 'A star is the only payslip an open-source project gets — it decides how much more time the author can spend. Every project here is free, open source and ad-free; one click is the most concrete support there is.',
         'picks.stars': 'Stars',
         'picks.forks': 'Forks',
         'picks.fork': 'Fork',
-        'picks.totalStars': '{n} stars across both projects',
+        'picks.totalStars': '{n} stars across {c} projects',
         'picks.updated': 'Last push',
         'picks.stale': 'cached',
         'picks.liveFailed': 'GitHub numbers are unreachable right now; they will fill in later — the links below are unaffected.',
@@ -1051,6 +1076,9 @@ window.__ModuleLoader__.load({
         'chan.meta.accounts': 'Accounts',
         'chan.meta.models': 'Models',
         'chan.act.add': 'Add account',
+        'chan.zcode.provider': 'Sign-in route',
+        'chan.zcode.bigmodel': 'bigmodel.cn',
+        'chan.zcode.zai': 'z.ai international',
         'chan.act.refresh': 'Refresh',
         'chan.act.test': 'Test',
         'chan.act.delete': 'Remove',
@@ -1059,6 +1087,8 @@ window.__ModuleLoader__.load({
         'chan.fold.models': 'Models',
         'chan.noAccount': 'No account yet — press “Add account” to sign in.',
         'chan.enabled': 'Enabled',
+        'chan.act.enable': 'Enable',
+        'chan.act.disable': 'Disable',
         'chan.expires.never': 'Long-lived',
         'chan.disabled': 'Disabled',
         'chan.login.title': 'Sign in to {name}',
@@ -1077,6 +1107,8 @@ window.__ModuleLoader__.load({
         'chan.credit.today': '{credit} claimed today',
         'chan.model.free': 'Free quota',
         'chan.model.dead': 'Retired',
+        'chan.model.hidden': 'Hidden',
+        'chan.model.restore': 'Restore visibility',
         'chan.model.off': 'Hide',
         'chan.model.on': 'Show',
         'chan.model.enableAll': 'Show all',
@@ -1507,7 +1539,7 @@ window.__ModuleLoader__.load({
 .ofm_input:hover{border-color:color-mix(in srgb,var(--dsw-alias-border-l2) 60%,var(--dsw-alias-label-tertiary))}
 .ofm_input:focus{outline:none;border-color:var(--dsw-alias-state-business-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--dsw-alias-state-business-primary) 20%,transparent)}
 /* ══ 开关（spring 滑块） ═══════════════════════════════════════════════ */
-.ofm_switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.ofm_switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;appearance:none;background:transparent;border:0;padding:0;font:inherit;color:inherit}
 .ofm_switch i{width:36px;height:20px;border-radius:999px;background:var(--dsw-alias-bg-layer-1);border:1px solid var(--dsw-alias-border-l2);box-shadow:inset 0 1px 3px rgb(0 0 0 / 8%);position:relative;transition:background .2s ease,border-color .2s ease,box-shadow .2s ease;flex:none}
 .ofm_switch:hover i{filter:brightness(1.05)}
 .ofm_switch[aria-checked="true"]:hover i{filter:brightness(1.08)}
@@ -2793,7 +2825,7 @@ window.__ModuleLoader__.load({
 
     // ── model roster ──────────────────────────────────────────────────────────
     function ModelCard(props) {
-      const { model: m, t, onBench, bench, locked, eacLogin } = props
+      const { model: m, t, onBench, bench, locked, eacLogin, onVisibility, busy } = props
       const stateKey = `state.${m.availability}`
       const dim = m.availability !== 'available'
       const rung = (m.budgets ?? []).find(row => row.isDefault === true)
@@ -2822,6 +2854,7 @@ window.__ModuleLoader__.load({
           h('span', { className: 'ofm_badge ' + m.availability }, t(stateKey))),
         h('div', { className: 'ofm_id', title: m.id }, m.label ?? m.id),
         h('div', { className: 'ofm_tags' },
+          m.hiddenByUser === true ? h('span', { className: 'ofm_tag' }, t('visibility.hidden')) : null,
           m.fast === true ? h('span', { className: 'ofm_tag fast', title: t('tag.fastTitle') }, t('tag.fast')) : null,
           h('span', { className: 'ofm_tag' }, m.vision ? t('tag.vision') : t('tag.text')),
           m.reasoning ? h('span', { className: 'ofm_tag' }, m.canDisableThinking === false ? t('tag.thinkingShared') : t('tag.thinking')) : null,
@@ -2846,13 +2879,17 @@ window.__ModuleLoader__.load({
                 m.ttftMs === undefined || m.ttftMs === 0 ? null : h('span', null, t('tag.latency'), ' ', h('b', null, Math.round(m.ttftMs)), ' ms'),
                 h('span', null, t('pref.probedAt'), ' ', h('b', null, ago(m.probedAt, t.locale)))),
         m.canDisableThinking === false ? h('p', { className: 'ofm_note' }, t('hint.sharedBudget')) : null,
+        onVisibility === undefined ? null : h('div', { className: 'ofm_sec' },
+          h(Switch, { checked: m.hiddenByUser !== true, label: t('visibility.showModel'),
+            disabled: busy || m.hiddenByGroup === true, onChange: () => onVisibility(m) }),
+          m.hiddenByGroup === true ? h('p', { className: 'ofm_note' }, t('visibility.groupHidden')) : null),
         onBench === undefined ? null : h('div', { className: 'ofm_row' },
           h(Button, { disabled: bench?.running === true, onClick: () => onBench(m) }, bench?.running === true ? t('bench.running') : t('bench.run')),
           bench?.result === undefined ? null : h('span', { className: 'ofm_note' }, bench.result)))
     }
 
     function Roster(props) {
-      const { summary, t, onBench, benches, auth, eacLogin, only } = props
+      const { summary, t, onBench, benches = {}, auth, eacLogin, only, onApply, busy } = props
       // `only` splits the same roster across the two model pages: the EAC page
       // shows the co-paid entries, the free page everything else. Filtering
       // here (rather than in each page) keeps one definition of what a route
@@ -2864,8 +2901,13 @@ window.__ModuleLoader__.load({
       // the order is the same on the EAC page and in the onboarding roster, and a
       // row that is not featured keeps its upstream order.
       const lead = list => [...list].sort((a, b) => (b.pinned === true ? 1 : 0) - (a.pinned === true ? 1 : 0))
-      const available = lead(roster.filter(m => m.route === 'our-free-model' || (only === 'eac' && m.channel === 'eac')))
+      const available = lead(roster.filter(m => m.route === 'our-free-model'))
       const limited = lead(roster.filter(m => m.route === 'our-free-model-region'))
+      const unlisted = lead(roster.filter(m => m.route !== 'our-free-model' && m.route !== 'our-free-model-region'))
+      const toggleModel = onApply === undefined ? undefined : model => {
+        const ids = summary.settings.hiddenModelIds ?? []
+        return onApply({ hiddenModelIds: ids.includes(model.id) ? ids.filter(id => id !== model.id) : [...ids, model.id] })
+      }
       // 只有拿到过明确判定（网关答过 /eac/status）且未授权时才上锁：状态未知
       // 不该显示一把凭空的锁，网关不可达时本地记录仍算已授权。
       const locked = auth !== undefined && auth.available === true && auth.authorized !== true
@@ -2875,6 +2917,7 @@ window.__ModuleLoader__.load({
             hint === undefined ? null : h('span', { className: 'ofm_sec_hint' }, hint)),
           h('div', { className: 'ofm_grid' }, list.map(m => h(ModelCard, {
             key: m.id, model: m, t, onBench, locked: m.channel === 'eac' && locked, eacLogin,
+            onVisibility: toggleModel, busy,
             bench: { running: benches[m.id]?.running === true, ...benches[m.id]?.result === undefined ? {} : { result: benches[m.id].result } },
           }))))
       // The lane closed at the gate is the one "no EAC models" case the page can
@@ -2882,12 +2925,17 @@ window.__ModuleLoader__.load({
       // the group never renders and nothing else on the page names the reason.
       const laneNote = summary.laneAvailable === false && !summary.catalog.some(m => m.channel === 'eac')
         ? h('p', { className: 'ofm_note' }, t('roster.noLane')) : null
-      // 暂不可用的模型不再单独成组展示（用户要求移除「不在选择器中」区块）：
-      // 它们的状态仍在上方统计芯片与每张卡的徽章里如实可见。
       return h(Fragment, null,
         laneNote,
+        onApply === undefined ? null : h('div', { className: 'ofm_sec' },
+          h('p', { className: 'ofm_note' }, t('visibility.hint')),
+          h(Switch, { checked: summary.settings.hideFreeModels === true, disabled: busy,
+            label: t('pref.hideFreeModels'), onChange: () => onApply({ hideFreeModels: summary.settings.hideFreeModels !== true }) }),
+          h(Switch, { checked: summary.settings.hideEacModels === true, disabled: busy,
+            label: t('pref.hideEacModels'), onChange: () => onApply({ hideEacModels: summary.settings.hideEacModels !== true }) })),
         group(t('state.available'), available),
-        group(t('state.region-blocked'), limited, t('hint.region')))
+        group(t('state.region-blocked'), limited, t('hint.region')),
+        group(t('visibility.unlisted'), unlisted))
     }
 
     // ── dashboard ─────────────────────────────────────────────────────────────
@@ -3547,6 +3595,9 @@ window.__ModuleLoader__.load({
         h('div', { className: 'ofm_row', style: { gap: 20 } },
           h(Switch, { checked: settings.enabled !== false, label: t('pref.enabled'), onChange: () => onApply({ enabled: !(settings.enabled !== false) }) }),
           h(Switch, { checked: settings.exposeRegionModels !== false, label: t('pref.exposeRegion'), onChange: () => onApply({ exposeRegionModels: !(settings.exposeRegionModels !== false) }) })),
+        h('div', { className: 'ofm_row', style: { gap: 20 } },
+          h(Switch, { checked: settings.hideFreeModels === true, disabled: busy, label: t('pref.hideFreeModels'), onChange: () => onApply({ hideFreeModels: settings.hideFreeModels !== true }) }),
+          h(Switch, { checked: settings.hideEacModels === true, disabled: busy, label: t('pref.hideEacModels'), onChange: () => onApply({ hideEacModels: settings.hideEacModels !== true }) })),
         h('div', { className: 'ofm_row' },
           field(t('pref.interval'), h('input', { className: 'ofm_input', style: { maxWidth: 100 }, value: draft?.probeIntervalMinutes ?? 15, onChange: e => setDraft(c => ({ ...c, probeIntervalMinutes: Number(e.target.value.replace(/\D/g, '')) || 0 })) })),
           field(t('pref.maxTokens'), h('input', { className: 'ofm_input', style: { maxWidth: 120 }, value: draft?.defaultMaxTokens ?? 32768, onChange: e => setDraft(c => ({ ...c, defaultMaxTokens: Number(e.target.value.replace(/\D/g, '')) || 0 })) })),
@@ -3735,7 +3786,7 @@ window.__ModuleLoader__.load({
     // 问题」，动作是「一眼能看到的星按钮」，数字是宿主 /picks 取回的真实 Star /
     // Fork / 最近提交——拿不到就整块不显示，绝不用占位数字凑版面（这块页面的
     // 全部说服力都在数字是真的）。每张卡片的文案按语言直写 t('字面量')，字典
-    // 保持可 grep；两个仓库的地址与「第二个动作」在这里各写一份。
+    // 保持可 grep；各仓库的地址与「第二个动作」在这里各写一份。
     const RECO_LINKS = {
       desktop: { repo: 'https://github.com/Ebony-Vinyl/EAC-Desktop', extra: 'https://github.com/Ebony-Vinyl/EAC-Desktop/releases' },
       pack: { repo: 'https://github.com/Ebony-Vinyl/EAC-Pack', extra: 'https://github.com/Ebony-Vinyl/EAC-Pack#git-安装' },
@@ -3832,10 +3883,9 @@ window.__ModuleLoader__.load({
         const timer = setTimeout(() => { setRetried(true); picks.reload() }, 6000)
         return () => clearTimeout(timer)
       }, [retried, numbers, picks.status, picks.reload])
-      // The two counts the page is asking for, added up — social proof the reader
-      // can check against the cards below, and nothing at all when GitHub has not
-      // answered (an invented total would poison the one claim this page makes).
-      const total = repos.reduce((sum, row) => sum + (typeof row.stars === 'number' ? row.stars : 0), 0)
+      // The project count and star total cover the same successfully read rows.
+      const counted = repos.filter(row => Number.isFinite(row.stars))
+      const total = counted.reduce((sum, row) => sum + row.stars, 0)
       return h('div', { className: 'ofm_page' },
         h('header', { className: 'ofm_hero ofm_glass' },
           h('span', { className: 'ofm_recoglow', 'aria-hidden': 'true' }),
@@ -3844,7 +3894,7 @@ window.__ModuleLoader__.load({
               h('h2', null, t('picks.title')),
               h('p', { className: 'ofm_pagesub' }, t('picks.sub'))),
             h('div', { className: 'ofm_pills' },
-              total > 0 ? h(Pill, { strong: true }, t('picks.totalStars').replace('{n}', grouped(total))) : null,
+              total > 0 ? h(Pill, { strong: true }, t('picks.totalStars').replace('{n}', grouped(total)).replace('{c}', grouped(counted.length))) : null,
               h(StarButton, { t })))),
         h('div', { className: 'ofm_recogrid' },
           h(RecoCard, {
@@ -3946,26 +3996,63 @@ window.__ModuleLoader__.load({
      * does not offer it still renders the free and EAC pages, with this one
      * explaining itself instead of breaking.
      */
+    function sameChannelTransport(left, right) {
+      return left === right || (left !== null && right !== null
+        && typeof left === 'object' && typeof right === 'object'
+        && left.connection === right.connection && left.call === right.call)
+    }
+
+    function channelTransport(rpc) {
+      return typeof rpc?.transport === 'function' ? rpc.transport() : rpc
+    }
+
     function useChannelRpc(ctx) {
-      return useMemo(() => {
+      const ctxRef = useRef(ctx)
+      ctxRef.current = ctx
+      const readTransport = useCallback(() => {
+        const current = ctxRef.current
         let connection
-        try { connection = ctx?.connection } catch { connection = undefined }
-        if (connection === undefined && typeof ctx?.get === 'function') {
-          try { connection = ctx.get('connection') } catch { connection = undefined }
+        try { connection = current?.connection } catch { /* service not provided yet */ }
+        if (connection === undefined || connection === null) {
+          try { connection = current?.get?.('connection') } catch { /* service not provided yet */ }
         }
-        const rpc = async (method, payload, timeoutMs = 60_000) => {
-          if (connection?.rpc?.call === undefined) throw new Error('no-connection')
-          const controller = new AbortController()
-          const timer = setTimeout(() => controller.abort(), timeoutMs)
-          try {
-            const result = await connection.rpc.call('/api', 'channel-pack', { method, payload }, controller.signal)
-            if (result?.ok === true) return result.value
-            if (result?.ok === false) throw new Error(result.error?.message ?? result.error?.code ?? 'rpc-failed')
-            return result
-          } finally { clearTimeout(timer) }
+        try {
+          const call = connection?.rpc?.call
+          return typeof call === 'function' ? { connection, call } : null
+        } catch { return null }
+      }, [])
+      const [transport, setTransport] = useState(readTransport)
+      useEffect(() => {
+        let alive = true
+        const check = () => {
+          if (!alive) return
+          const next = readTransport()
+          setTransport(previous => sameChannelTransport(previous, next) ? previous : next)
         }
-        return { available: connection?.rpc?.call !== undefined, rpc }
-      }, [ctx])
+        check()
+        const timer = setInterval(check, 500)
+        return () => { alive = false; clearInterval(timer) }
+      }, [readTransport])
+      // Context wrappers do not invalidate readers; actual transport replacement does.
+      const rpc = useCallback(async (method, payload, timeoutMs = 60_000) => {
+        const latest = readTransport()
+        if (latest === null) throw new Error('no-connection')
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), timeoutMs)
+        try {
+          const result = await latest.call.call(latest.connection.rpc, '/api', 'channel-pack', { method, payload }, controller.signal)
+          if (result?.ok === true) return result.value
+          if (result?.ok === false) throw new Error(result.error?.message ?? result.error?.code ?? 'rpc-failed')
+          return result
+        } finally { clearTimeout(timer) }
+      }, [readTransport, transport])
+      rpc.transport = readTransport
+      return { available: transport !== null, rpc }
+    }
+
+    const ZCODE_PROVIDER_KEY = 'ofm:zcode:login-provider'
+    function closeLoginPopup(popup) {
+      try { if (popup && !popup.closed) popup.close() } catch { /* best effort */ }
     }
 
     /** Human text for a millisecond timestamp, or the long-lived marker. */
@@ -3993,6 +4080,15 @@ window.__ModuleLoader__.load({
       const balanceGeneration = useRef(0)
       const claimPending = useRef(false)
       const creditCapability = CHANNEL_CREDITS[channel.id]
+      const [zcodeProvider, setZcodeProvider] = useState(() => {
+        try { return window.localStorage?.getItem(ZCODE_PROVIDER_KEY) === 'zai' ? 'zai' : 'bigmodel' } catch { return 'bigmodel' }
+      })
+      const loginAttempt = useRef(null)
+      const chooseZcodeProvider = value => {
+        if (value !== 'bigmodel' && value !== 'zai') return
+        setZcodeProvider(value)
+        try { window.localStorage?.setItem(ZCODE_PROVIDER_KEY, value) } catch { /* preference still applies this session */ }
+      }
       const balanceLabel = creditCapability?.unit === 'tokens' ? t('chan.credits.tokens')
         : creditCapability?.unit === 'dollars' ? t('chan.credits.dollars')
           : creditCapability?.quota ? t('chan.credits.quota') : t('chan.credits.left')
@@ -4094,19 +4190,75 @@ window.__ModuleLoader__.load({
       // the browser flow finishes in the background and `login.poll` sees the
       // credential appear. The placeholder account is real from the first
       // moment, so the card can poll against it.
+      useEffect(() => {
+        if (loginAttempt.current?.cancelled) {
+          loginAttempt.current = null
+          setBusy(value => value === 'add' ? '' : value)
+        }
+        return () => {
+          const attempt = loginAttempt.current
+          if (attempt) { attempt.cancelled = true; closeLoginPopup(attempt.popup) }
+        }
+      }, [channel.id])
+      useEffect(() => {
+        const attempt = loginAttempt.current
+        if (!attempt || sameChannelTransport(attempt.transport, channelTransport(rpc))) return
+        attempt.cancelled = true
+        closeLoginPopup(attempt.popup)
+        loginAttempt.current = null
+        setBusy(value => value === 'add' ? '' : value)
+      }, [rpc])
       const startLogin = async () => {
+        if (loginAttempt.current && !loginAttempt.current.cancelled) return
+        const attempt = { popup: null, cancelled: false, transport: channelTransport(rpc) }
+        const current = () => !attempt.cancelled && sameChannelTransport(attempt.transport, channelTransport(rpc))
+        loginAttempt.current = attempt
         setBusy('add'); setNotice('')
+        // Reserve inside the click; a delayed RPC would lose transient activation.
         try {
-          const value = await rpc('account.create', { provider: channel.id }, 90_000)
+          attempt.popup = window.open('about:blank', '_blank')
+          if (attempt.popup) attempt.popup.opener = null
+        } catch { closeLoginPopup(attempt.popup); attempt.popup = null }
+        try {
+          const value = await rpc('account.create', {
+            provider: channel.id,
+            ...channel.id === 'zcode' ? { zcodeProvider } : {},
+          }, 90_000)
+          if (!current()) { attempt.cancelled = true; closeLoginPopup(attempt.popup); return }
           const accountId = value?.accountId
           const url = value?.loginUrl
           if (typeof accountId !== 'string' || accountId === '') throw new Error('bad-answer')
           if (typeof url === 'string' && url !== '') {
-            try { window.open(url, '_blank', 'noopener') } catch { /* the modal offers the link too */ }
-          }
+            const target = new URL(url)
+            if (url.length > 2048 || !['http:', 'https:'].includes(target.protocol) || target.username || target.password) throw new Error('bad-login-url')
+            let opened = false
+            try {
+              if (attempt.popup && !attempt.popup.closed) {
+                attempt.popup.location.replace(url)
+                opened = true
+                attempt.popup = null
+              }
+            } catch { /* the host can open it instead */ }
+            closeLoginPopup(attempt.popup); attempt.popup = null
+            if (!opened) {
+              try { opened = (await post('/open-external', { url }, 15_000))?.opened === true } catch { /* manual link remains available */ }
+            }
+            if (!current()) { attempt.cancelled = true; return }
+            if (!opened) {
+              try { window.open(url, '_blank', 'noopener') } catch { /* the modal offers the link too */ }
+            }
+          } else { closeLoginPopup(attempt.popup); attempt.popup = null }
           setLogin({ accountId, url: typeof url === 'string' ? url : '', startedAt: Date.now() })
           setOpen('accounts')
-        } catch (error) { onError(channel, error) } finally { setBusy('') }
+        } catch (error) {
+          closeLoginPopup(attempt.popup)
+          if (current()) onError(channel, error)
+        } finally {
+          if (loginAttempt.current === attempt && !attempt.cancelled) {
+            loginAttempt.current = null
+            setBusy('')
+          }
+        }
       }
 
       // Poll the placeholder until its credential lands. Ten minutes matches the
@@ -4215,6 +4367,17 @@ window.__ModuleLoader__.load({
               ? creditCapability.quota ? t('chan.credits.loaded').replace('{count}', String((balances ?? []).filter(row => Number.isFinite(row.balance?.total)).length)) : kilo(balancesTotal)
               : balances === undefined ? '…' : '—')) : null),
         h('div', { className: 'ofm_chanacts' },
+          channel.id === 'zcode' ? h('div', { className: 'ofm_seg', role: 'group', 'aria-label': t('chan.zcode.provider') },
+            h('button', {
+              type: 'button', disabled: busy !== '' || !rpc,
+              'aria-pressed': zcodeProvider === 'bigmodel',
+              onClick: () => chooseZcodeProvider('bigmodel'),
+            }, t('chan.zcode.bigmodel')),
+            h('button', {
+              type: 'button', disabled: busy !== '' || !rpc,
+              'aria-pressed': zcodeProvider === 'zai',
+              onClick: () => chooseZcodeProvider('zai'),
+            }, t('chan.zcode.zai'))) : null,
           h('button', { type: 'button', className: 'ofm_btn', disabled: busy !== '' || !rpc, 'aria-busy': busy === 'add' ? 'true' : undefined, onClick: startLogin }, busy === 'add' ? '…' : t('chan.act.add')),
           accountsCount > 0 ? h('button', {
             type: 'button', className: 'ofm_btn ghost', disabled: busy !== '' || !rpc, 'aria-busy': busy === 'refreshAll' ? 'true' : undefined,
@@ -4292,7 +4455,7 @@ window.__ModuleLoader__.load({
                         await rpc('account.update', { accountId: row.id, patch: { enabled: row.enabled === false } })
                         onChanged(); await loadAccounts()
                       }),
-                    }, row.enabled === false ? t('chan.enabled') : t('chan.disabled')),
+                    }, row.enabled === false ? t('chan.act.enable') : t('chan.act.disable')),
                     h('button', {
                       type: 'button', className: 'ofm_minibtn danger', disabled: busy !== '' || !rpc,
                       onClick: () => void removeAccount(row.id),
@@ -4323,13 +4486,15 @@ window.__ModuleLoader__.load({
                 h('span', { className: 'ofm_id', title: model.id }, model.name ?? model.id),
                 model.isFree === true ? h('span', { className: 'ofm_tagpill free' }, t('chan.model.free')) : null,
                 model.dead === true ? h('span', { className: 'ofm_tagpill dead' }, t('chan.model.dead')) : null,
+                model.disabled === true ? h('span', { className: 'ofm_tagpill' }, t('chan.model.hidden')) : null,
                 h('button', {
                   type: 'button', className: 'ofm_minibtn', disabled: busy !== '' || !rpc,
                   onClick: () => accountAction('model:' + model.id, '', async () => {
-                    await rpc('model.setDisabled', { provider: channel.id, modelId: model.id, disabled: model.disabled !== true })
+                    if (model.dead === true) await rpc('model.clearDead', { provider: channel.id, modelId: model.id })
+                    else await rpc('model.setDisabled', { provider: channel.id, modelId: model.id, disabled: model.disabled !== true })
                     await loadModels(); onChanged()
                   }),
-                }, model.disabled === true ? t('chan.model.on') : t('chan.model.off'))))))) : null)
+                }, model.dead === true ? t('chan.model.restore') : model.disabled === true ? t('chan.model.on') : t('chan.model.off'))))))) : null)
 
       const modal = login === null ? null : h('div', { className: 'ofm_scrim' },
         h('div', { className: 'ofm_modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': t('chan.login.title').replace('{name}', channel.name) },
@@ -4371,22 +4536,41 @@ window.__ModuleLoader__.load({
       // the failure *reason* when the probes never come back.
       const [ready, setReady] = useState(pack.state === 'ready')
 
-      const loadStatus = useCallback(async (attempt = 0) => {
+      const statusGeneration = useRef(0)
+      const statusRetry = useRef(null)
+      const statusRequest = useRef(0)
+      const statusApplied = useRef(0)
+      const loadStatus = useCallback(async (attempt = 0, generation = statusGeneration.current) => {
+        if (attempt === 0) { clearTimeout(statusRetry.current); statusRetry.current = null }
         if (!available) return
+        const request = ++statusRequest.current
+        const transport = channelTransport(rpc)
+        const current = () => generation === statusGeneration.current && request >= statusApplied.current
+          && sameChannelTransport(transport, channelTransport(rpc))
         try {
           const value = await rpc('provider.status', { providers: CHANNEL_PROVIDERS.map(row => row.id) })
+          if (!current()) return
+          statusApplied.current = request
           setStatuses(value?.statuses ?? {})
           setReady(true)
           setError('')
         } catch (err) {
+          if (!current()) return
           // The pack imports asynchronously on a cold start; retry a bounded
           // few times before believing the failure and surfacing the reason.
-          if (attempt < 4) { setTimeout(() => { void loadStatus(attempt + 1) }, 4000); return }
+          if (attempt < 4) {
+            clearTimeout(statusRetry.current)
+            statusRetry.current = setTimeout(() => { if (current()) void loadStatus(attempt + 1, generation) }, 4000)
+            return
+          }
           setError(String(err?.message ?? err))
         }
       }, [available, rpc])
 
-      useEffect(() => { void loadStatus() }, [loadStatus])
+      useEffect(() => {
+        void loadStatus()
+        return () => { statusGeneration.current++; clearTimeout(statusRetry.current); statusRetry.current = null }
+      }, [loadStatus])
       // A second poll loop, slow: the pack pushes nothing for accounts changed
       // in another window, and a stale count on this page is the kind of quiet
       // wrongness that reads as a bug. Local actions refresh immediately.
@@ -5581,7 +5765,18 @@ window.__ModuleLoader__.load({
           h('span', { className: 'ofm_pickmeta' },
             h('span', { className: 'ofm_id' }, row.id),
             h('span', { className: 'ofm_tag' }, lanes[row.channel] ?? row.channel),
+            row.contextWindow > 0 ? h('span', { className: 'ofm_tag' }, `${t('tag.context')} ${kilo(row.contextWindow)}`) : null,
+            row.maxOutput > 0 ? h('span', { className: 'ofm_tag' }, `${t('tag.output')} ${kilo(row.maxOutput)}`) : null,
             row.vision === true ? h('span', { className: 'ofm_tag' }, t('tag.vision')) : null)))))
+    }
+
+    function ChainCapacity({ capacity, t }) {
+      if (!capacity) return null
+      return h('div', { className: 'ofm_tags', 'aria-label': t('routing.capacity') },
+        h('span', { className: 'ofm_note' }, t('routing.capacity')),
+        h('span', { className: 'ofm_tag' }, `${t('tag.context')} ${kilo(capacity.contextWindow)}`),
+        h('span', { className: 'ofm_tag' }, `${t('tag.output')} ${kilo(capacity.maxOutput)}`),
+        h('span', { className: 'ofm_tag' }, capacity.vision ? t('tag.vision') : t('tag.text')))
     }
 
     /**
@@ -5604,6 +5799,9 @@ window.__ModuleLoader__.load({
       const [error, setError] = useState('')
       const byId = new Map(models.map(row => [row.id, row]))
       const lanes = LANE_LABEL(t)
+      const preview = useAsync(() => members.length
+        ? post('/combos/preview', { models: members })
+        : Promise.resolve({ capacity: null }), [members, models])
 
       const move = (index, delta) => setMembers(current => {
         const next = [...current]
@@ -5671,10 +5869,15 @@ window.__ModuleLoader__.load({
             return h('div', { key: `${id}#${index}`, className: 'ofm_member' },
               h('span', { className: 'ofm_id', title: id }, row?.name ?? id),
               h('span', { className: 'ofm_tag' }, lanes[row?.channel] ?? ''),
+              row?.contextWindow > 0 ? h('span', { className: 'ofm_tag' }, `${t('tag.context')} ${kilo(row.contextWindow)}`) : null,
               miniBtn('↑', () => move(index, -1), { disabled: busy || index === 0, title: t('routing.moveUp') }),
               miniBtn('↓', () => move(index, 1), { disabled: busy || index === members.length - 1, title: t('routing.moveDown') }),
               miniBtn(t('routing.removeMember'), () => setMembers(current => current.filter((_, at) => at !== index)), { danger: true, disabled: busy }))
           })),
+        preview.status === 'error'
+          ? h('p', { className: 'ofm_note' }, t('routing.capacityUnavailable'))
+          : preview.status === 'loading' && members.length ? h('p', { className: 'ofm_note' }, t('loading'))
+            : h(ChainCapacity, { capacity: preview.data?.capacity, t }),
         h('div', { className: 'ofm_row' },
           h(Button, { kind: 'ghost', disabled: busy, onClick: () => setPicking(value => !value) }, picking ? t('routing.cancel') : t('routing.addMember'))),
         picking ? h(ModelPicker, { t, models, chosen: members, onPick: id => setMembers(current => [...current, id]) }) : null,
@@ -5697,7 +5900,7 @@ window.__ModuleLoader__.load({
      * broken", and the user is the only one who can tell which one it is.
      */
     function ChainCard(props) {
-      const { t, chain, resolved, missing, lookup, onEdit, onDelete, confirming, index } = props
+      const { t, chain, resolved, missing, lookup, onEdit, onDelete, confirming, index, capacity } = props
       const lanes = LANE_LABEL(t)
       const usable = chain.enabled !== false && resolved.length > 0
       return h('div', { className: 'ofm_card ofm_rise', style: { animationDelay: `${Math.min(index, 8) * 22}ms` } },
@@ -5708,6 +5911,7 @@ window.__ModuleLoader__.load({
           h('span', null, chain.id),
           h('span', null, chain.strategy === 'round-robin' ? t('routing.strategy.roundRobin') : t('routing.strategy.fallback')),
           h('span', null, t('routing.memberCount').replace('{n}', String((chain.models ?? []).length)))),
+        h(ChainCapacity, { capacity, t }),
         h('div', { className: 'ofm_row' },
           h('span', { className: 'ofm_note' }, t('routing.resolved')),
           resolved.length === 0
@@ -5798,6 +6002,7 @@ window.__ModuleLoader__.load({
             chains.length === 0 ? null : h('div', { className: 'ofm_grid' }, chains.map((chain, index) => h(ChainCard, {
               key: chain.id, t, index, chain, lookup,
               resolved: resolvedOf(chain), missing: missingOf(chain),
+              capacity: (panel.data?.usable ?? []).find(row => row.id === chain.id),
               confirming: confirm === chain.id,
               onEdit: () => setEditing({ chain }),
               onDelete: () => { if (confirm === chain.id) void remove(chain.id); else setConfirm(chain.id) },
@@ -5895,6 +6100,8 @@ window.__ModuleLoader__.load({
       })
       const tabRefs = useRef({})
       const [glider, setGlider] = useState({ left: 0, top: 0, width: 0, height: 0 })
+      const [catalogBusy, setCatalogBusy] = useState(false)
+      const catalogPending = useRef(false)
       useEffect(() => {
         try { window.localStorage?.setItem(TAB_KEY, tab) } catch { /* storage unavailable */ }
         const node = tabRefs.current[tab]
@@ -5904,14 +6111,22 @@ window.__ModuleLoader__.load({
         if (node !== undefined && node !== null) setGlider({ left: node.offsetLeft, top: node.offsetTop, width: node.offsetWidth, height: node.offsetHeight })
       }, [tab, t.locale])
 
-      const refresh = async () => {
-        setBusy(true)
-        try { await post('/refresh', undefined, 600_000); summary.reload(); stats.reload() } finally { setBusy(false) }
+      const runCatalog = async path => {
+        if (catalogPending.current) return
+        catalogPending.current = true
+        setCatalogBusy(true)
+        try {
+          await post(path, undefined, 600_000)
+          summary.reload(); stats.reload()
+        } catch (error) {
+          showToast({ title: t('settings.failed'), body: String(error?.message ?? error), tone: 'warn' })
+        } finally {
+          catalogPending.current = false
+          setCatalogBusy(false)
+        }
       }
-      const reprobe = async () => {
-        setBusy(true)
-        try { await post('/reprobe', undefined, 600_000); summary.reload() } finally { setBusy(false) }
-      }
+      const refresh = () => runCatalog('/refresh')
+      const reprobe = () => runCatalog('/reprobe')
 
       const tabs = [
         ['free', t('nav.tab.free'), counts.available ?? 0],
@@ -5961,8 +6176,8 @@ window.__ModuleLoader__.load({
                     : tab === 'picks'
                       ? h(PicksPage, { t })
                     : tab === 'eac'
-                      ? h(EacPage, { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
-                      : h(FreePage, { t, data, counts, summary, stats, eacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe })
+                      ? h(EacPage, { t, data, counts, summary, stats, eacAuth, setEacAuth, eacLogin, busy, catalogBusy, apply, bench, benches, refresh, reprobe })
+                      : h(FreePage, { t, data, counts, summary, stats, eacAuth, eacLogin, busy, catalogBusy, apply, bench, benches, refresh, reprobe })
 
       return h('div', { className: 'ofm_root ofm_shell' },
         h('div', { className: 'ofm_aurora', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')),
@@ -5971,7 +6186,7 @@ window.__ModuleLoader__.load({
     }
 
     function FreePage(props) {
-      const { t, data, counts, summary, stats, eacAuth, eacLogin, busy, apply, bench, benches, refresh, reprobe } = props
+      const { t, data, counts, summary, stats, eacAuth, eacLogin, busy, catalogBusy, apply, bench, benches, refresh, reprobe } = props
       // The denominator is the free lane's own roster — the only slice the
       // verdicts describe. Dividing by the whole catalog (which also carries
       // the never-probed EAC and Kilo entries) read a 6-of-10 lane as ~17%.
@@ -6017,9 +6232,9 @@ window.__ModuleLoader__.load({
                   : t('free.tankEmpty')),
                 h('span', { className: 'ofm_note' }, t('meta.description'))),
               h('div', { className: 'ofm_row' },
-                h(Button, { disabled: busy, onClick: refresh }, summary.status === 'loading' ? t('probing') : t('refresh')),
-                h(Button, { disabled: busy, onClick: reprobe }, t('reprobe')))))),
-        h(Section, { title: t('section.models'), hint: t('section.modelsHint') }, h(Roster, { summary: data, t, onBench: bench, benches, auth: eacAuth, eacLogin, only: 'free' })),
+                h(Button, { disabled: busy || catalogBusy, onClick: refresh }, catalogBusy || summary.status === 'loading' ? t('probing') : t('refresh')),
+                h(Button, { disabled: busy || catalogBusy, onClick: reprobe }, t('reprobe')))))),
+        h(Section, { title: t('section.models'), hint: t('section.modelsHint') }, h(Roster, { summary: data, t, onBench: bench, benches, auth: eacAuth, eacLogin, only: 'free', onApply: apply, busy })),
         h(Section, { title: t('section.dash'), hint: t('section.dashHint') },
           stats.status === 'ready' && stats.data !== undefined ? h(Dashboard, { stats: stats.data, summary: data, t })
             : h('p', { className: 'ofm_note' }, t('loading'))),
@@ -6030,7 +6245,7 @@ window.__ModuleLoader__.load({
     }
 
     function EacPage(props) {
-      const { t, data, summary, eacAuth, setEacAuth, eacLogin, busy, bench, benches, refresh, reprobe } = props
+      const { t, data, summary, eacAuth, setEacAuth, eacLogin, busy, catalogBusy, apply, bench, benches, refresh, reprobe } = props
       const { pool, poolError } = usePool()
       const reading = pool === undefined || pool === null ? null : poolReading(pool)
       const levelText = reading === null ? '' : reading.level === 'over' ? t('pool.levelOver') : reading.level === 'busy' ? t('pool.levelBusy') : t('pool.levelOk')
@@ -6079,10 +6294,10 @@ window.__ModuleLoader__.load({
                   h('span', { className: 'ofm_note' }, `${t('pool.reach')} ${reading.rawPct ?? '—'}%`),
                   h('span', { className: 'ofm_note' }, capacityText(pool, t)))),
               h('div', { className: 'ofm_row' },
-                h(Button, { disabled: busy, onClick: refresh }, summary.status === 'loading' ? t('probing') : t('refresh')),
-                h(Button, { disabled: busy, onClick: reprobe }, t('reprobe')))))),
+                h(Button, { disabled: busy || catalogBusy, onClick: refresh }, catalogBusy || summary.status === 'loading' ? t('probing') : t('refresh')),
+                h(Button, { disabled: busy || catalogBusy, onClick: reprobe }, t('reprobe')))))),
         h(Section, { title: t('section.eac'), hint: t('section.eacHint') }, h(EacAuth, { t, auth: eacAuth, eacLogin })),
-        h(Section, { title: t('section.models'), hint: t('section.modelsHint') }, h(Roster, { summary: data, t, onBench: bench, benches, auth: eacAuth, eacLogin, only: 'eac' })),
+        h(Section, { title: t('section.models'), hint: t('section.modelsHint') }, h(Roster, { summary: data, t, onBench: bench, benches, auth: eacAuth, eacLogin, only: 'eac', onApply: apply, busy })),
         h(Section, { title: t('section.news'), hint: t('section.newsHint') }, h(NewsPanel, { t })))
     }
 
@@ -6358,7 +6573,7 @@ window.__ModuleLoader__.load({
     exports.inject = inject
     exports.name = 'our-free-model'
     // Headless test seams use the same stub React as scripts/client-lint.mjs.
-    exports.__test = { parseSafeHtml, safeUrl, sanitizeStyle, htmlToDom, buildHeatCells, Heatmap, ChannelsPage, UpgradePanel, useEacLogin, EacAuth, PicksPage, RecoCard }
+    exports.__test = { parseSafeHtml, safeUrl, sanitizeStyle, htmlToDom, buildHeatCells, Heatmap, ChannelsPage, UpgradePanel, useEacLogin, EacAuth, PicksPage, RecoCard, DICT, useChannelRpc }
     return module.exports
   },
 })

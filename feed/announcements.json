@@ -2,6 +2,18 @@
   "$schema": "./announcements.schema.md",
   "announcements": [
     {
+      "id": "2026-10-18-v2.5.2-release",
+      "title": "v2.5.2：升级、账号登录与流式错误修复；Windows 安装包更新",
+      "level": "update",
+      "pinned": true,
+      "createdAt": "2026-10-17T16:30:00Z",
+      "link": {
+        "url": "https://github.com/Ebony-Vinyl/dsh-our-free-model/releases/tag/v2.5.2",
+        "label": "查看版本说明与下载产物"
+      },
+      "html": "<p><b>2.5.2 已发布插件 tarball 与 Windows x64 完整安装包。</b>修复 GitHub API 限流导致的更新失败、旧模块缓存、公告反复通知、桌面账号登录与 WorkBuddy 请求误冷却；补齐系统提示词、空白响应和流式错误处理。</p><p>新增模型隐藏、链路能力交集显示和独立服务 LAN 推理中继。包管理器安装请使用 <code>distribution: managed</code> 并更新可信 tarball 路径。</p><p><b>匿名渠道的上游 403 / LANE_LOCKED 并未被宣称修复。</b>真实可用性仍取决于上游准入、配额和网络；EAC 60 秒无有效输出会明确失败，不自动重试。请查看完整发布说明。</p>"
+    },
+    {
       "id": "2026-10-17-v2.5.1-release",
       "title": "v2.5.1：修复升级失败（新增国内可达镜像源）；EAC 卡片不再显示 org 前缀",
       "level": "update",

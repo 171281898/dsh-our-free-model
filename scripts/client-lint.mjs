@@ -114,6 +114,10 @@ for (const language of ['zh', 'en']) {
 const cssStart = source.indexOf('const CSS = `')
 const css = source.slice(cssStart + 'const CSS = `'.length, source.indexOf('\n`', cssStart))
 if (css.length === 0) problems.push('the stylesheet block was not located')
+const switchStyle = css.match(/\.ofm_switch\{([^}]+)\}/)?.[1] ?? ''
+for (const reset of ['appearance:none', 'background:transparent', 'border:0', 'padding:0', 'font:inherit', 'color:inherit']) {
+  if (!switchStyle.includes(reset)) problems.push(`switch button must reset ${reset}`)
+}
 const declared = new Set([...css.matchAll(/\.(ofm_[A-Za-z0-9_]+)/g)].map(match => match[1]))
 
 const referenced = new Set()
