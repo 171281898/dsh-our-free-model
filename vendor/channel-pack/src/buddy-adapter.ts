@@ -319,6 +319,7 @@ function serializeMessages(
         .map((block) => String(block.text))
         .join('')
       const text = contentToText(content)
+      if (text.trim().length === 0 && toolCalls.length === 0) continue
       // 挂起的工具结果图片必须在 assistant 之前发出（对齐官方适配器）：
       // 否则它们会漂到这条 assistant 之后，与产生它们的工具调用脱节。
       flushToolImages()
@@ -359,7 +360,7 @@ function serializeMessages(
     if (parts !== undefined) {
       flushToolImages()
       wire.push({ role: 'user', content: parts })
-    } else if (text.length > 0 || toolResults.length === 0) {
+    } else if (text.trim().length > 0) {
       flushToolImages()
       wire.push({ role: 'user', content: text })
     }
@@ -1860,6 +1861,7 @@ export class BuddyAdapter extends LlmAdapter {
      * 实测 2233 次、`usage.reasoningTokens = 1`）。
      */
     const suppressor = createBlankReasoningSuppressor()
+    const proseSuppressor = createBlankReasoningSuppressor()
     const toolCalls = new Map<number, {
       index: number
       text: string
@@ -1980,7 +1982,8 @@ export class BuddyAdapter extends LlmAdapter {
           if (typeof choice?.finish_reason === 'string') {
             finishReason = choice.finish_reason as 'stop' | 'tool_calls' | 'length'
           }
-          if (delta?.content) {
+          const textDelta = delta?.content ? proseSuppressor.feed(delta.content) : undefined
+          if (textDelta !== undefined) {
             let block = blocks.find(candidate => candidate.kind === 'text')
             if (block === undefined) {
               block = { index: nextIndex++, kind: 'text', text: '' }
@@ -1993,7 +1996,7 @@ export class BuddyAdapter extends LlmAdapter {
             // finish reason —— 工具调用在循环正文之后到达且有效（实测）。
             // 截断靠收尾的 `block-end` 权威覆盖落地（见文件末尾 text 段）。
             if (proseLoopGuard !== undefined) {
-              if (proseLoopGuard.observe(delta.content)) proseLoopDetected = true
+              if (proseLoopGuard.observe(textDelta)) proseLoopDetected = true
             }
             // ⚠️ **不要在这里逐帧探测 think 标签**（2026-09-27 移除）。
             // 逐帧探测在跨帧时必然漏判（标签可被切成任意片段，实测二分帧时
@@ -2001,8 +2004,8 @@ export class BuddyAdapter extends LlmAdapter {
             // 现改为收尾**无条件**调用 `splitThinkTaggedContent`
             // （无标签时返回 undefined，普通响应逐字节不变）。
             if (!proseLoopDetected) {
-              block.text += delta.content
-              yield { type: 'text-delta', index: block.index, text: delta.content }
+              block.text += textDelta
+              yield { type: 'text-delta', index: block.index, text: textDelta }
             }
           }
           if (delta?.reasoning_content) {
@@ -2218,10 +2221,12 @@ export class BuddyAdapter extends LlmAdapter {
       // ⚠️ 归位后正文可能为空串（实测 seq=34768 形态）—— 空块会污染会话，
       // 且 DSH 的 `EMPTY_RESPONSE` 契约禁止产出空内容块。思考段已归位，
       // 故本响应仍有产出，不会被误判为零块。
-      if (cleaned !== '') {
+      if (cleaned.trim() !== '') {
         blockCount += 1
         emittedProse = cleaned
         yield { type: 'block-end', index: textBlock.index, block: { type: 'text', text: cleaned } }
+      } else {
+        yield { type: 'block-end', index: textBlock.index, block: { type: 'text', text: '' } }
       }
     }
     const reasoningBlock = blocks.find(block => block.kind === 'reasoning')

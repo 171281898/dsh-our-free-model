@@ -228,6 +228,34 @@ for (const status of [403, 429, 503]) {
   })
 }
 
+await checkAsync('GitHub rate limiting is diagnosed and not repeated for mirrors of the same ref (issue #384)', async () => {
+  const calls = []
+  const fetchImpl = async url => {
+    calls.push(String(url))
+    return new Response(null, { status: 403, headers: {
+      'x-ratelimit-remaining': '0', 'x-ratelimit-reset': '1792238400', 'retry-after': '60',
+    } })
+  }
+  await assert.rejects(() => downloadManifest([rawSource, cdnSource, proxySource], { fetchImpl, verifyKey: TEST_PUBLIC_KEY }), error => {
+    assert.match(error.message, /HTTP 403/)
+    assert.match(error.message, /GitHub API rate limit exceeded/)
+    assert.match(error.message, /x-ratelimit-remaining=0/)
+    assert.match(error.message, /x-ratelimit-reset=1792238400/)
+    assert.match(error.message, /retry-after=60/)
+    return true
+  })
+  assert.deepEqual(calls, [resolverUrl], 'one failed resolution must not consume a request per transport')
+})
+
+await checkAsync('a generic resolver 403 is not misreported as rate limiting', async () => {
+  const fixture = snapshotFetch({ resolverStatus: 403 })
+  await assert.rejects(() => downloadManifest([rawSource], { fetchImpl: fixture.fetchImpl, verifyKey: TEST_PUBLIC_KEY }), error => {
+    assert.match(error.message, /HTTP 403/)
+    assert.doesNotMatch(error.message, /rate limit exceeded/)
+    return true
+  })
+})
+
 await checkAsync('resolver timeout remains bounded and does not fall back to mutable files', async () => {
   let calls = 0
   const fetchImpl = (url, { signal }) => {
@@ -712,6 +740,33 @@ function fixtureUpdater(pkg, data, runningVersion = OLD) {
     defaultSources: [`${base}/repo/feed/manifest.json`], manifestPublicKey: TEST_PUBLIC_KEY,
   })
 }
+
+await checkAsync('a failed recheck retains the known target and a successful retry clears the error (issue #148)', async () => {
+  const pkg = makePackage(OLD)
+  const data = makeDataDir()
+  let unavailable = false
+  const updater = new PluginUpdater({
+    pkgDir: pkg, dataDir: data, runningVersion: OLD, settings: () => ({}),
+    defaultSources: [`${base}/repo/feed/manifest.json`], manifestPublicKey: TEST_PUBLIC_KEY,
+    fetchImpl: (url, options) => unavailable
+      ? Promise.resolve(new Response(null, { status: 503 })) : fetch(url, options),
+  })
+  try {
+    await updater.check()
+    unavailable = true
+    await assert.rejects(() => updater.apply(), /HTTP 503/)
+    assert.equal(updater.status().lastApplied.to, NEW)
+    assert.equal(updater.status().lastApplied.ok, false)
+    assert.equal(updaterVersion(pkg), OLD)
+    unavailable = false
+    await updater.apply({ activate: async () => ({ ok: true, version: NEW }) })
+    assert.equal(updater.status().lastApplied.ok, true)
+    assert.equal(updater.status().error, '')
+  } finally {
+    fs.rmSync(pkg, { recursive: true, force: true })
+    fs.rmSync(data, { recursive: true, force: true })
+  }
+})
 
 /** Host loader stand-in; the real selfReload still performs every transition. */
 function reloadHost(mode) {

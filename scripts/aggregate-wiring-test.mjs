@@ -228,6 +228,7 @@ const post = (url, body) => callRoute(api(), 'POST', `/api/our-free-model${url}`
   checkThat('the second link answered', answer.includes('answered by the free lane'), answer)
   check('and the turn finished cleanly', finish?.reason?.kind, 'stop')
   checkThat('the free lane saw the retry', freeLane.requests.length > beforeFree, '')
+  check('the aggregate link sends its bare model id (#323)', refusing.requests.at(-1)?.body.model, 'alpha-model')
 
   const stats = (await get('/stats')).json
   const comboRow = stats.models.find(row => row.model === 'combo:never-fails')
@@ -409,11 +410,19 @@ let boundPort = 0
   check('with the stored chain', combos.json.combos[0].id, 'combo:never-fails')
   checkThat('and a model list to pick from', combos.json.models.length >= 3, String(combos.json.models.length))
   check('offering both strategies', combos.json.strategies, ['fallback', 'round-robin'])
+  checkThat('model picker projection preserves context and output limits',
+    combos.json.models.every(row => Number.isFinite(row.contextWindow) && Number.isFinite(row.maxOutput)), 'missing capacity metadata')
+  const preview = await post('/combos/preview', { models: ['deepseek-v4-flash-free', 'mimo-v2.6-flash-free'] })
+  const picked = combos.json.models.filter(row => ['deepseek-v4-flash-free', 'mimo-v2.6-flash-free'].includes(row.id))
+  check('chain preview uses the runtime context intersection', preview.json.capacity.contextWindow, Math.min(...picked.map(row => row.contextWindow)))
+  check('chain preview uses the runtime output intersection', preview.json.capacity.maxOutput, Math.min(...picked.map(row => row.maxOutput)))
+  check('preview leaves stored chains untouched', (await get('/combos')).json.combos[0].id, 'combo:never-fails')
 
   const savedCombo = await post('/combos', { combos: [{ name: 'Second Chain', models: ['deepseek-v4-flash-free', 'mimo-v2.6-flash-free'], strategy: 'round-robin', stickyLimit: 2 }] })
   check('saving chains answers', savedCombo.status, 200)
   check('with the normalized id', savedCombo.json.combos[0].id, 'combo:second-chain')
   check('and the chosen strategy', savedCombo.json.combos[0].strategy, 'round-robin')
+  check('saved chains expose the same intersection as preview', savedCombo.json.usable[0].contextWindow, preview.json.capacity.contextWindow)
   checkThat('and the new chain is usable', (await summary()).json.catalog.some(entry => entry.id === 'combo:second-chain'), 'the new chain is not in the catalog')
 
   const saver = await get('/token-saver')

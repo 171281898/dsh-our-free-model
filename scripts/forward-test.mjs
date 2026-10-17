@@ -115,6 +115,30 @@ function sseFrames(body) {
 const toolCallDeltas = body => sseFrames(body)
   .flatMap(frame => frame.choices?.[0]?.delta?.tool_calls ?? [])
 
+for (const endpoint of ['/v1/chat/completions', '/v1/responses', '/v1/messages']) {
+  await checkAsync(endpoint + ' preserves composite and virtual model identities (#323, #379)', async () => {
+    const seen = []
+    const base = await serve({
+      complete: async (request, onChunk) => {
+        seen.push(request)
+        onChunk?.({ type: 'text-delta', index: 0, text: 'local answer' })
+        onChunk?.({ type: 'finish', reason: { kind: 'stop' } })
+        return { text: 'local answer', toolCalls: [] }
+      },
+    })
+    for (const model of ['open_router/google/gemma-4-31b-it:free', 'combo:u-0123456789abcdef']) {
+      const response = await authFetch(base, endpoint, {
+        model, max_tokens: 64,
+        messages: [{ role: 'user', content: 'local audit' }],
+        ...(endpoint === '/v1/responses' ? { input: 'local audit' } : {}),
+      })
+      assert.equal(response.status, 200)
+      assert.equal((await response.json()).model, model)
+      assert.equal(seen.at(-1).model, model, 'the dispatcher receives the complete model identity')
+    }
+  })
+}
+
 // ── streaming tool-call wiring (#20) ─────────────────────────────────────────
 await checkAsync('streaming tool_calls renumber from 0 after reasoning blocks', async () => {
   const lane = makeLane()

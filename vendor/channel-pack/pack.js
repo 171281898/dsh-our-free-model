@@ -32650,9 +32650,11 @@ function serializeMessages(messages) {
         function: { name: String(block.name), arguments: normalizeToolArguments(String(block.arguments)) }
       }));
       const reasoning = content2.filter((block) => typeof block === "object" && block !== null && block.type === "reasoning").map((block) => String(block.text)).join("");
+      const text2 = contentToText(content2);
+      if (text2.trim().length === 0 && toolCalls.length === 0) continue;
       wire.push({
         role: "assistant",
-        content: contentToText(content2),
+        content: text2,
         // 后端（deepseek-v4-flash/pro）校验要求 assistant 消息必须包含
         // reasoning_content 字段：历史里的推理块在上一轮被持久化，回传时
         // 若缺失该字段会直接 400（"Missing `reasoning_content` field"）。
@@ -32669,7 +32671,7 @@ function serializeMessages(messages) {
     const content = Array.isArray(message2.content) ? message2.content : [];
     const toolResults = content.filter((block) => typeof block === "object" && block !== null && block.type === "tool-result");
     const text = contentToText(message2.content);
-    if (text.length > 0 || toolResults.length === 0) wire.push({ role: "user", content: text });
+    if (text.trim().length > 0) wire.push({ role: "user", content: text });
     for (const result of toolResults) {
       if (!keepResultIds.has(String(result.toolCallId))) continue;
       wire.push({
@@ -33349,10 +33351,12 @@ var CodeArtsAdapter = class extends LlmAdapter {
     const proseLoopGuard = isReasoningLoopGuardEnabled() ? createReasoningLoopDetector() : void 0;
     let proseLoopDetected = false;
     const suppressor = createBlankReasoningSuppressor();
+    const proseSuppressor = createBlankReasoningSuppressor();
     const dsmlContentExtractor = new DsmlContentExtractor();
     const dsmlReasoningExtractor = new DsmlContentExtractor();
     async function* emitDsmlFeed(text, reasoning, dsmlCalls) {
-      if (text.length > 0) {
+      const textDelta = text.length > 0 ? proseSuppressor.feed(text) : void 0;
+      if (textDelta !== void 0) {
         let block = blocks.find((candidate) => candidate.kind === "text");
         if (block === void 0) {
           block = { index: nextIndex++, kind: "text", text: "" };
@@ -33360,11 +33364,11 @@ var CodeArtsAdapter = class extends LlmAdapter {
           yield { type: "block-start", index: block.index, blockType: "text" };
         }
         if (proseLoopGuard !== void 0) {
-          if (proseLoopGuard.observe(text)) proseLoopDetected = true;
+          if (proseLoopGuard.observe(textDelta)) proseLoopDetected = true;
         }
         if (!proseLoopDetected) {
-          block.text += text;
-          yield { type: "text-delta", index: block.index, text };
+          block.text += textDelta;
+          yield { type: "text-delta", index: block.index, text: textDelta };
         }
       }
       if (reasoning.length > 0) {
@@ -33613,9 +33617,13 @@ var CodeArtsAdapter = class extends LlmAdapter {
         }
       };
     }
-    if (textBlock !== void 0 || visible !== "") {
+    if (visible.trim() !== "") {
       blockCount += 1;
-      yield { type: "block-end", index: textBlock?.index ?? nextIndex, block: { type: "text", text: visible } };
+      const index = textBlock?.index ?? nextIndex++;
+      if (textBlock === void 0) yield { type: "block-start", index, blockType: "text" };
+      yield { type: "block-end", index, block: { type: "text", text: visible } };
+    } else if (textBlock !== void 0) {
+      yield { type: "block-end", index: textBlock.index, block: { type: "text", text: "" } };
     }
     if (reasoningBlock !== void 0 && reasoningBlock.text.trim() !== "") {
       if (reasoningText !== "") {
@@ -34692,6 +34700,7 @@ function serializeMessages2(messages, imageUrls) {
       }));
       const reasoning = content2.filter((block) => typeof block === "object" && block !== null && block.type === "reasoning").map((block) => String(block.text)).join("");
       const text2 = contentToText2(content2);
+      if (text2.trim().length === 0 && toolCalls.length === 0) continue;
       flushToolImages();
       wire.push({
         role: "assistant",
@@ -34716,7 +34725,7 @@ function serializeMessages2(messages, imageUrls) {
     if (parts !== void 0) {
       flushToolImages();
       wire.push({ role: "user", content: parts });
-    } else if (text.length > 0 || toolResults.length === 0) {
+    } else if (text.trim().length > 0) {
       flushToolImages();
       wire.push({ role: "user", content: text });
     }
@@ -35553,6 +35562,7 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
     const proseLoopGuard = isReasoningLoopGuardEnabled() ? createReasoningLoopDetector() : void 0;
     let proseLoopDetected = false;
     const suppressor = createBlankReasoningSuppressor();
+    const proseSuppressor = createBlankReasoningSuppressor();
     const toolCalls = /* @__PURE__ */ new Map();
     const toolOrder = [];
     const toolIds = /* @__PURE__ */ new Map();
@@ -35614,7 +35624,8 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
           if (typeof choice?.finish_reason === "string") {
             finishReason2 = choice.finish_reason;
           }
-          if (delta?.content) {
+          const textDelta = delta?.content ? proseSuppressor.feed(delta.content) : void 0;
+          if (textDelta !== void 0) {
             let block = blocks.find((candidate) => candidate.kind === "text");
             if (block === void 0) {
               block = { index: nextIndex++, kind: "text", text: "" };
@@ -35622,11 +35633,11 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
               yield { type: "block-start", index: block.index, blockType: "text" };
             }
             if (proseLoopGuard !== void 0) {
-              if (proseLoopGuard.observe(delta.content)) proseLoopDetected = true;
+              if (proseLoopGuard.observe(textDelta)) proseLoopDetected = true;
             }
             if (!proseLoopDetected) {
-              block.text += delta.content;
-              yield { type: "text-delta", index: block.index, text: delta.content };
+              block.text += textDelta;
+              yield { type: "text-delta", index: block.index, text: textDelta };
             }
           }
           if (delta?.reasoning_content) {
@@ -35756,10 +35767,12 @@ var BuddyAdapter = class _BuddyAdapter extends LlmAdapter2 {
       textOut = stripBareThinkCloseTagIfEnabled(textOut);
       const truncated = proseLoopDetected && proseLoopGuard?.cutAt !== void 0 ? textOut.slice(0, proseLoopGuard.cutAt) : textOut;
       const cleaned = stripCourseLeakIfEnabled(truncated);
-      if (cleaned !== "") {
+      if (cleaned.trim() !== "") {
         blockCount += 1;
         emittedProse = cleaned;
         yield { type: "block-end", index: textBlock.index, block: { type: "text", text: cleaned } };
+      } else {
+        yield { type: "block-end", index: textBlock.index, block: { type: "text", text: "" } };
       }
     }
     const reasoningBlock = blocks.find((block) => block.kind === "reasoning");
@@ -36357,6 +36370,7 @@ function serializeMessages3(messages, imageUrls) {
       }));
       const reasoning = content2.filter((block) => typeof block === "object" && block !== null && block.type === "reasoning").map((block) => String(block.text)).join("");
       const text2 = contentToText3(content2);
+      if (text2.trim().length === 0 && toolCalls.length === 0) continue;
       flushToolImages();
       wire.push({
         role: "assistant",
@@ -36380,7 +36394,7 @@ function serializeMessages3(messages, imageUrls) {
     if (parts !== void 0) {
       flushToolImages();
       wire.push({ role: "user", content: parts });
-    } else if (text.length > 0 || toolResults.length === 0) {
+    } else if (text.trim().length > 0) {
       flushToolImages();
       wire.push({ role: "user", content: text });
     }
@@ -36875,6 +36889,7 @@ var LobsteraiAdapter = class extends LlmAdapter3 {
     const proseLoopGuard = isReasoningLoopGuardEnabled() ? createReasoningLoopDetector() : void 0;
     let proseLoopDetected = false;
     const suppressor = createBlankReasoningSuppressor();
+    const proseSuppressor = createBlankReasoningSuppressor();
     const toolCalls = /* @__PURE__ */ new Map();
     const toolOrder = [];
     const toolIds = /* @__PURE__ */ new Map();
@@ -36934,9 +36949,10 @@ var LobsteraiAdapter = class extends LlmAdapter3 {
             finishReason2 = choice.finish_reason;
           }
           const deltaContent = delta?.content;
-          const textDelta = typeof deltaContent === "string" && deltaContent.length > 0 ? deltaContent : !gotAnyContent && typeof choice?.message?.content === "string" ? choice.message.content : void 0;
+          const rawTextDelta = typeof deltaContent === "string" && deltaContent.length > 0 ? deltaContent : !gotAnyContent && typeof choice?.message?.content === "string" ? choice.message.content : void 0;
+          if (typeof deltaContent === "string" && deltaContent.length > 0) gotAnyContent = true;
+          const textDelta = rawTextDelta === void 0 ? void 0 : proseSuppressor.feed(rawTextDelta);
           if (textDelta !== void 0 && textDelta.length > 0) {
-            if (typeof deltaContent === "string" && deltaContent.length > 0) gotAnyContent = true;
             let block = blocks.find((candidate) => candidate.kind === "text");
             if (block === void 0) {
               block = { index: nextIndex++, kind: "text", text: "" };
@@ -37072,10 +37088,12 @@ var LobsteraiAdapter = class extends LlmAdapter3 {
       textOut = stripBareThinkCloseTagIfEnabled(textOut);
       const truncated = proseLoopDetected && proseLoopGuard?.cutAt !== void 0 ? textOut.slice(0, proseLoopGuard.cutAt) : textOut;
       const cleaned = stripCourseLeakIfEnabled(truncated);
-      if (cleaned !== "") {
+      if (cleaned.trim() !== "") {
         blockCount += 1;
         emittedProse = cleaned;
         yield { type: "block-end", index: textBlock.index, block: { type: "text", text: cleaned } };
+      } else {
+        yield { type: "block-end", index: textBlock.index, block: { type: "text", text: "" } };
       }
     }
     const reasoningBlock = blocks.find((block) => block.kind === "reasoning");
@@ -38115,6 +38133,7 @@ function serializeMessages4(messages, imageUrls) {
       }));
       const reasoning = content2.filter((block) => typeof block === "object" && block !== null && block.type === "reasoning").map((block) => String(block.text)).join("");
       const text2 = contentToText4(content2);
+      if (text2.trim().length === 0 && toolCalls.length === 0) continue;
       flushToolImages();
       wire.push({
         role: "assistant",
@@ -38138,7 +38157,7 @@ function serializeMessages4(messages, imageUrls) {
     if (parts !== void 0) {
       flushToolImages();
       wire.push({ role: "user", content: parts });
-    } else if (text.length > 0 || toolResults.length === 0) {
+    } else if (text.trim().length > 0) {
       flushToolImages();
       wire.push({ role: "user", content: text });
     }
@@ -38230,6 +38249,7 @@ async function* consumeOpenAiSse(response, options, config) {
   const proseLoopGuard = isReasoningLoopGuardEnabled() ? createReasoningLoopDetector() : void 0;
   let proseLoopDetected = false;
   const suppressor = createBlankReasoningSuppressor();
+  const proseSuppressor = createBlankReasoningSuppressor();
   const toolCalls = /* @__PURE__ */ new Map();
   const toolOrder = [];
   const toolIds = /* @__PURE__ */ new Map();
@@ -38242,6 +38262,7 @@ async function* consumeOpenAiSse(response, options, config) {
   let firstTokenReceived = false;
   let sawDataFrame = false;
   let rawSnippet = "";
+  let rawJson = "";
   try {
     for (; ; ) {
       if (streamEnded) break;
@@ -38261,6 +38282,9 @@ async function* consumeOpenAiSse(response, options, config) {
       }
       if (result.done) break;
       const decoded = decoder2.decode(result.value, { stream: true });
+      if (!sawDataFrame && config.isQuotaError !== void 0 && rawJson.length < 65536) {
+        rawJson = (rawJson + decoded).slice(0, 65536);
+      }
       if (rawSnippet.length < RAW_SNIPPET_LIMIT) {
         rawSnippet = (rawSnippet + decoded).slice(0, RAW_SNIPPET_LIMIT);
       }
@@ -38287,6 +38311,9 @@ async function* consumeOpenAiSse(response, options, config) {
             config.onFrame(data);
           } catch {
           }
+        }
+        if (data.choices === void 0 && config.isQuotaError?.(data)) {
+          throw new LlmError6(`${label}: ${errorDetail4(payload)}`, "QUOTA_EXCEEDED");
         }
         if (data.error !== void 0) {
           throw new LlmError6(`${label}: ${data.error.message ?? "unknown error"}`, "SERVER");
@@ -38348,9 +38375,10 @@ async function* consumeOpenAiSse(response, options, config) {
           finishReason2 = choice.finish_reason;
         }
         const deltaContent = delta?.content;
-        const textDelta = typeof deltaContent === "string" && deltaContent.length > 0 ? deltaContent : !gotAnyContent && typeof choice?.message?.content === "string" ? choice.message.content : void 0;
+        const rawTextDelta = typeof deltaContent === "string" && deltaContent.length > 0 ? deltaContent : !gotAnyContent && typeof choice?.message?.content === "string" ? choice.message.content : void 0;
+        if (typeof deltaContent === "string" && deltaContent.length > 0) gotAnyContent = true;
+        const textDelta = rawTextDelta === void 0 ? void 0 : proseSuppressor.feed(rawTextDelta);
         if (textDelta !== void 0 && textDelta.length > 0) {
-          if (typeof deltaContent === "string" && deltaContent.length > 0) gotAnyContent = true;
           let block = blocks.find((candidate) => candidate.kind === "text");
           if (block === void 0) {
             block = { index: nextIndex++, kind: "text", text: "" };
@@ -38488,10 +38516,12 @@ async function* consumeOpenAiSse(response, options, config) {
     textOut = stripBareThinkCloseTagIfEnabled(textOut);
     const truncatedText = proseLoopDetected && proseLoopGuard?.cutAt !== void 0 ? textOut.slice(0, proseLoopGuard.cutAt) : textOut;
     const cleanedText = stripCourseLeakIfEnabled(truncatedText);
-    if (cleanedText !== "") {
+    if (cleanedText.trim() !== "") {
       blockCount += 1;
       emittedProse = cleanedText;
       yield { type: "block-end", index: textBlock.index, block: { type: "text", text: cleanedText } };
+    } else {
+      yield { type: "block-end", index: textBlock.index, block: { type: "text", text: "" } };
     }
   }
   const reasoningBlock = blocks.find((block) => block.kind === "reasoning");
@@ -38508,6 +38538,14 @@ async function* consumeOpenAiSse(response, options, config) {
   const incompleteTools = finishReason2 === void 0 && toolOrder.length > 0;
   const droppedUnnamedCalls = [...toolCalls.values()].some((block) => !block.announced);
   if (!sawDataFrame) {
+    let data;
+    try {
+      data = JSON.parse(rawJson);
+    } catch {
+    }
+    if (typeof data === "object" && data !== null && !Array.isArray(data) && config.isQuotaError?.(data)) {
+      throw new LlmError6(`${label}: ${errorDetail4(rawJson)}`, "QUOTA_EXCEEDED");
+    }
     const snippet = rawSnippet.trim();
     if (snippet.length > 0) {
       throw new LlmError6(
@@ -40117,6 +40155,8 @@ function serializeTraeMessages(messages, imageUrls) {
         }
       }));
       const text2 = contentToText6(content2);
+      if (text2.trim().length === 0 && toolCalls.length === 0) continue;
+      flushToolImages();
       wire.push({
         role: "assistant",
         content: text2.length === 0 && toolCalls.length > 0 ? null : text2,
@@ -40125,6 +40165,7 @@ function serializeTraeMessages(messages, imageUrls) {
       continue;
     }
     if (message2.role === "system") {
+      flushToolImages();
       wire.push({ role: "system", content: contentToText6(message2.content) });
       continue;
     }
@@ -40142,7 +40183,8 @@ function serializeTraeMessages(messages, imageUrls) {
       if (parts !== void 0) {
         flushToolImages();
         wire.push({ role: "user", content: parts });
-      } else {
+      } else if (text.trim().length > 0) {
+        flushToolImages();
         wire.push({ role: "user", content: text });
       }
     }
@@ -40162,8 +40204,8 @@ function serializeTraeMessages(messages, imageUrls) {
       flushToolImages();
       wire.push({ role: "user", content: parts ?? text });
     }
-    flushToolImages();
   }
+  flushToolImages();
   return wire;
 }
 function errorDetail5(body) {
@@ -40702,6 +40744,7 @@ var TraeAdapter = class extends LlmAdapter5 {
     const proseLoopGuard = isReasoningLoopGuardEnabled() ? createReasoningLoopDetector() : void 0;
     let proseLoopDetected = false;
     const suppressor = createBlankReasoningSuppressor();
+    const proseSuppressor = createBlankReasoningSuppressor();
     const toolCalls = /* @__PURE__ */ new Map();
     const toolOrder = [];
     const toolIds = /* @__PURE__ */ new Map();
@@ -40759,7 +40802,8 @@ var TraeAdapter = class extends LlmAdapter5 {
                     delta.tool_calls = ev.toolCalls;
                   }
                   if (Object.keys(delta).length > 0) {
-                    if (delta.content !== void 0) {
+                    const textDelta = delta.content === void 0 ? void 0 : proseSuppressor.feed(delta.content);
+                    if (textDelta !== void 0) {
                       let block = blocks.find((c) => c.kind === "text");
                       if (block === void 0) {
                         block = { index: nextIndex++, kind: "text", text: "" };
@@ -40767,11 +40811,11 @@ var TraeAdapter = class extends LlmAdapter5 {
                         yield { type: "block-start", index: block.index, blockType: "text" };
                       }
                       if (proseLoopGuard !== void 0) {
-                        if (proseLoopGuard.observe(delta.content)) proseLoopDetected = true;
+                        if (proseLoopGuard.observe(textDelta)) proseLoopDetected = true;
                       }
                       if (!proseLoopDetected) {
-                        block.text += delta.content;
-                        yield { type: "text-delta", index: block.index, text: delta.content };
+                        block.text += textDelta;
+                        yield { type: "text-delta", index: block.index, text: textDelta };
                       }
                     }
                     if (delta.reasoning_content !== void 0) {
@@ -40936,10 +40980,12 @@ var TraeAdapter = class extends LlmAdapter5 {
       textOut = stripBareThinkCloseTagIfEnabled(textOut);
       const truncated = proseLoopDetected && proseLoopGuard?.cutAt !== void 0 ? textOut.slice(0, proseLoopGuard.cutAt) : textOut;
       const cleaned = stripCourseLeakIfEnabled(truncated);
-      if (cleaned !== "") {
+      if (cleaned.trim() !== "") {
         blockCount += 1;
         emittedProse = cleaned;
         yield { type: "block-end", index: textBlock.index, block: { type: "text", text: cleaned } };
+      } else {
+        yield { type: "block-end", index: textBlock.index, block: { type: "text", text: "" } };
       }
     }
     const reasoningBlock = blocks.find((block) => block.kind === "reasoning");
@@ -42526,9 +42572,9 @@ var LoomyAdapter = class extends LlmAdapter7 {
       }
     }
     let credential = await this.options.resolveCredential(options.model);
+    let accountId = credential === void 0 ? void 0 : await this.options.accountPool?.findAccountIdByCredential(this.product.id, credential.access_token);
     if (credential === void 0 || isLoomyExpired(credential)) {
-      await this.options.refresh();
-      credential = await this.options.resolveCredential(options.model);
+      credential = await this.options.refresh(accountId || void 0) ?? await this.options.resolveCredential(options.model);
     }
     if (credential === void 0 || credential.access_token.length === 0) {
       throw new LlmError10("loomy: no usable credential; log in first", "MISSING_CREDENTIAL");
@@ -42577,27 +42623,63 @@ var LoomyAdapter = class extends LlmAdapter7 {
         throw error;
       }
     };
-    let response = await send(credential.access_token);
-    if (response.status === 401 || response.status === 403) {
-      await this.options.refresh();
-      const refreshed = await this.options.resolveCredential(options.model);
-      if (refreshed === void 0 || refreshed.access_token.length === 0) {
-        throw new LlmError10("loomy: credential expired and refresh failed", "AUTH", { status: response.status });
+    const tried = /* @__PURE__ */ new Set();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (accountId) tried.add(accountId);
+      let emitted = false;
+      try {
+        let response = await send(credential.access_token);
+        if (response.status === 401 || response.status === 403) {
+          await response.body?.cancel();
+          credential = await this.options.refresh(accountId || void 0) ?? await this.options.resolveCredential(options.model);
+          if (credential === void 0 || credential.access_token.length === 0) {
+            throw new LlmError10("loomy: credential expired and refresh failed", "AUTH", { status: response.status });
+          }
+          response = await send(credential.access_token);
+        }
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => "");
+          let quota = response.status === 402;
+          try {
+            quota ||= isLoomyQuotaError(JSON.parse(errorText));
+          } catch {
+          }
+          throw new LlmError10(
+            `loomy: ${errorDetail4(errorText)}`,
+            quota ? "QUOTA_EXCEEDED" : httpErrorCode4(response.status),
+            { status: response.status }
+          );
+        }
+        for await (const chunk of consumeOpenAiSse(response, { signal: options.signal }, {
+          label: "loomy",
+          firstTokenTimeoutMs: resolveFirstTokenTimeoutMs7(),
+          chunkTimeoutMs: resolveChunkTimeoutMs7(),
+          isQuotaError: isLoomyQuotaError,
+          ...options.maxTokens === void 0 ? {} : { maxTokens: options.maxTokens }
+        })) {
+          emitted = true;
+          yield chunk;
+        }
+        return;
+      } catch (error) {
+        if (options.signal?.aborted || !(error instanceof LlmError10) || error.code !== "QUOTA_EXCEEDED") throw error;
+        if (accountId) {
+          await this.options.accountPool?.updateModelRateLimit(accountId, options.model, nextUtc8DayStartMs());
+        }
+        if (emitted || attempt === 2 || this.options.nextAccount === void 0) throw error;
+        const next = await this.options.nextAccount(options.model, tried);
+        if (next === void 0 || tried.has(next.accountId)) throw error;
+        accountId = next.accountId;
+        credential = next.credential;
+        if (isLoomyExpired(credential)) credential = await this.options.refresh(accountId) ?? credential;
       }
-      response = await send(refreshed.access_token);
     }
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => "");
-      throw new LlmError10(`loomy: ${errorDetail4(errorText)}`, httpErrorCode4(response.status), { status: response.status });
-    }
-    yield* consumeOpenAiSse(response, { signal: options.signal }, {
-      label: "loomy",
-      firstTokenTimeoutMs: resolveFirstTokenTimeoutMs7(),
-      chunkTimeoutMs: resolveChunkTimeoutMs7(),
-      ...options.maxTokens === void 0 ? {} : { maxTokens: options.maxTokens }
-    });
   }
 };
+function isLoomyQuotaError(data) {
+  const error = typeof data.error === "object" && data.error !== null ? data.error : data;
+  return String(error.code ?? data.code) === "402" || /积分不足|余额不足|insufficient[_\s]+(?:points|balance|credits)/i.test(String(error.message ?? error.msg ?? ""));
+}
 function resolveFirstTokenTimeoutMs7() {
   const raw = Number(process.env.DSH_LOOMY_FIRST_TOKEN_TIMEOUT_MS);
   return Number.isFinite(raw) && raw > 0 ? raw : 12e4;
@@ -42797,6 +42879,12 @@ var RACCOON = {
 };
 
 // vendor/channel-pack/src/raccoon-adapter.ts
+function isQuotaError(data) {
+  const error = typeof data.error === "object" && data.error !== null ? data.error : data;
+  return String(error.code ?? data.code) === "402" || /积分不足|余额不足|insufficient[_\s]+(?:points|balance|credits)/i.test(
+    String(error.message ?? error.msg ?? "")
+  );
+}
 function raccoonThinkingExtraBody(effort) {
   if (effort === void 0 || effort.length === 0) return void 0;
   const type = effort === RACCOON_EFFORT_OFF ? "disabled" : "enabled";
@@ -42959,9 +43047,9 @@ var RaccoonAdapter = class extends LlmAdapter8 {
       }
     }
     let credential = await this.options.resolveCredential(options.model);
+    let accountId = credential === void 0 ? void 0 : await this.options.accountPool?.findAccountIdByCredential(this.product.id, credential.access_token);
     if (credential === void 0 || isRaccoonExpired(credential)) {
-      await this.options.refresh();
-      credential = await this.options.resolveCredential(options.model);
+      credential = await this.options.refresh(accountId || void 0) ?? await this.options.resolveCredential(options.model);
     }
     if (credential === void 0 || credential.access_token.length === 0) {
       throw new LlmError11("raccoon: no usable credential; log in first", "MISSING_CREDENTIAL");
@@ -43023,26 +43111,60 @@ var RaccoonAdapter = class extends LlmAdapter8 {
         throw error;
       }
     };
-    let response = await send();
-    if (response.status === 401 || response.status === 403) {
-      await this.options.refresh();
-      const refreshed = await this.options.resolveCredential(options.model);
-      if (refreshed === void 0 || refreshed.access_token.length === 0) {
-        throw new LlmError11("raccoon: credential expired and refresh failed", "AUTH", { status: response.status });
+    const tried = /* @__PURE__ */ new Set();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (accountId) tried.add(accountId);
+      let emitted = false;
+      try {
+        let response = await send();
+        if (response.status === 401 || response.status === 403) {
+          await response.body?.cancel();
+          const refreshed = await this.options.refresh(accountId || void 0) ?? await this.options.resolveCredential(options.model);
+          if (refreshed === void 0 || refreshed.access_token.length === 0) {
+            throw new LlmError11("raccoon: credential expired and refresh failed", "AUTH", { status: response.status });
+          }
+          credential = refreshed;
+          response = await send();
+        }
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => "");
+          let quota = response.status === 402;
+          try {
+            quota ||= isQuotaError(JSON.parse(errorText));
+          } catch {
+          }
+          throw new LlmError11(
+            `raccoon: ${errorDetail4(errorText)}`,
+            quota ? "QUOTA_EXCEEDED" : httpErrorCode4(response.status),
+            { status: response.status }
+          );
+        }
+        for await (const chunk of consumeOpenAiSse(response, { signal: options.signal }, {
+          label: "raccoon",
+          firstTokenTimeoutMs: resolveFirstTokenTimeoutMs8(),
+          chunkTimeoutMs: resolveChunkTimeoutMs8(),
+          isQuotaError,
+          ...options.maxTokens === void 0 ? {} : { maxTokens: options.maxTokens }
+        })) {
+          emitted = true;
+          yield chunk;
+        }
+        return;
+      } catch (error) {
+        if (options.signal?.aborted || !(error instanceof LlmError11) || error.code !== "QUOTA_EXCEEDED") throw error;
+        if (accountId) {
+          await this.options.accountPool?.updateModelRateLimit(accountId, options.model, nextUtc8DayStartMs());
+        }
+        if (emitted || attempt === 2 || this.options.nextAccount === void 0) throw error;
+        const next = await this.options.nextAccount(options.model, tried);
+        if (next === void 0 || tried.has(next.accountId)) throw error;
+        accountId = next.accountId;
+        credential = next.credential;
+        if (isRaccoonExpired(credential)) {
+          credential = await this.options.refresh(accountId) ?? credential;
+        }
       }
-      credential = refreshed;
-      response = await send();
     }
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => "");
-      throw new LlmError11(`raccoon: ${errorDetail4(errorText)}`, httpErrorCode4(response.status), { status: response.status });
-    }
-    yield* consumeOpenAiSse(response, { signal: options.signal }, {
-      label: "raccoon",
-      firstTokenTimeoutMs: resolveFirstTokenTimeoutMs8(),
-      chunkTimeoutMs: resolveChunkTimeoutMs8(),
-      ...options.maxTokens === void 0 ? {} : { maxTokens: options.maxTokens }
-    });
   }
 };
 function resolveFirstTokenTimeoutMs8() {
@@ -64696,7 +64818,7 @@ function createLoopResumeController(options) {
         return false;
       }
       if (agent.status !== "idle") return false;
-      if (agent.inbox.hasPending) return false;
+      if (agent.inbox.hasPending === true || (agent.inbox.nextTurn?.length ?? 0) > 0 || (agent.inbox.nextStep?.length ?? 0) > 0) return false;
       let injectedId;
       try {
         const message2 = createUserMessage2({
@@ -64725,6 +64847,10 @@ function createLoopResumeController(options) {
       state.attempts = 0;
       state.pending = false;
     },
+    cancelPending(agent) {
+      const state = states.get(agent.id);
+      if (state !== void 0) state.pending = false;
+    },
     forget(agent) {
       states.delete(agent.id);
     },
@@ -64742,6 +64868,10 @@ function installLoopResume(ctx) {
     return;
   }
   ctx.inject(["agents"], (scope) => {
+    let active = true;
+    const scheduled = /* @__PURE__ */ new Map();
+    const live = /* @__PURE__ */ new Map();
+    const disposed = /* @__PURE__ */ new WeakSet();
     const controller = createLoopResumeController({
       policy,
       log: ctx.logger,
@@ -64754,17 +64884,65 @@ function installLoopResume(ctx) {
         });
       }
     });
+    const cancelPending = (agent) => {
+      scheduled.delete(agent);
+      if (live.get(agent.id) === agent) controller.cancelPending(agent);
+    };
+    scope.effect(() => () => {
+      active = false;
+      scheduled.clear();
+      for (const agent of live.values()) controller.forget(agent);
+      live.clear();
+    });
     scope.on("agent/error", ({ agent, error }) => {
+      if (!active || disposed.has(agent)) return;
+      const previous = live.get(agent.id);
+      if (previous !== void 0 && previous !== agent) {
+        cancelPending(previous);
+        controller.forget(previous);
+      }
+      live.set(agent.id, agent);
+      scheduled.delete(agent);
       controller.observeFailure(agent, error);
     });
     scope.on("agent/status", ({ agent, status }) => {
-      if (status === "idle") controller.observeIdle(agent);
+      if (!active || disposed.has(agent)) return;
+      if (status !== "idle") {
+        cancelPending(agent);
+        return;
+      }
+      if (live.get(agent.id) !== agent || scheduled.has(agent)) return;
+      const token = Symbol();
+      scheduled.set(agent, token);
+      queueMicrotask(() => {
+        if (!active || ctx.fiber?.uid === null || scope.fiber?.uid === null || disposed.has(agent) || scheduled.get(agent) !== token) return;
+        scheduled.delete(agent);
+        if (live.get(agent.id) !== agent) return;
+        controller.observeIdle(agent);
+      });
     });
     scope.on("agent/inbox/inserted", ({ agent, message: message2 }) => {
+      if (!active || disposed.has(agent) || live.get(agent.id) !== agent) return;
+      scheduled.delete(agent);
       controller.observeInput(agent, message2);
     });
+    scope.on("agent/inbox/discarded", ({ agent }) => {
+      cancelPending(agent);
+    });
+    scope.on("session/event", (session, event) => {
+      const agent = live.get(session.id);
+      if (agent === void 0 || agent.session !== void 0 && agent.session !== session) return;
+      if (event.type === "turn/start" || event.type === "agent/inbox/spliced" && event.data.outcome === "canceled" || event.type === "turn/end" && !(event.data.reason.kind === "error" && event.data.reason.error.code === REASONING_LOOP_CODE)) {
+        cancelPending(agent);
+      }
+    });
     scope.on("agent/disposed", ({ agent }) => {
-      controller.forget(agent);
+      disposed.add(agent);
+      cancelPending(agent);
+      if (live.get(agent.id) === agent) {
+        live.delete(agent.id);
+        controller.forget(agent);
+      }
     });
   });
 }
@@ -68248,6 +68426,7 @@ function apply(ctx, config = {}) {
         return available2.credential;
       }
       activeQoderAccountId.set(QODER.id, void 0);
+      throwIfAllAccountsRateLimited(QODER, modelId);
       const resolved = await ctx.credentials.resolve(credentialRef16(QODER.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
@@ -68283,6 +68462,7 @@ function apply(ctx, config = {}) {
         return available2.credential;
       }
       activeQoderAccountId.set(QODER_CN.id, void 0);
+      throwIfAllAccountsRateLimited(QODER_CN, modelId);
       const resolved = await ctx.credentials.resolve(credentialRef16(QODER_CN.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
@@ -68423,6 +68603,7 @@ function apply(ctx, config = {}) {
           );
         }
       }
+      throwIfAllAccountsRateLimited(LOOMY, modelId);
       const resolved = await ctx.credentials.resolve(credentialRef16(LOOMY.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
@@ -68431,10 +68612,23 @@ function apply(ctx, config = {}) {
         return void 0;
       }
     },
-    refresh: async () => {
-      const available2 = await pool.getAvailableAccount(LOOMY.id, "");
-      if (available2) await loomy.refreshAccountCredential(available2.entry.credentialRef, pool, available2.entry.id);
+    refresh: async (accountId) => {
+      const entry = accountId === void 0 ? void 0 : pool.listAccountsByProvider(LOOMY.id).find((account) => account.id === accountId);
+      if (accountId !== void 0 && entry === void 0) throw new Error("loomy: account no longer exists");
+      if (entry) await loomy.refreshAccountCredential(entry.credentialRef, pool, entry.id);
       else await loomy.refresh();
+      const resolved = await ctx.credentials.resolve(credentialRef16(entry?.credentialRef ?? LOOMY.defaultCredentialRef));
+      if (!resolved) throw new Error("loomy: credential no longer exists");
+      return JSON.parse(resolved.value);
+    },
+    nextAccount: async (modelId, tried) => {
+      const candidates = pool.listAccountsByProvider(LOOMY.id).filter((account) => account.enabled && !tried.has(account.id)).filter((account) => !account.modelRateLimits?.[modelId] || Date.now() >= account.modelRateLimits[modelId]).map((account) => ({ id: account.id, credentialRef: account.credentialRef }));
+      const picked = await loomyBalanceSelector.select(candidates, { allowPermanent: !pool.permanentLocked(LOOMY.id) });
+      if (!picked.ok) return void 0;
+      const credential = await resolveLoomyCredentialByRef(picked.account.credentialRef);
+      if (!credential) return void 0;
+      reportLedgerAccount(LOOMY.id, picked.account.id);
+      return { accountId: picked.account.id, credential };
     },
     // 远端模型目录：GET /api/v1/models。
     // ⚠️ 必须用 **token 头**（业务端点），不是 Bearer —— 带错会得到
@@ -68471,6 +68665,7 @@ function apply(ctx, config = {}) {
         reportLedgerAccount(RACCOON.id, available2.entry.id);
         return available2.credential;
       }
+      throwIfAllAccountsRateLimited(RACCOON, modelId);
       const resolved = await ctx.credentials.resolve(credentialRef16(RACCOON.defaultCredentialRef));
       if (!resolved) return void 0;
       try {
@@ -68479,17 +68674,20 @@ function apply(ctx, config = {}) {
         return void 0;
       }
     },
-    refresh: async () => {
-      const available2 = await pool.getAvailableAccount(RACCOON.id, "");
-      if (available2) {
-        await raccoon.refreshAccountCredential(
-          available2.entry.credentialRef,
-          pool,
-          available2.entry.id
-        );
-      } else {
-        await raccoon.refresh();
-      }
+    refresh: async (accountId) => {
+      const entry = accountId === void 0 ? void 0 : pool.listAccountsByProvider(RACCOON.id).find((account) => account.id === accountId);
+      if (accountId !== void 0 && entry === void 0) throw new Error("raccoon: account no longer exists");
+      if (entry) await raccoon.refreshAccountCredential(entry.credentialRef, pool, entry.id);
+      else await raccoon.refresh();
+      const resolved = await ctx.credentials.resolve(credentialRef16(entry?.credentialRef ?? RACCOON.defaultCredentialRef));
+      if (!resolved) throw new Error("raccoon: credential no longer exists");
+      return JSON.parse(resolved.value);
+    },
+    nextAccount: async (modelId, tried) => {
+      const next = await pool.getAvailableAccount(RACCOON.id, modelId, tried);
+      if (!next) return void 0;
+      reportLedgerAccount(RACCOON.id, next.entry.id);
+      return { accountId: next.entry.id, credential: next.credential };
     },
     // 远端模型目录：委托给 RaccoonAuth.fetchModels（它负责 Bearer 头与
     // visible 过滤 + raccoonDisplayName 生成含倍率的展示名）。

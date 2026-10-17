@@ -4,6 +4,8 @@ export interface Model {
   name: string
   channel: string
   routable: boolean
+  hiddenByUser?: boolean
+  hiddenByGroup?: boolean
   vision?: boolean
   reasoning?: boolean
   contextWindow?: number
@@ -15,6 +17,9 @@ export interface ModelTestResult { ok: boolean; text: string; latencyMs: number 
 export interface ServiceSettings {
   enabled: boolean
   exposeRegionModels: boolean
+  hiddenModelIds: string[]
+  hideFreeModels: boolean
+  hideEacModels: boolean
   streamRecovery: boolean
   standaloneProbe: boolean
   probeIntervalMinutes: number
@@ -70,5 +75,5 @@ export interface Host {
   error(error: Error): void
   testModel(model: string, signal: AbortSignal): Promise<ModelTestResult>
   refreshModels(probe: boolean, signal: AbortSignal): Promise<void>
-  saveSettings(settings: ServiceSettings): Promise<ServiceSettings>
+  saveSettings(settings: Partial<ServiceSettings>): Promise<ServiceSettings>
 }

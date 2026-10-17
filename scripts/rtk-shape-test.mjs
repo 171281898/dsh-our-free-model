@@ -1,7 +1,7 @@
 /**
- * Offline regression coverage for issue #280. Adapted from PR #285
- * (9a6733313c45ed29850fcb8f452130b7cf63a513): retain its timestamp and Windows
- * cases, and add whole-output safety plus mixed-filename regressions.
+ * Offline regression coverage for RTK shape safety (#280, #322, #389).
+ * Grep cases adapted from PR #285 (9a6733313c45ed29850fcb8f452130b7cf63a513),
+ * with whole-output, mixed-filename and source-indentation regressions.
  * No network, stores, credentials, or filesystem writes.
  * Run: node scripts/rtk-shape-test.mjs
  */
@@ -120,5 +120,28 @@ for (const { name, rows, compress } of scanCases) {
     }
   })
 }
+const numberedDumps = [
+  { name: 'original four-column numbered source', width: 4, padding: '' },
+  { name: 'five-column numbered source', width: 5, padding: '' },
+  { name: 'four-column numbered source with long lines', width: 4, padding: 'x'.repeat(140) },
+]
+for (const { name, width, padding } of numberedDumps) {
+  const rows = Array.from({ length: 400 }, (_, i) =>
+    String(i + 1).padStart(width, ' ') + '|const value' + (i + 1) + ' = ' + (i + 1) + ';' + padding)
+  const text = rows.join('\n') + '\n'
+  for (const wire of Object.keys(wires)) check(name + ' cannot become a clean git status (#322): ' + wire, () => {
+    const { output, stats } = shipped(text, wire)
+    assert.ok(output.includes(rows[0]), 'the first source line must survive')
+    assert.ok(output.includes(rows.at(-1)), 'the last source line must survive')
+    assert.ok(!stats.hits.some(hit => hit.filter === 'git-status'), 'a numbered file is not a status listing')
+  })
+}
+const indentedSourceRows = Array.from({ length: 60 }, (_, i) => `   const value${i} = compute(${i});`)
+for (const wire of Object.keys(wires)) check('three-space source indentation is not porcelain (#389): ' + wire, () => {
+  const text = indentedSourceRows.join('\n')
+  const { output, stats } = shipped(text, wire)
+  assert.equal(output, text, 'unique source lines must stay intact')
+  assert.ok(!stats.hits.some(hit => hit.filter === 'git-status'))
+})
 console.log(checks + ' checks; ' + failures + ' failures')
 process.exitCode = failures ? 1 : 0

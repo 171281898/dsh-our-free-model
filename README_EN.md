@@ -100,6 +100,19 @@ the picker by itself as soon as a probe gets through.
 
 ## Install
 
+> **⚠️ Do not install this plugin from npm.**
+>
+> The `dsh-our-free-model` package on npm **is not published by this repository.**
+> It is a third-party repackaging whose contents do not match this tree:
+> `index.js` and `client.js` were modified, and it ships a
+> `src/channel-visibility.js` that has never existed here. Installing it gets you
+> a build this project did not review, and you lose the signed-manifest
+> verification and in-app upgrades that this repository provides.
+>
+> Install only the ways documented below: a release package from this repository,
+> or a local source directory. For any same-named package from another channel,
+> this repository is the source of truth.
+
 ### Command line (plain `dsh web`)
 
 ```bash

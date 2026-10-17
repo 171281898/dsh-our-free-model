@@ -283,6 +283,7 @@ async function snapshotManifestSource(source, fetchImpl, signal, revisions) {
   // Never insert arbitrary URL/path syntax in a resolver request.
   if (!/^[A-Za-z0-9._-]+$/.test(ref)) throw new Error('unsupported update source ref')
   let revision = revisions.get(ref)
+  if (revision instanceof Error) throw revision
   if (revision === undefined) {
     const response = await fetchImpl(`https://api.github.com/repos/${REPO}/commits/${encodeURIComponent(ref)}`, {
       redirect: 'error', signal,
@@ -295,7 +296,19 @@ async function snapshotManifestSource(source, fetchImpl, signal, revisions) {
       // a fallback for a hop that rewrote the Accept header.
       headers: { accept: 'application/vnd.github.sha', 'user-agent': 'our-free-model-updater' },
     })
-    if (!response.ok) throw new Error(`snapshot resolution failed for ${ref}: HTTP ${response.status}`)
+    if (!response.ok) {
+      const remaining = response.headers?.get('x-ratelimit-remaining')
+      const limited = response.status === 429 || (response.status === 403 && remaining === '0')
+      const diagnostics = ['x-ratelimit-remaining', 'x-ratelimit-reset', 'retry-after'].flatMap(name => {
+        const value = response.headers?.get(name)
+        return value !== null && /^\d{1,16}$/.test(value) ? [`${name}=${value}`] : []
+      })
+      const error = new Error(`snapshot resolution failed for ${ref}: HTTP ${response.status}${limited ? '; GitHub API rate limit exceeded' : ''}${diagnostics.length ? `; ${diagnostics.join('; ')}` : ''}`)
+      // Mirrors share this resolver and quota; do not repeat a known rate limit
+      // within this check. A later check starts with a fresh resolution map.
+      if (limited) revisions.set(ref, error)
+      throw error
+    }
     const text = (await response.text()).trim()
     if (text.length > MAX_MANIFEST_BYTES) throw new Error('snapshot resolution response too large')
     const sha = /^[a-f0-9]{40}$/.test(text) ? text : JSON.parse(text)?.sha
@@ -837,7 +850,7 @@ export class PluginUpdater {
     this.applying = true
     upgradeLocks.add(this.deps.pkgDir)
     const previous = this.currentVersion()
-    let targetVersion = version ?? ''
+    let targetVersion = version ?? this.latest?.version ?? ''
     let state
     let installed = false
     let activated = false
