@@ -198,12 +198,12 @@ The accompanying `Ignoring broken lockfile` warnings disappear with the rebuild.
 
 ## Desktop installers (macOS, community build)
 
-The dsh plugin itself needs no build. The **desktop installer** (the Our Free Model desktop shell) is officially published for Windows only; the macOS installer is a community build. The source change is 6 files in [PR #421](https://github.com/Ebony-Vinyl/dsh-our-free-model/pull/421) — fully auditable, line by line. A ready-made Apple Silicon (arm64) build is available from that PR and its community release, or you can build it yourself on a Mac (`npm --prefix packages/desktop run build`; the full pipeline lives in `.github/workflows/build-macos.yml`).
+The dsh plugin itself needs no build. The **desktop installer** (the Our Free Model desktop shell) is officially published for Windows only; the macOS installer is a community build. The source changes are listed in [PR #421](https://github.com/Ebony-Vinyl/dsh-our-free-model/pull/421) and are fully auditable, line by line. A ready-made Apple Silicon (arm64) build is available from that PR and its community release, or you can build it yourself on a Mac (`npm --prefix packages/desktop run build`; the full pipeline lives in `.github/workflows/build-macos.yml`).
 
 Verify the checksum after downloading (SHA256 is listed in the PR / release):
 
 ```bash
-shasum -a 256 ~/Downloads/Our.Free.Model_2.5.1_aarch64.dmg
+shasum -a 256 ~/Downloads/Our.Free.Model_<version>_aarch64.dmg
 ```
 
 **"This app is damaged" or won't open?**

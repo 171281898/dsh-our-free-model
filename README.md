@@ -221,12 +221,12 @@ git 执行 `git ls-remote`。若本机 git 配置了 `insteadOf` 重写（常见
 
 ## 桌面安装包（macOS，社区构建）
 
-DSH 插件本体无需构建、解压即用；**桌面安装包**（Our Free Model 桌面壳）官方目前只发布 Windows 版。macOS 版为社区构建：源码改动见 [PR #421](https://github.com/Ebony-Vinyl/dsh-our-free-model/pull/421)，只有 6 个文件的源码 diff，可逐行审计；预打好的 Apple Silicon（arm64）包可在该 PR 与社区 Release 获取，也可以自己从源码构建（macOS 上执行 `npm --prefix packages/desktop run build`，完整流水线见 `.github/workflows/build-macos.yml`）。
+DSH 插件本体无需构建、解压即用；**桌面安装包**（Our Free Model 桌面壳）官方目前只发布 Windows 版。macOS 版为社区构建：源码改动见 [PR #421](https://github.com/Ebony-Vinyl/dsh-our-free-model/pull/421)，可逐行审计；预打好的 Apple Silicon（arm64）包以社区 Release 的版本和校验值为准，也可以自己从源码构建（macOS 上执行 `npm --prefix packages/desktop run build`，完整流水线见 `.github/workflows/build-macos.yml`）。
 
 下载后建议先核对校验和（SHA256 见 PR / Release）：
 
 ```bash
-shasum -a 256 ~/Downloads/Our.Free.Model_2.5.1_aarch64.dmg
+shasum -a 256 ~/Downloads/Our.Free.Model_<version>_aarch64.dmg
 ```
 
 **安装后提示「已损坏」或打不开？**

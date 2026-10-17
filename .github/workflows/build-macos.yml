@@ -45,7 +45,10 @@ jobs:
           set -euo pipefail
           dmg=$(ls packages/desktop/src-tauri/target/release/bundle/dmg/*.dmg | head -1)
           sha=$(shasum -a 256 "$dmg" | awk '{print $1}')
-          cat > release-notes.md <<'NOTES'
+          version=$(node -p "require('./packages/desktop/package.json').version")
+          arch=$(uname -m)
+          release_tag="${GITHUB_REF_NAME}-macos-unofficial"
+          cat > release-notes.md <<NOTES
           ## 非官方社区构建 / Unofficial community build
 
           这不是仓库作者发布的官方安装包。作者自 2.4.0 起将桌面安装包限制为 Windows-only，Mac 用户停留在 2.3.0。本 dmg 由本仓库的 GitHub Actions 从公开源码构建，可审计、可复现。
@@ -54,13 +57,12 @@ jobs:
 
           | 项 / Item | 值 / Value |
           |---|---|
-          | 版本 / Version | 2.5.1 |
-          | 架构 / Arch | Apple Silicon (arm64) |
-          | 图标 / Icon | 与仓库 main 一致的官方「双环」品牌标 |
+          | 版本 / Version | ${version} |
+          | 架构 / Arch | ${arch} |
 
           ### 可信性 / Trust
 
-          1. 源码改动只有 6 个文件的 diff，无二进制夹带，可逐行审计。
+          1. 构建来自当前标签对应的公开源码，可逐行审计。
           2. 本 dmg 正是你正在查看的这次 Actions 运行的产物，由 GitHub macOS runner 构建；任何人 fork 后重跑同一 workflow 即可复现。
           3. 下载后请核对下方 SHA256。
 
@@ -89,12 +91,11 @@ jobs:
           {
             echo ""
             echo "---"
-            echo "- 构建来源 / Source: 分支 feat/macos-desktop @ ${GITHUB_SHA}"
+            echo "- 构建来源 / Source: ${GITHUB_REF_NAME} @ ${GITHUB_SHA}"
             echo "- 构建记录 / CI run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-            echo "- 源码改动 PR: https://github.com/Ebony-Vinyl/dsh-our-free-model/pull/421"
             echo "- SHA256: $sha"
           } >> release-notes.md
-          gh release create 2.5.1-macos-unofficial "$dmg" \
-            --title "2.5.1 macOS (Apple Silicon) — 非官方社区构建 / unofficial community build" \
+          gh release create "$release_tag" "$dmg" \
+            --title "${version} macOS (${arch}) — 非官方社区构建 / unofficial community build" \
             --notes-file release-notes.md \
-            --target "$GITHUB_SHA" || gh release upload 2.5.1-macos-unofficial "$dmg" --clobber
+            --target "$GITHUB_SHA" || gh release upload "$release_tag" "$dmg" --clobber
