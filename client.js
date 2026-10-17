@@ -4538,14 +4538,19 @@ window.__ModuleLoader__.load({
 
       const statusGeneration = useRef(0)
       const statusRetry = useRef(null)
-      const loadStatus = useCallback(async (attempt = 0, generation = ++statusGeneration.current) => {
+      const statusRequest = useRef(0)
+      const statusApplied = useRef(0)
+      const loadStatus = useCallback(async (attempt = 0, generation = statusGeneration.current) => {
         if (attempt === 0) { clearTimeout(statusRetry.current); statusRetry.current = null }
         if (!available) return
+        const request = ++statusRequest.current
         const transport = channelTransport(rpc)
-        const current = () => generation === statusGeneration.current && sameChannelTransport(transport, channelTransport(rpc))
+        const current = () => generation === statusGeneration.current && request >= statusApplied.current
+          && sameChannelTransport(transport, channelTransport(rpc))
         try {
           const value = await rpc('provider.status', { providers: CHANNEL_PROVIDERS.map(row => row.id) })
           if (!current()) return
+          statusApplied.current = request
           setStatuses(value?.statuses ?? {})
           setReady(true)
           setError('')
@@ -4554,6 +4559,7 @@ window.__ModuleLoader__.load({
           // The pack imports asynchronously on a cold start; retry a bounded
           // few times before believing the failure and surfacing the reason.
           if (attempt < 4) {
+            clearTimeout(statusRetry.current)
             statusRetry.current = setTimeout(() => { if (current()) void loadStatus(attempt + 1, generation) }, 4000)
             return
           }

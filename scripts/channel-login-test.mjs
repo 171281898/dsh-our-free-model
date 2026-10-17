@@ -428,3 +428,36 @@ for (const completion of ['before-tick', 'after-tick', 'rejection', 'unmount']) 
   assert.equal(app.timeouts.size, 0)
 }
 console.log('ok  status generations fence old completions, retries and unmounts')
+
+for (const firstCompletesFirst of [true, false]) {
+  const first = deferred(), second = deferred()
+  let reads = 0
+  const app = harness()
+  const context = { connection: { rpc: { async call(_path, _pack, request) {
+    if (request.method === 'provider.status') return { ok: true, value: await (++reads === 1 ? first.promise : second.promise) }
+    return { ok: true, value: { autoCheckin: { enabled: false } } }
+  } } } }
+  const t = Object.assign(key => app.api.DICT.en[key] ?? key, { locale: 'en' })
+  const render = () => app.render(() => app.api.ChannelsPage({ ctx: context, t, summary: { channels: { state: 'ready' } } }))
+  const count = () => nodes(render()).find(node => node.type === app.api.ChannelCard && node.props.channel.id === 'buddy').props.status?.accounts?.enabled
+  const value = enabled => ({ statuses: { buddy: { accounts: { total: enabled, enabled } } } })
+  render()
+  app.advance(45000)
+  assert.equal(reads, 2)
+  if (firstCompletesFirst) {
+    first.resolve(value(1))
+    await settle()
+    assert.equal(count(), 1, 'a later poll must not starve a slow valid response on the same transport')
+    second.resolve(value(2))
+  } else {
+    second.resolve(value(2))
+    await settle()
+    assert.equal(count(), 2)
+    first.resolve(value(1))
+  }
+  await settle()
+  assert.equal(count(), 2, 'an older completion cannot overwrite a newer published result')
+  app.unmount()
+  assert.equal(app.timeouts.size, 0)
+}
+console.log('ok  slow same-transport status requests still publish while polling overlaps')
