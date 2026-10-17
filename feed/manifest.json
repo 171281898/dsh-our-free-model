@@ -1,7 +1,7 @@
 {
   "version": "2.5.2",
   "base": "../",
-  "publishedAt": "2026-10-17T17:40:24.035Z",
+  "publishedAt": "2026-10-17T18:26:57.513Z",
   "notes": "",
   "files": [
     {
@@ -96,8 +96,8 @@
     },
     {
       "path": "src/core/runtime.js",
-      "size": 16243,
-      "sha256": "9b47f6a780c4a3089521cb11d78dee65708b72e2b144abb70d21a10fe388ebd6"
+      "size": 16790,
+      "sha256": "4ca75fab67217753b497d121ca72fb2f9a07ba225e0fcf489f173adac3ae123e"
     },
     {
       "path": "src/core/stats.js",
@@ -226,8 +226,8 @@
     },
     {
       "path": "src/store.js",
-      "size": 23730,
-      "sha256": "097696210d6fe55309de97ba304af1d85872aab43a19438c0d0f92dc90fdf5af"
+      "size": 24277,
+      "sha256": "87cf8f808019f94e021a52b3e06d402b22ccb57e39c1e6a932aea2b0d7be9cfa"
     },
     {
       "path": "src/stream.js",
@@ -390,5 +390,5 @@
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
   ],
-  "signature": "nIiDDVsOwk4Gb2FE3HLMnqQQ3rsa9XJGjV/nY4Oz4t7mPtkr34XYaZdB3XH/6H86KRqiKcdhFmZVR4ALssuxAQ=="
+  "signature": "kgIskNlP0wICbNYKogBvKV2bMySQoMwwJ4Ccf47vMZ6S4dYWdZbNlZjvNZ6ww7z7lsyxzaPAV66g3kt8OUpTCA=="
 }
