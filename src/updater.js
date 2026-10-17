@@ -721,6 +721,7 @@ function copyIntoPackage(source, target) {
       }
       throw retryError
     }
+    fs.chmodSync(target, stat.mode)
   }
 }
 

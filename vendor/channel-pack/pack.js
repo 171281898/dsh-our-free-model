@@ -25010,7 +25010,7 @@ var require_fetch = __commonJS({
             fetchParams.controller.terminate(e);
           }
         };
-        requestBody = (async function* () {
+        requestBody = async function* () {
           try {
             for await (const bytes of request2.body.stream) {
               yield* processBodyChunk(bytes);
@@ -25019,7 +25019,7 @@ var require_fetch = __commonJS({
           } catch (err) {
             processBodyError(err);
           }
-        })();
+        }();
       }
       try {
         const { body, status, statusText, headersList, socket } = await dispatch({ body: requestBody });
@@ -32080,7 +32080,7 @@ function ownerOf(ids, candidate) {
   return typeof candidate === "string" && ids.includes(candidate) ? candidate : ids[0];
 }
 function trackStream(provider, inner, modelId) {
-  return (async function* tracked() {
+  return async function* tracked() {
     try {
       yield* inner;
     } catch (error) {
@@ -32089,7 +32089,7 @@ function trackStream(provider, inner, modelId) {
       }
       throw error;
     }
-  })();
+  }();
 }
 function withDeadModelPruning(providers, adapter) {
   const ids = providers.filter((id) => typeof id === "string" && id.length > 0);
@@ -51131,7 +51131,6 @@ var ZcodeCaptchaBrowser = class {
   }
   /** 归还页面（保留复用）。 */
   releasePage(page) {
-    void page;
     this.pageBusy = false;
   }
   /**
@@ -51972,7 +51971,6 @@ async function pollZcodeLogin(flow, fetchImpl = fetch, appVersion = "3.14.3") {
       signal: AbortSignal.timeout(2e4)
     });
   } catch (error) {
-    void error;
     return { kind: "pending" };
   }
   if (response.status >= 400 && response.status < 500 && response.status !== 408 && response.status !== 429) {
@@ -52543,7 +52541,6 @@ function buildChannelRequest(credential, channel, body) {
   const token = channel === "coding-plan" ? credential.coding_plan_key_zai ?? credential.coding_plan_key_bigmodel : credential.zcode_jwt;
   if (typeof token === "string" && token.length > 0) headers.Authorization = `Bearer ${token}`;
   if (channel === "coding-plan") delete headers["HTTP-Referer"];
-  void body;
   return { url: zcodeMessagesUrl(channel), headers };
 }
 var API_KEY_NAME = "zcode-api-key";
@@ -53850,8 +53847,6 @@ var ZcodeAuth = class extends Service9 {
       await this.ctx.credentials.set(refName, JSON.stringify(own));
       return;
     }
-    void pool;
-    void accountId;
     throw new Error(
       `ZCode \u8D26\u53F7\uFF08${refName}\uFF09\u7684\u51ED\u636E\u4E0D\u53EF\u7528\u6216\u5DF2\u635F\u574F\uFF0C\u8BF7\u91CD\u65B0\u767B\u5F55\u8BE5\u8D26\u53F7\uFF08\u672C\u63D2\u4EF6\u4E0D\u4F1A\u7528\u5176\u5B83\u8D26\u53F7\u7684\u51ED\u636E\u8986\u76D6\u5B83\uFF09\u3002`
     );
@@ -55397,7 +55392,6 @@ function isZcodeQuotaExhausted(status, body) {
   return /exceed\s+quota\s+limit|quota\s+(?:has\s+been\s+)?exhausted/i.test(body);
 }
 function isZcodeCaptchaRejected(status, body) {
-  void status;
   return body.includes("3007") || /captcha\s+verify\s+failed/i.test(body);
 }
 function zcodeConcurrencyRetryDelayMs(attempt, baseMs) {
@@ -58916,7 +58910,6 @@ var GeminiAdapter = class extends LlmAdapter10 {
     } finally {
       await sigStore?.flush().catch(() => {
       });
-      void lastFailure;
     }
   }
   /**
@@ -59684,7 +59677,7 @@ async function openSocks5Tunnel(proxy, host, port) {
 }
 function buildSocksDispatcher(proxy) {
   return new import_undici.Agent({
-    connect: ((opts, callback) => {
+    connect: (opts, callback) => {
       const host = String(opts.hostname ?? opts.host ?? "");
       const port = Number(opts.port ?? 443);
       if (host.length === 0) {
@@ -59696,7 +59689,7 @@ function buildSocksDispatcher(proxy) {
       }).catch((error) => {
         callback(error, void 0);
       });
-    })
+    }
   });
 }
 
@@ -60474,7 +60467,6 @@ function computeClaimSummary(outcomes) {
         break;
       default: {
         const exhaustive = outcome;
-        void exhaustive;
         summary.failed += 1;
         break;
       }

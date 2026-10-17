@@ -833,9 +833,11 @@ await checkAsync('rollback restores a read-only file without deleting the remain
     backupPackage(pkg, backupDir)
     fs.writeFileSync(target, newFiles['index.js'])
     fs.chmodSync(target, 0o444)
+    const mode = fs.statSync(target).mode
     restoreBackup(backupDir, pkg)
     assert.equal(fs.readFileSync(target, 'utf8'), oldFiles['index.js'])
     assert.equal(fs.readFileSync(path.join(pkg, 'client.js'), 'utf8'), oldFiles['client.js'])
+    assert.equal(fs.statSync(target).mode, mode, 'successful recovery must restore the original file permissions')
   } finally {
     fs.chmodSync(target, 0o644)
     fs.rmSync(pkg, { recursive: true, force: true })
