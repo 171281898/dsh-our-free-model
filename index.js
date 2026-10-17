@@ -128,7 +128,7 @@ function openExternal(url) {
 export const inject = ['llm']
 
 /** Where the plugin's own announcement copy lives; bump it to re-announce. */
-export const ANNOUNCEMENT_VERSION = '2026-10-17.2'
+export const ANNOUNCEMENT_VERSION = '2026-10-17.3'
 
 /**
  * Who owns the plugin's bytes — the distribution mode:

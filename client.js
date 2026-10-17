@@ -2820,7 +2820,7 @@ window.__ModuleLoader__.load({
           m.isNew === true ? h('span', { className: 'ofm_newtag', title: t('tag.newTitle') }, t('tag.new')) : null,
           m.hot === true ? h('span', { className: 'ofm_hottag', title: t('tag.hotTitle') }, t('tag.hot')) : null,
           h('span', { className: 'ofm_badge ' + m.availability }, t(stateKey))),
-        h('div', { className: 'ofm_id', title: m.id }, m.id),
+        h('div', { className: 'ofm_id', title: m.id }, m.label ?? m.id),
         h('div', { className: 'ofm_tags' },
           m.fast === true ? h('span', { className: 'ofm_tag fast', title: t('tag.fastTitle') }, t('tag.fast')) : null,
           h('span', { className: 'ofm_tag' }, m.vision ? t('tag.vision') : t('tag.text')),
