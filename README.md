@@ -219,6 +219,41 @@ git 执行 `git ls-remote`。若本机 git 配置了 `insteadOf` 重写（常见
 命令行 `dsh plugin add` 无法写入。请在桌面端的插件管理器（设置 → 插件）里完成安装或升级；
 命令行安装仅适用于纯 web profile（`dsh web`）。
 
+## 桌面安装包（macOS，社区构建）
+
+DSH 插件本体无需构建、解压即用；**桌面安装包**（Our Free Model 桌面壳）官方目前只发布 Windows 版。macOS 版为社区构建：源码改动见 [PR #421](https://github.com/Ebony-Vinyl/dsh-our-free-model/pull/421)，可逐行审计；预打好的 Apple Silicon（arm64）包以社区 Release 的版本和校验值为准，也可以自己从源码构建（macOS 上执行 `npm --prefix packages/desktop run build`，完整流水线见 `.github/workflows/build-macos.yml`）。
+
+下载后建议先核对校验和（SHA256 见 PR / Release）：
+
+```bash
+shasum -a 256 ~/Downloads/Our.Free.Model_<version>_aarch64.dmg
+```
+
+**安装后提示「已损坏」或打不开？**
+
+社区构建没有 Apple Developer 账号签名与公证，Gatekeeper 会拦截首次启动——这不是文件真的损坏，以下几种方式任选其一：
+
+1. **右键打开**：在访达中按住 Control 点按应用图标，选择「打开」，在弹窗中再次点按「打开」。
+2. **清除隔离属性**（终端）：
+
+   ```bash
+   xattr -cr /Applications/Our\ Free\ Model.app
+   ```
+
+3. **仍提示损坏时，用 sudo 清除隔离属性**（较新 macOS 对未签名应用校验更严）：
+
+   ```bash
+   sudo xattr -rd com.apple.quarantine "/Applications/Our Free Model.app"
+   ```
+
+4. **在系统设置中放行**：打开「系统设置 → 隐私与安全性」，若出现「仍要打开」按钮，点按确认。
+
+几点说明：
+
+- 当前社区包为 **Apple Silicon（arm64）**；Intel 机型的 Mac 需自行从源码构建。
+- 包内自带 Node 运行时与独立服务，安装后即可使用，无需登录、无需 API Key。
+- 该包未经 Apple 签名与公证，是否信任请以上方可审计的源码改动与可复现的 CI 构建记录为准。
+
 ## 使用说明
 
 **选择模型**：打开输入框的模型选择器，选择 Our Free Model 分组下的任意模型。选择结果按会话持久化。

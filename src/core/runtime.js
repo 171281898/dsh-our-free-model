@@ -27,7 +27,16 @@ export function createRuntimeStores({ dataDir, logger = console }) {
   const open = (file, initial) => new JsonStore(path.join(dataDir, file), structuredClone(initial), {
     log: message => logger.warn?.(message),
   })
-  const settings = open('settings.json', SETTINGS_INITIAL)
+  // Seed the recommended combo only for a genuinely fresh install. Existing
+  // settings files that predate combos must not gain a new advertised model
+  // merely because a new default was added to SETTINGS_INITIAL; user edits to
+  // an existing `combos` field still win through JsonStore's normal merge.
+  const settingsInitial = structuredClone(SETTINGS_INITIAL)
+  const settingsPath = path.join(dataDir, 'settings.json')
+  if (fs.existsSync(settingsPath)) settingsInitial.combos = []
+  const settings = new JsonStore(settingsPath, settingsInitial, {
+    log: message => logger.warn?.(message),
+  })
   const stats = open('stats.json', STATS_INITIAL)
   const availability = open('availability.json', { version: 1, at: 0, egress: null, results: {} })
   const catalogStore = open('catalog.json', { version: 1, at: 0, entries: FALLBACK_CATALOG.map(entry => entry.id) })

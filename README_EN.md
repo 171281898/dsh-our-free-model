@@ -196,6 +196,41 @@ del "%DSH_HOME%\profiles\web\pnpm-lock.yaml"
 
 The accompanying `Ignoring broken lockfile` warnings disappear with the rebuild.
 
+## Desktop installers (macOS, community build)
+
+The dsh plugin itself needs no build. The **desktop installer** (the Our Free Model desktop shell) is officially published for Windows only; the macOS installer is a community build. The source changes are listed in [PR #421](https://github.com/Ebony-Vinyl/dsh-our-free-model/pull/421) and are fully auditable, line by line. A ready-made Apple Silicon (arm64) build is available from that PR and its community release, or you can build it yourself on a Mac (`npm --prefix packages/desktop run build`; the full pipeline lives in `.github/workflows/build-macos.yml`).
+
+Verify the checksum after downloading (SHA256 is listed in the PR / release):
+
+```bash
+shasum -a 256 ~/Downloads/Our.Free.Model_<version>_aarch64.dmg
+```
+
+**"This app is damaged" or won't open?**
+
+The community build is not signed or notarized with an Apple Developer account, so Gatekeeper blocks first launch. The file is not actually damaged — pick any one of these:
+
+1. **Right-click open**: in Finder, Control-click the app icon, choose **Open**, then confirm **Open** again in the dialog.
+2. **Remove the quarantine attribute** (Terminal):
+
+   ```bash
+   xattr -cr /Applications/Our\ Free\ Model.app
+   ```
+
+3. **If it still says damaged, remove quarantine with sudo** (newer macOS versions are stricter about unsigned apps):
+
+   ```bash
+   sudo xattr -rd com.apple.quarantine "/Applications/Our Free Model.app"
+   ```
+
+4. **Allow it in System Settings**: open **System Settings → Privacy & Security** and click **Open Anyway** if the button is offered.
+
+Notes:
+
+- The current community build is **Apple Silicon (arm64)**; Intel Macs should build from source.
+- The bundle ships its own Node runtime and standalone service — no login, no API key.
+- The package is not signed or notarized by Apple. Trust it based on the auditable source change and the reproducible CI build record above, nothing else.
+
 ## Usage
 
 **Pick a model.** Open the model selector in the composer and choose anything
