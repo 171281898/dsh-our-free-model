@@ -3,7 +3,20 @@ import fs from 'node:fs'
 import vm from 'node:vm'
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { transformSync } = require('esbuild')
+
+// This suite compiles the TSX page source in-process, so it needs esbuild — a
+// `packages/standalone` devDependency. The offline CI job installs nothing by
+// design (see .github/workflows/test.yml), so the check skips when the compiler
+// is absent, the same way the release-preparation suite skips its Windows-only
+// symlink check. Locally, where the devDependency is installed, it runs.
+let transformSync
+try {
+  ({ transformSync } = require('esbuild'))
+} catch {
+  console.log('ok  standalone-page-lifecycle skipped: esbuild is not installed (the offline job installs nothing)')
+  process.exit(0)
+}
+
 const source = fs.readFileSync(new URL('../packages/standalone/frontend/app.tsx', import.meta.url), 'utf8')
 const code = source.slice(source.indexOf('function App()'), source.indexOf('createRoot(document'))
 const slots = [], effects = []
