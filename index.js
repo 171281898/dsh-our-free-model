@@ -27,8 +27,8 @@ import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs'
 import crypto from 'node:crypto'
-import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { externalUrl, openExternal } from './src/open-external.js'
 import { ROUTE_LABELS, ROUTE_MAIN, ROUTE_REGION } from './src/adapter.js'
 import { DATA_DIR_NAME, decodeWindow, resolveDshHome, publicModelVisibility, validateModelVisibility, isModelHidden } from './src/store.js'
 import { isEacEntry, isKiloEntry } from './src/catalog.js'
@@ -81,27 +81,6 @@ function readPackageVersion() {
 // Bind the version to this module generation. Re-registering cached old exports
 // after a failed reload must not pick up the new package.json still on disk.
 export const version = readPackageVersion()
-
-/**
- * Open a URL in the system browser, best effort. The settings page shows the
- * same URL with a copy button, so a headless host or a refused spawn costs a
- * paste, never the flow. The URL is always one this plugin built from the
- * sealed gateway endpoint — never user input.
- */
-function openExternal(url) {
-  if (!/^https?:\/\//i.test(url)) return false
-  try {
-    const [command, args] = process.platform === 'win32' ? ['cmd', ['/c', 'start', '', url]]
-      : process.platform === 'darwin' ? ['open', [url]]
-        : ['xdg-open', [url]]
-    const child = spawn(command, args, { detached: true, stdio: 'ignore', windowsHide: true })
-    child.on('error', () => {})
-    child.unref()
-    return true
-  } catch {
-    return false
-  }
-}
 
 /**
  * `llm` is what the plugin exists for, so it is the only hard requirement of the
@@ -328,7 +307,7 @@ export function apply(ctx, config) {
       const url = `${eacAuthRootOf(credential)}/auth/github/start?link=${link}`
       const prepared = await eacLoginPoller.prepare(link)
       if (prepared.error !== undefined) return prepared
-      return { url, link, opened: openExternal(url) }
+      return { url, link, opened: await openExternal(url) }
     },
     /** Collect the token the browser flow just produced. */
     poll: link => eacLoginPoller.poll(link),
@@ -1709,7 +1688,7 @@ function imageResolver(ctx, logger) {
 /** The fixed failure classes the pool proxy may surface to the client. */
 const POOL_REASONS = new Set(['no-lane', 'gateway-status', 'malformed', 'unreachable'])
 
-function createApiRoutes(deps) {
+export function createApiRoutes(deps) {
   return async function handler(req, res) {
     const url = new URL(req.url ?? '/', 'http://localhost')
     const routePath = url.pathname.replace(/^\/api\/our-free-model/, '').replace(/\/+$/, '') || '/'
@@ -1811,6 +1790,13 @@ function createApiRoutes(deps) {
       }
       if (method === 'POST' && routePath === '/eac/logout') {
         return send(200, await deps.eacAuth.logout())
+      }
+      if (method === 'POST' && routePath === '/open-external') {
+        const target = externalUrl((await readJson(req))?.url)
+        if (target === null) return send(400, { error: 'bad-url' })
+        let opened = false
+        try { opened = await (deps.openExternal ?? openExternal)(target) === true } catch { /* manual link remains available */ }
+        return send(200, { ok: true, opened })
       }
       if (method === 'GET' && routePath === '/pool') {
         try { return send(200, await deps.pool()) } catch (error) {

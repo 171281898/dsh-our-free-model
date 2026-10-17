@@ -51,7 +51,7 @@
 ## 亮点
 
 - **开箱即用，无配置环节**——不需要账号、不需要 Key、不需要在后台申请配额。
-- **上游来源公开透明**——免费车道来源为 OpenCode 的 Zen 网关（https://opencode.ai），Kilo 渠道来源为 Kilo AI 的公共网关（https://kilo.ai），均直连、不经任何第三方中转。请求由谁处理、数据发往何处，见「上游是哪些源」与「免责声明」。
+- **上游来源公开透明**——免费车道来源为 [OpenCode 的 Zen 网关](https://opencode.ai)，Kilo 渠道来源为 [Kilo AI 的公共网关](https://kilo.ai)，均直连、不经任何第三方中转。请求由谁处理、数据发往何处，见「上游是哪些源」与「免责声明」。
 - **清单跟随上游**——模型集合、上下文长度与能力在每次刷新时向上游重新拉取，插件内不保存静态快照。
 - **选择器只广播可用的模型**——上游清单已声明但网关明确拒绝路由的模型（返回 `Model is unavailable`、或 404 找不到该 id）从下拉框移除，仅在设置页保留记录并注明拒因；网关自身故障（5xx）、配额限制（429）、超时与断网不属于对模型的判定，一律保持可达；被地区策略拦截的模型归入 region-limited 分组。整轮探测全部被拒时同样保留，选择器不会为空。
 - **公告中心 + 实时推送**——仓库维护者在仓库中编辑 JSON 并推送后，所有已安装实例最迟在一个轮询周期内收到；正文为白名单约束下的 HTML，支持图文排版；`urgent` 级别触发全屏弹窗；可选系统级通知。
@@ -134,23 +134,25 @@ dsh plugin --profile web add /绝对路径/dsh-our-free-model
 
 **DSHEAC AIO / 桌面端：请先阅读本节**
 
-桌面端在启动 web 服务之前会执行一道 profile 闸门。其扫描器仅放行 dsh 自身在
-.dsh-module-fallback 下生成的链接；profile 目录树中出现任何其它符号链接或目录
-junction，应用将拒绝启动并报错：
+部分 DSHEAC AIO / 旧版桌面整合包在启动 web 服务之前会执行 profile 闸门，
+限制 profile 中的符号链接或目录 junction。若当前宿主包含该检查，可能报错：
 
 ```
 PROFILE_UPGRADE_REQUIRED: offline dependency migration is not yet available
 ```
 
-因此桌面端不要使用 `link:` 依赖安装，也不要创建 junction。请使用应用内的插件管理器，
-或放置一个真实目录。
+遇到该闸门时，不要使用 `link:` 依赖或 junction；使用应用内插件管理器，
+或下方的本地 tarball 安装。不同宿主的限制以自身日志和安装机制为准。
 
-以真实目录手工安装时，在 /profiles// 下完成三项操作：
+以真实目录手工安装时，使用可信源码打出的本地 tarball：
 
-1. 将发布文件复制至 node_modules/dsh-our-free-model/
-（index.js、client.js、adapter/、src/、locale/、icon.svg、cordis.patch.yml、package.json——adapter/ 不可遗漏：index.js 首行即 import 该目录）
-2. 在 dependencies 中加入 "dsh-our-free-model": "2.3.0"——该版本号跟随仓库 package.json 的 version（版本变更时同步，当前为 2.3.0），不要沿用旧值，也不要写为 link:
-3. 在 dsh.profile.bundles 末尾追加 "dsh-our-free-model"
+1. 创建 `<DSH_HOME>/profiles/<profile>/vendor/`，在审核过的本仓库目录运行 `npm pack --ignore-scripts --pack-destination "<DSH_HOME>/profiles/<profile>/vendor"`，或将本仓库正式发布的同版本 tarball 放入该目录。本地打包不执行 npm 发布。
+2. 在 profile 的 `package.json` 的 dependencies 中加入 `"dsh-our-free-model": "file:./vendor/dsh-our-free-model-2.5.1.tgz"`。文件名版本跟随仓库 `package.json`，不要改成同名 npm 注册表版本；再通过宿主的安装流程解析依赖。
+3. 在 dsh.profile.bundles 末尾追加 `"dsh-our-free-model"`。
+
+包管理器拥有这份安装的字节时，同时将 bundle config 或插件 `settings.json` 的 `distribution` 设为 `managed`，由包管理器统一更新；应用内升级、公告 feed 与热重载会停用，模型功能保留。以后更新时替换可信 tarball 并同步依赖路径，避免包管理器按旧锁文件恢复旧版本。
+
+若手工复制发布文件，必须复制完整包，包括 `adapter/`、`src/`、`locale/` 和 `vendor/channel-pack/` 下的 `pack.js`、WASM、LICENSE、NOTICE；只复制入口脚本会导致渠道加载失败。
 
 不要再向 cordis.patch.yml 添加条目。被 dsh.profile.bundles 引用的包，其自带的
 patch 层会自动生效；两处同时注册将报错 duplicate loader entry id: our-free-model。
@@ -633,13 +635,13 @@ npm run typecheck # tsc --noEmit，严格检查 adapter/ 接缝（可选：需�
 
 ## EAC 渠道（桌面端专属）
 
-除免费车道外，插件内置一条协付渠道（EAC）。该渠道仅存在于两个桌面宿主中：
+除免费车道外，插件内置一条协付渠道（EAC）。宿主识别支持以下运行方式：
 
 DSHEAC AIO（Tauri 壳）：内核路径、内嵌 node、web-desktop profile 三重信号同时命中才解锁；
 
-DeepSeek Harness 桌面端（Electron 壳）：内核自身提供的 desktop profile 上下文（CLI 按设计拒绝该 profile）加上桌面壳为内核进程设置的运行标记。
+DeepSeek Harness 桌面端（Electron 壳）与 DSH Tauri：使用内核提供的 `desktop` 或 `tauri` profile 上下文；仅有命令行参数不作为通过依据。
 
-在命令行、纯 dsh web 以及任何其它运行方式中，该通道整体不存在：没有模型、没有请求、没有报错，也不会发生解密尝试。
+内核声明的 `web` / `web-desktop` profile 同样支持该渠道。未通过宿主识别时，不展示渠道、不发请求；通过识别后仍需满足独立的 GitHub 授权要求。
 
 显示规则：模型名仅显示模型本名并带渠道前缀，如 EAC DeepSeek V4.1 Flash、EAC Kimi K3；设置页的模型卡上另有独立的 EAC 渠道徽章。
 

@@ -1,5 +1,5 @@
 /**
- * Mount the actual published bundle against host contracts in isolation.
+ * Mount the published bundle or --source TypeScript against isolated host contracts.
  * No real credentials, profile directories or upstream calls are used.
  */
 import assert from 'node:assert/strict'
@@ -138,7 +138,7 @@ try {
   }
   assert.equal((await call('account.list', { provider: 'opencode' })).value.accounts.length, 1)
   assert.equal(writes.length, 0, 'rejected RPCs leave credentials untouched')
-  console.log('ok  generated pack: 13 providers, no OpenCode registration/warmup, historical data retained, account RPCs refused')
+  console.log(`ok  ${sourceMode ? 'source modules' : 'generated pack'}: 13 providers, no OpenCode registration/warmup, historical data retained, account RPCs refused`)
   if (sourceMode) await verifySourceRegressions({ ctx, adapters, call, creds })
   await verifyChannelCreditsRpc({ ctx, call, creds })
   console.log('ok  实际渠道 RPC：七渠道仅账号池凭据即可查余额，ZCode 账号池回退及缺凭据反馈')
@@ -265,6 +265,8 @@ try {
 }
 
 async function verifySourceRegressions({ ctx, adapters, call, creds }) {
+  const { verifyChannelPrFixes } = await import('./channel-pr-fixes-test.mjs')
+  await verifyChannelPrFixes()
   await verifyLoopResumeEvents()
   let hostValidate
   await realLlmInvariant.apply({ invariants: { register(_name, install) {

@@ -283,14 +283,18 @@ console.log('ok  UI: lost cancellation acknowledgement converges; already commit
   const { EventEmitter } = await import('node:events')
   const { lane } = await import('../src/eac.js')
   const { callRoute, fakeContext, until } = await import('./lib/fake-kernel.mjs')
-  const previous = { home: process.env.DSH_HOME, upstream: process.env.OUR_FREE_MODEL_BASE, fetch: globalThis.fetch, spawn: childProcess.spawn, laneFetch: lane.fetch }
+  const previous = { home: process.env.DSH_HOME, upstream: process.env.OUR_FREE_MODEL_BASE, fetch: globalThis.fetch, execFile: childProcess.execFile, laneFetch: lane.fetch }
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ofm-login-routes-'))
   const order = [], routeDelivery = deferred()
   let ctx
   process.env.DSH_HOME = home
   process.env.OUR_FREE_MODEL_BASE = 'http://127.0.0.1:9'
   globalThis.fetch = async () => new Response('{"data":[]}')
-  childProcess.spawn = () => { order.push('browser'); return Object.assign(new EventEmitter(), { unref() {} }) }
+  childProcess.execFile = (_file, _args, _options, callback) => {
+    order.push('browser')
+    queueMicrotask(() => callback(null, '', ''))
+    return new EventEmitter()
+  }
   syncBuiltinESMExports()
   lane.fetch = async url => {
     if (url.includes('/auth/github/start?')) { order.push('registered'); return new Response(null, { status: 302 }) }
@@ -322,7 +326,7 @@ console.log('ok  UI: lost cancellation acknowledgement converges; already commit
     for (const dispose of [...(ctx?.__disposers ?? [])].reverse()) await dispose()
     await flush()
     globalThis.fetch = previous.fetch; lane.fetch = previous.laneFetch
-    childProcess.spawn = previous.spawn; syncBuiltinESMExports()
+    childProcess.execFile = previous.execFile; syncBuiltinESMExports()
     if (previous.home === undefined) delete process.env.DSH_HOME
     else process.env.DSH_HOME = previous.home
     if (previous.upstream === undefined) delete process.env.OUR_FREE_MODEL_BASE

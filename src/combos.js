@@ -52,7 +52,8 @@ export function comboId(name) {
     .replace(/^-+|-+$/g, '')
     .slice(0, 48)
   // Non-Latin names still need a stable, URL-safe identity after a reload.
-  const identity = slug || `u-${createHash('sha256').update(normalized).digest('hex').slice(0, 16)}`
+  const identity = slug && !/[^\x20-\x7e]/.test(normalized) ? slug
+    : `${slug || 'u'}-${createHash('sha256').update(normalized).digest('hex').slice(0, 16)}`
   return `${COMBO_PREFIX}${identity}`
 }
 

@@ -158,6 +158,15 @@ await check('mixed-lane chains retain composite member ids and advertise the cap
   assert.deepEqual(comboChain(entry, members).map(row => row.id), entry.combo)
 })
 
+await check('mixed Unicode chain names keep distinct identities after reload (#385)', () => {
+  const rows = normalizeCombos(['\u514d\u8d39 Pro', '\u4ed8\u8d39 Pro']
+    .map(name => ({ name, models: MODELS })))
+  assert.equal(rows.length, 2)
+  assert.deepEqual(normalizeCombos(JSON.parse(JSON.stringify(rows))), rows)
+  const saved = { id: 'combo:pro', name: '\u514d\u8d39 Pro', models: MODELS }
+  assert.equal(normalizeCombos([saved])[0].id, saved.id, 'existing persisted ids remain stable')
+})
+
 await check('a Chinese-named chain routes through the Adapter and records its own id (#379)', async () => {
   const id = comboId(CHINESE_NAME)
   assert.ok(CATALOG.some(row => row.id === id), 'the saved chain is advertised')
@@ -225,6 +234,22 @@ await check('a refusal before any output still advances (the plain case)', async
   assert.equal(run.finish?.kind, 'stop')
   assert.ok(run.text.includes(ANSWER))
   assert.equal(run.turns[0].attempts, 2)
+})
+
+for (const [status, type, message, attempts] of [
+  [400, '', 'bad request', 2],
+  [400, '', 'maximum context length exceeded', 2],
+  [403, 'RegionError', 'not available in your country', 2],
+  [403, 'AuthorizationRequired', 'login required', 1],
+  [403, 'FreeTierError', 'free tier can only be used from within OpenCode', 1],
+]) await check(`chain refusal: ${type || message}`, async () => {
+  const run = await drive([
+    { status, body: JSON.stringify({ error: { type, message } }) },
+    { body: chatFrames(ANSWER) },
+  ])
+  assert.equal(run.scenario.requests.length, attempts)
+  assert.equal(run.finish?.kind, attempts === 2 ? 'stop' : 'error')
+  if (attempts === 2) assert.equal(run.text, ANSWER)
 })
 
 server.close()

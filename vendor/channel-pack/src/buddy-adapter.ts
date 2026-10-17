@@ -430,8 +430,13 @@ function errorMessage(error: unknown): string {
  */
 function isContentRejection(body: string): boolean {
   if (body.length === 0) return false
-  return /"code"\s*:\s*11140/.test(body)
-    || /request illegal/i.test(body)
+  try {
+    const data = JSON.parse(body) as { code?: unknown } | null
+    // A malformed request shares the policy error's wording but must not cool accounts.
+    if (data?.code === 11128 || data?.code === '11128') return false
+    if (data?.code === 11140 || data?.code === '11140') return true
+  } catch {}
+  return /request illegal/i.test(body)
     || /安全审核|safety review/i.test(body)
 }
 
@@ -1342,6 +1347,9 @@ export class BuddyAdapter extends LlmAdapter {
     if (options.system !== undefined && options.system.length > 0) {
       messages.unshift({ role: 'system', content: options.system })
     }
+    if (this.product.id === 'workbuddy' && (messages.length === 0 || messages[0].role !== 'system')) {
+      messages.unshift({ role: 'system', content: 'You are a helpful assistant.' })
+    }
     const tools = options.tools?.map((tool) => ({
       type: 'function' as const,
       function: {
@@ -1781,6 +1789,11 @@ export class BuddyAdapter extends LlmAdapter {
     // 必须用 set 覆盖（attributionHeaders() 注入的框架 UA 键为小写，
     // 但 Headers 键大小写不敏感，set 能正常覆盖）。
     headers.set('User-Agent', resolveUserAgent(this.product, options.model))
+    if (this.product.id === 'workbuddy') {
+      headers.set('X-Conversation-ID', this.sessionId)
+      headers.set('X-Conversation-Message-ID', crypto.randomUUID())
+      headers.set('X-Conversation-Request-ID', crypto.randomUUID())
+    }
     try {
       return await this.fetchImpl(`${this.product.endpoint}/v2/chat/completions`, {
         method: 'POST',
@@ -1914,6 +1927,7 @@ export class BuddyAdapter extends LlmAdapter {
             break
           }
           let data: {
+            code?: number | string
             error?: { message?: string }
             choices?: Array<{
               delta?: {
@@ -1946,6 +1960,13 @@ export class BuddyAdapter extends LlmAdapter {
             data = JSON.parse(payload)
           } catch {
             continue
+          }
+          if (data.choices === undefined && (data.code === 11128 || data.code === '11128')) {
+            throw new LlmError(
+              `${this.product.id}: code=11128 ${errorDetail(payload)}`,
+              'INVALID_REQUEST',
+              { status: response.status },
+            )
           }
           // ⚠️ **流内**的安全策略拦截（HTTP 200 + SSE 内嵌 11140 帧）。
           //

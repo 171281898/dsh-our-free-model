@@ -338,12 +338,12 @@ window.__ModuleLoader__.load({
         'star.cta': '点个 Star',
         'star.title': '在 GitHub 上给本仓库点 Star',
         'picks.title': '推荐项目',
-        'picks.sub': '同一作者的两个开源项目：一个把 Agent 装进原生桌面，一个让上百个插件和谐共存。用得上，就顺手点个 Star。',
-        'picks.foot': 'Star 是开源项目唯一的「工资条」——它决定作者还能投入多少时间。两个项目都免费、开源、无广告，点一下就是最实在的支持。',
+        'picks.sub': '同一作者的一组开源项目：把 Agent 装进原生桌面、让上百个插件和谐共存、把视频和设计留在这台机器上。用得上，就顺手点个 Star。',
+        'picks.foot': 'Star 是开源项目唯一的「工资条」——它决定作者还能投入多少时间。这里的项目都免费、开源、无广告，点一下就是最实在的支持。',
         'picks.stars': 'Stars',
         'picks.forks': 'Forks',
         'picks.fork': 'Fork',
-        'picks.totalStars': '两个项目共 {n} 个 Star',
+        'picks.totalStars': '{c} 个推荐项目共 {n} 个 Star',
         'picks.updated': '最近更新',
         'picks.stale': '缓存数据',
         'picks.liveFailed': '暂时读不到 GitHub 数据，数字稍后自动补上——不影响下面的链接。',
@@ -391,6 +391,9 @@ window.__ModuleLoader__.load({
         'chan.meta.accounts': '账号',
         'chan.meta.models': '模型',
         'chan.act.add': '添加账号',
+        'chan.zcode.provider': '登录渠道',
+        'chan.zcode.bigmodel': 'bigmodel.cn',
+        'chan.zcode.zai': 'z.ai 国际版',
         'chan.act.refresh': '续期',
         'chan.act.test': '测试',
         'chan.act.delete': '移除',
@@ -1020,12 +1023,12 @@ window.__ModuleLoader__.load({
         'star.cta': 'Star',
         'star.title': 'Star this repository on GitHub',
         'picks.title': 'Recommended projects',
-        'picks.sub': 'Two open-source projects by the same author: one puts the agent on a native desktop, the other keeps hundreds of plugins living together. If they are useful, a star is the thanks they understand.',
-        'picks.foot': 'A star is the only payslip an open-source project gets — it decides how much more time the author can spend. Both projects are free, open source and ad-free; one click is the most concrete support there is.',
+        'picks.sub': 'A set of open-source projects by the same author: bringing the agent to a native desktop, keeping hundreds of plugins working together, and keeping video and design work on this machine. If they are useful, a star is the thanks they understand.',
+        'picks.foot': 'A star is the only payslip an open-source project gets — it decides how much more time the author can spend. Every project here is free, open source and ad-free; one click is the most concrete support there is.',
         'picks.stars': 'Stars',
         'picks.forks': 'Forks',
         'picks.fork': 'Fork',
-        'picks.totalStars': '{n} stars across both projects',
+        'picks.totalStars': '{n} stars across {c} projects',
         'picks.updated': 'Last push',
         'picks.stale': 'cached',
         'picks.liveFailed': 'GitHub numbers are unreachable right now; they will fill in later — the links below are unaffected.',
@@ -1073,6 +1076,9 @@ window.__ModuleLoader__.load({
         'chan.meta.accounts': 'Accounts',
         'chan.meta.models': 'Models',
         'chan.act.add': 'Add account',
+        'chan.zcode.provider': 'Sign-in route',
+        'chan.zcode.bigmodel': 'bigmodel.cn',
+        'chan.zcode.zai': 'z.ai international',
         'chan.act.refresh': 'Refresh',
         'chan.act.test': 'Test',
         'chan.act.delete': 'Remove',
@@ -3780,7 +3786,7 @@ window.__ModuleLoader__.load({
     // 问题」，动作是「一眼能看到的星按钮」，数字是宿主 /picks 取回的真实 Star /
     // Fork / 最近提交——拿不到就整块不显示，绝不用占位数字凑版面（这块页面的
     // 全部说服力都在数字是真的）。每张卡片的文案按语言直写 t('字面量')，字典
-    // 保持可 grep；两个仓库的地址与「第二个动作」在这里各写一份。
+    // 保持可 grep；各仓库的地址与「第二个动作」在这里各写一份。
     const RECO_LINKS = {
       desktop: { repo: 'https://github.com/Ebony-Vinyl/EAC-Desktop', extra: 'https://github.com/Ebony-Vinyl/EAC-Desktop/releases' },
       pack: { repo: 'https://github.com/Ebony-Vinyl/EAC-Pack', extra: 'https://github.com/Ebony-Vinyl/EAC-Pack#git-安装' },
@@ -3877,10 +3883,9 @@ window.__ModuleLoader__.load({
         const timer = setTimeout(() => { setRetried(true); picks.reload() }, 6000)
         return () => clearTimeout(timer)
       }, [retried, numbers, picks.status, picks.reload])
-      // The two counts the page is asking for, added up — social proof the reader
-      // can check against the cards below, and nothing at all when GitHub has not
-      // answered (an invented total would poison the one claim this page makes).
-      const total = repos.reduce((sum, row) => sum + (typeof row.stars === 'number' ? row.stars : 0), 0)
+      // The project count and star total cover the same successfully read rows.
+      const counted = repos.filter(row => Number.isFinite(row.stars))
+      const total = counted.reduce((sum, row) => sum + row.stars, 0)
       return h('div', { className: 'ofm_page' },
         h('header', { className: 'ofm_hero ofm_glass' },
           h('span', { className: 'ofm_recoglow', 'aria-hidden': 'true' }),
@@ -3889,7 +3894,7 @@ window.__ModuleLoader__.load({
               h('h2', null, t('picks.title')),
               h('p', { className: 'ofm_pagesub' }, t('picks.sub'))),
             h('div', { className: 'ofm_pills' },
-              total > 0 ? h(Pill, { strong: true }, t('picks.totalStars').replace('{n}', grouped(total))) : null,
+              total > 0 ? h(Pill, { strong: true }, t('picks.totalStars').replace('{n}', grouped(total)).replace('{c}', grouped(counted.length))) : null,
               h(StarButton, { t })))),
         h('div', { className: 'ofm_recogrid' },
           h(RecoCard, {
@@ -3992,25 +3997,51 @@ window.__ModuleLoader__.load({
      * explaining itself instead of breaking.
      */
     function useChannelRpc(ctx) {
-      return useMemo(() => {
+      const ctxRef = useRef(ctx)
+      ctxRef.current = ctx
+      const readTransport = useCallback(() => {
+        const current = ctxRef.current
         let connection
-        try { connection = ctx?.connection } catch { connection = undefined }
-        if (connection === undefined && typeof ctx?.get === 'function') {
-          try { connection = ctx.get('connection') } catch { connection = undefined }
+        try { connection = current?.connection } catch { /* service not provided yet */ }
+        if (connection === undefined || connection === null) {
+          try { connection = current?.get?.('connection') } catch { /* service not provided yet */ }
         }
-        const rpc = async (method, payload, timeoutMs = 60_000) => {
-          if (connection?.rpc?.call === undefined) throw new Error('no-connection')
-          const controller = new AbortController()
-          const timer = setTimeout(() => controller.abort(), timeoutMs)
-          try {
-            const result = await connection.rpc.call('/api', 'channel-pack', { method, payload }, controller.signal)
-            if (result?.ok === true) return result.value
-            if (result?.ok === false) throw new Error(result.error?.message ?? result.error?.code ?? 'rpc-failed')
-            return result
-          } finally { clearTimeout(timer) }
+        try {
+          const call = connection?.rpc?.call
+          return typeof call === 'function' ? { connection, call } : null
+        } catch { return null }
+      }, [])
+      const [transport, setTransport] = useState(readTransport)
+      useEffect(() => {
+        let alive = true
+        const check = () => {
+          if (!alive) return
+          const next = readTransport()
+          setTransport(previous => previous?.connection === next?.connection && previous?.call === next?.call ? previous : next)
         }
-        return { available: connection?.rpc?.call !== undefined, rpc }
-      }, [ctx])
+        check()
+        const timer = setInterval(check, 500)
+        return () => { alive = false; clearInterval(timer) }
+      }, [readTransport])
+      // Context wrappers do not invalidate readers; actual transport replacement does.
+      const rpc = useCallback(async (method, payload, timeoutMs = 60_000) => {
+        const latest = readTransport()
+        if (latest === null) throw new Error('no-connection')
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), timeoutMs)
+        try {
+          const result = await latest.call.call(latest.connection.rpc, '/api', 'channel-pack', { method, payload }, controller.signal)
+          if (result?.ok === true) return result.value
+          if (result?.ok === false) throw new Error(result.error?.message ?? result.error?.code ?? 'rpc-failed')
+          return result
+        } finally { clearTimeout(timer) }
+      }, [readTransport, transport])
+      return { available: transport !== null, rpc }
+    }
+
+    const ZCODE_PROVIDER_KEY = 'ofm:zcode:login-provider'
+    function closeLoginPopup(popup) {
+      try { if (popup && !popup.closed) popup.close() } catch { /* best effort */ }
     }
 
     /** Human text for a millisecond timestamp, or the long-lived marker. */
@@ -4038,6 +4069,15 @@ window.__ModuleLoader__.load({
       const balanceGeneration = useRef(0)
       const claimPending = useRef(false)
       const creditCapability = CHANNEL_CREDITS[channel.id]
+      const [zcodeProvider, setZcodeProvider] = useState(() => {
+        try { return window.localStorage?.getItem(ZCODE_PROVIDER_KEY) === 'zai' ? 'zai' : 'bigmodel' } catch { return 'bigmodel' }
+      })
+      const loginAttempt = useRef(null)
+      const chooseZcodeProvider = value => {
+        if (value !== 'bigmodel' && value !== 'zai') return
+        setZcodeProvider(value)
+        try { window.localStorage?.setItem(ZCODE_PROVIDER_KEY, value) } catch { /* preference still applies this session */ }
+      }
       const balanceLabel = creditCapability?.unit === 'tokens' ? t('chan.credits.tokens')
         : creditCapability?.unit === 'dollars' ? t('chan.credits.dollars')
           : creditCapability?.quota ? t('chan.credits.quota') : t('chan.credits.left')
@@ -4139,19 +4179,66 @@ window.__ModuleLoader__.load({
       // the browser flow finishes in the background and `login.poll` sees the
       // credential appear. The placeholder account is real from the first
       // moment, so the card can poll against it.
+      useEffect(() => {
+        if (loginAttempt.current?.cancelled) {
+          loginAttempt.current = null
+          setBusy(value => value === 'add' ? '' : value)
+        }
+        return () => {
+          const attempt = loginAttempt.current
+          if (attempt) { attempt.cancelled = true; closeLoginPopup(attempt.popup) }
+        }
+      }, [channel.id, rpc])
       const startLogin = async () => {
+        if (loginAttempt.current && !loginAttempt.current.cancelled) return
+        const attempt = { popup: null, cancelled: false }
+        loginAttempt.current = attempt
         setBusy('add'); setNotice('')
+        // Reserve inside the click; a delayed RPC would lose transient activation.
         try {
-          const value = await rpc('account.create', { provider: channel.id }, 90_000)
+          attempt.popup = window.open('about:blank', '_blank')
+          if (attempt.popup) attempt.popup.opener = null
+        } catch { closeLoginPopup(attempt.popup); attempt.popup = null }
+        try {
+          const value = await rpc('account.create', {
+            provider: channel.id,
+            ...channel.id === 'zcode' ? { zcodeProvider } : {},
+          }, 90_000)
+          if (attempt.cancelled) return
           const accountId = value?.accountId
           const url = value?.loginUrl
           if (typeof accountId !== 'string' || accountId === '') throw new Error('bad-answer')
           if (typeof url === 'string' && url !== '') {
-            try { window.open(url, '_blank', 'noopener') } catch { /* the modal offers the link too */ }
-          }
+            const target = new URL(url)
+            if (url.length > 2048 || !['http:', 'https:'].includes(target.protocol) || target.username || target.password) throw new Error('bad-login-url')
+            let opened = false
+            try {
+              if (attempt.popup && !attempt.popup.closed) {
+                attempt.popup.location.replace(url)
+                opened = true
+                attempt.popup = null
+              }
+            } catch { /* the host can open it instead */ }
+            closeLoginPopup(attempt.popup); attempt.popup = null
+            if (!opened) {
+              try { opened = (await post('/open-external', { url }, 15_000))?.opened === true } catch { /* manual link remains available */ }
+            }
+            if (attempt.cancelled) return
+            if (!opened) {
+              try { window.open(url, '_blank', 'noopener') } catch { /* the modal offers the link too */ }
+            }
+          } else { closeLoginPopup(attempt.popup); attempt.popup = null }
           setLogin({ accountId, url: typeof url === 'string' ? url : '', startedAt: Date.now() })
           setOpen('accounts')
-        } catch (error) { onError(channel, error) } finally { setBusy('') }
+        } catch (error) {
+          closeLoginPopup(attempt.popup)
+          if (!attempt.cancelled) onError(channel, error)
+        } finally {
+          if (loginAttempt.current === attempt && !attempt.cancelled) {
+            loginAttempt.current = null
+            setBusy('')
+          }
+        }
       }
 
       // Poll the placeholder until its credential lands. Ten minutes matches the
@@ -4260,6 +4347,17 @@ window.__ModuleLoader__.load({
               ? creditCapability.quota ? t('chan.credits.loaded').replace('{count}', String((balances ?? []).filter(row => Number.isFinite(row.balance?.total)).length)) : kilo(balancesTotal)
               : balances === undefined ? '…' : '—')) : null),
         h('div', { className: 'ofm_chanacts' },
+          channel.id === 'zcode' ? h('div', { className: 'ofm_seg', role: 'group', 'aria-label': t('chan.zcode.provider') },
+            h('button', {
+              type: 'button', disabled: busy !== '' || !rpc,
+              'aria-pressed': zcodeProvider === 'bigmodel',
+              onClick: () => chooseZcodeProvider('bigmodel'),
+            }, t('chan.zcode.bigmodel')),
+            h('button', {
+              type: 'button', disabled: busy !== '' || !rpc,
+              'aria-pressed': zcodeProvider === 'zai',
+              onClick: () => chooseZcodeProvider('zai'),
+            }, t('chan.zcode.zai'))) : null,
           h('button', { type: 'button', className: 'ofm_btn', disabled: busy !== '' || !rpc, 'aria-busy': busy === 'add' ? 'true' : undefined, onClick: startLogin }, busy === 'add' ? '…' : t('chan.act.add')),
           accountsCount > 0 ? h('button', {
             type: 'button', className: 'ofm_btn ghost', disabled: busy !== '' || !rpc, 'aria-busy': busy === 'refreshAll' ? 'true' : undefined,
@@ -6436,7 +6534,7 @@ window.__ModuleLoader__.load({
     exports.inject = inject
     exports.name = 'our-free-model'
     // Headless test seams use the same stub React as scripts/client-lint.mjs.
-    exports.__test = { parseSafeHtml, safeUrl, sanitizeStyle, htmlToDom, buildHeatCells, Heatmap, ChannelsPage, UpgradePanel, useEacLogin, EacAuth, PicksPage, RecoCard }
+    exports.__test = { parseSafeHtml, safeUrl, sanitizeStyle, htmlToDom, buildHeatCells, Heatmap, ChannelsPage, UpgradePanel, useEacLogin, EacAuth, PicksPage, RecoCard, DICT, useChannelRpc }
     return module.exports
   },
 })
