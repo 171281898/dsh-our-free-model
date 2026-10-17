@@ -137,7 +137,7 @@ raw 取件失败转 CDN 时复用本次已解析的 SHA；点击升级会重新�
 
 ## 关于源顺序与网络现实
 
-发现源的顺序是 `raw.githubusercontent(main) → jsDelivr(@main) → raw(master)`。
+发现源的顺序是 `raw.githubusercontent(main) → jsDelivr(@main) → gcore jsDelivr(@main) → gh-proxy(main)`。
 新版升级器先固定提交再取件，全部失败时报错并保留现有安装；公告仍使用原有缓存回退。
 以 `src/feed.js` 与 `src/updater.js` 的 `DEFAULT_*_SOURCES` 数组及下载实现为准。
 
@@ -344,7 +344,7 @@ not trigger this fallback. Mutable and custom file sources are not remapped.
 
 ## Source order and network reality
 
-Discovery order is `raw.githubusercontent(main) → jsDelivr(@main) → raw(master)`.
+Discovery order is `raw.githubusercontent(main) → jsDelivr(@main) → gcore jsDelivr(@main) → gh-proxy(main)`.
 The new updater pins a commit before downloading; on failure it reports the
 error and retains the installation. Announcements retain their existing cache
 fallback. Consult the source arrays and download implementation in `src/feed.js`

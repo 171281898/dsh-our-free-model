@@ -29,8 +29,9 @@ const REPO = 'Ebony-Vinyl/dsh-our-free-model'
  * `raw.githubusercontent.com` is first because it is the repository's own bytes,
  * with no third-party cache in front of it. jsDelivr is the fallback for the
  * networks where raw is TLS-interfered (measured: the connection dies with an
- * unverifiable certificate) and the edge serves the same content there; the last
- * entry is that same file under the other default branch name. A minute-
+ * unverifiable certificate) and the edge serves the same content there. The
+ * repository's default branch is `main`; there is no `master` fallback because
+ * GitHub answers that ref with HTTP 422. A minute-
  * resolution cache-buster is appended to jsDelivr URLs at fetch time so an
  * owner's push is never served stale from the CDN (its default cache holds up
  * to 12 hours).
@@ -45,7 +46,6 @@ export const DEFAULT_FEED_SOURCES = [
   // return the same bytes; the cache-buster below keeps a proxy's edge from
   // serving a stale copy.
   `https://gh-proxy.com/https://raw.githubusercontent.com/${REPO}/main/feed/announcements.json`,
-  `https://raw.githubusercontent.com/${REPO}/master/feed/announcements.json`,
 ]
 
 /** jsDelivr's edge caches per full URL; a minute-stamp keeps every poll fresh. */

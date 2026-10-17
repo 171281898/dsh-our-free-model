@@ -61,7 +61,6 @@ export const DEFAULT_MANIFEST_SOURCES = [
   `https://cdn.jsdelivr.net/gh/${REPO}@main/feed/manifest.json`,
   `https://gcore.jsdelivr.net/gh/${REPO}@main/feed/manifest.json`,
   viaRawProxy(`${REPO}/main/feed/manifest.json`),
-  `https://raw.githubusercontent.com/${REPO}/master/feed/manifest.json`,
 ]
 
 /**
