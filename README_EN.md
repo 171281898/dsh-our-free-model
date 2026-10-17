@@ -64,7 +64,7 @@
 - **Works without a browser UI** — only `llm` is a hard dependency, so the plugin activates on a headless composition such as dsh-tui and still serves its models. The dashboard half lives on its own fiber and mounts itself when `webServer` appears, so a composition that loads plugins before its HTTP server exists still gets its settings page. Availability probing and the background loops run on plain timers.
 - **Usage dashboard, local only** — token heatmap, cumulative curve by total or per model, output speed and time-to-first-token sampled per call. Nothing is uploaded.
 - **OpenAI-compatible forward port** — expose these models to any other local tool through a base URL plus a generated API key.
-- **EAC lane (desktop hosts)** — a co-paid lane that unlocks in the DeepSeek Harness desktop app and DSHEAC AIO, with models prefixed `EAC`; its credential is sealed and guarded by a host-fingerprint gate, and turns are checked server-side against a GitHub authorization (sign in and star the repository). It does not exist in the CLI or any other host.
+- **EAC lane** — a co-paid lane for DSHEAC AIO and kernel-declared `desktop`, `tauri`, `web`, or `web-desktop` profiles, with models prefixed `EAC`. Its credential is sealed; host admission and server-side GitHub authorization (sign in and star the repository) remain separate requirements. Command-line profile arguments alone do not grant access.
 - **The Kilo channel (keyless free pool)** — the free model pool of Kilo AI's public gateway (the listing's `isFree` slice, fetched live, including the `kilo-auto/free` auto-router) is built in; no account, no key. Model cards carry a Kilo badge. Thinking effort works like the EAC lane: the model's own level menu (Off / Low / Medium / High, default High), sent for real through the gateway's unified `reasoning` parameter — Off was verified family by family to zero out thinking (nemotron, ling, dots, poolside, apodex, cohere); the stepfun and liquid endpoints refuse to disable thinking (HTTP 400) and the two auto-routers ignore it, so those models' menus omit the Off rung. The pool is the upstream's free offer, and its model cards state that prompts may be logged to improve their services — never send sensitive content; see the [Disclaimer](#disclaimer).
 - **The aggregate lane — your own key, 75 providers** — a new settings tab brings third-party endpoints into the same roster: the registry ships 75 providers (NVIDIA NIM, OpenRouter, Groq, Cerebras, SambaNova, Gemini, DeepSeek, Mistral, Together, Fireworks, SiliconFlow, Nebius, Chutes, Hugging Face, Cloudflare, Z.ai, Kimi, MiniMax, QwenCloud/Alibaba, Bedrock, Vertex, Vercel AI Gateway, Azure OpenAI, plus the no-account Ollama, LM Studio and llama.cpp). Configuring a provider (a key for the ones that need one; the local no-account ones need none) turns each of its models into a `provider/model` row in the picker and on the local gateway. Keys stay in the local `0600` settings.json; the API echoes only `hasKey` and a `…abcd` fingerprint. Per provider: enable/disable, Test (a *listing* probe — it verifies a key without spending a generation), Discover, a base-URL override, a model-list override and Remove. OAuth/ADC providers are listed but marked not drivable here. OpenCode's keyless free pool is deliberately **not** a registry row: it requires a per-request minted session id, the v2 client User-Agent and a set of official tool declarations, which this lane's generic transport has nowhere to carry — listing it would only add a picker row that can never answer, and those ten models are served natively by the plugin's own free lane.
 - **Token savers** — three things: tool-output compaction (RTK) rewrites `tool_result` content in place before the request is sent (git diff / status / log, grep, find, ls, tree, build logs, numbered file dumps, search listings, duplicate log lines) — measured live, a 40 KB `git diff` lost 90% of its bytes and the model still answered about it; prompt shaping offers the caveman and ponytail families, every level off by default; and five local answers that never call a provider. The settings page reports bytes before/after, percent saved, blocks compacted and calls measured, from the same stats rows the usage charts read.
@@ -100,6 +100,19 @@ the picker by itself as soon as a probe gets through.
 
 ## Install
 
+> **⚠️ Do not install this plugin from npm.**
+>
+> The `dsh-our-free-model` package on npm **is not published by this repository.**
+> It is a third-party repackaging whose contents do not match this tree:
+> `index.js` and `client.js` were modified, and it ships a
+> `src/channel-visibility.js` that has never existed here. Installing it gets you
+> a build this project did not review, and you lose the signed-manifest
+> verification and in-app upgrades that this repository provides.
+>
+> Install only the ways documented below: a release package from this repository,
+> or a local source directory. For any same-named package from another channel,
+> this repository is the source of truth.
+
 ### Command line (plain `dsh web`)
 
 ```bash
@@ -110,24 +123,26 @@ Restart the app once. `--profile` should name the profile you actually use.
 
 ### DSHEAC AIO / desktop builds — read this first
 
-The desktop host runs a profile gate before it starts the web app. Its scanner
-accepts **only** the symlinks dsh generates itself under
-`.dsh-module-fallback`; **any other symlink or directory junction anywhere in the
-profile makes the app refuse to boot**, reporting:
+Some DSHEAC AIO and older desktop packs run a profile gate before starting the
+web app and restrict symlinks or directory junctions. A host with that check may report:
 
 ```text
 PROFILE_UPGRADE_REQUIRED: offline dependency migration is not yet available
 ```
 
-So on desktop builds: **do not install with a `link:` dependency and do not
-create a junction.** Use the in-app plugin manager, or place a real directory.
+When this gate applies, avoid `link:` dependencies and junctions. Use the in-app
+plugin manager or the local tarball workflow below. Follow the actual host's logs
+and installation contract rather than assuming every desktop shell shares this gate.
 
-To install manually as a real directory, in `<DSH_HOME>/profiles/<profile>/`:
+To install manually as a real directory, use a trusted local tarball:
 
-1. Copy the published files into `node_modules/dsh-our-free-model/`
-   (`index.js`, `client.js`, `adapter/`, `src/`, `locale/`, `icon.svg`, `cordis.patch.yml`, `package.json` — do not skip `adapter/`: `index.js` imports it on the first line)
-2. Add `"dsh-our-free-model": "2.3.0"` to `dependencies` — that number **tracks the repo's `package.json` `version`** (bump it together; 2.3.0 as of this line), never copy a stale one, and a version spec, not `link:`
-3. Append `"dsh-our-free-model"` to `dsh.profile.bundles`
+1. Create `<DSH_HOME>/profiles/<profile>/vendor/`. From the reviewed repository, run `npm pack --ignore-scripts --pack-destination "<DSH_HOME>/profiles/<profile>/vendor"`, or place an official same-version release tarball from this repository there. Local packing does not publish to npm.
+2. Add `"dsh-our-free-model": "file:./vendor/dsh-our-free-model-2.5.1.tgz"` to the profile's `package.json` dependencies, then use the host's installation flow to resolve it. Keep the filename version aligned with this repository's `package.json`; do not substitute a same-named npm registry version.
+3. Append `"dsh-our-free-model"` to `dsh.profile.bundles`.
+
+When the package manager owns the installed bytes, set `distribution: 'managed'` in the bundle config or plugin `settings.json`. The package manager then handles updates; in-app upgrades, announcement polling and hot reload stand down while model access remains available. For later updates, replace the trusted tarball and update its dependency path so the old lockfile cannot restore an older copy.
+
+If copying release files manually, copy the entire package, including `adapter/`, `src/`, `locale/`, and `vendor/channel-pack/`'s `pack.js`, WASM, LICENSE and NOTICE. Copying only entry scripts leaves channel loading incomplete.
 
 > Do **not** also add an entry to `cordis.patch.yml`. A bundle referenced from
 > `dsh.profile.bundles` already applies its own patch layer, and registering it

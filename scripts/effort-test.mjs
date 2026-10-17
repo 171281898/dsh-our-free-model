@@ -75,6 +75,19 @@ check('no rung on a menu model means the default rung', resolveLevel(undefined, 
 check('a rung on a model with no menu is not applied', resolveLevel('light', UNION), undefined)
 check('a stale rung name still resolves to the default', resolveLevel('maximum', MIMO)?.id, 'balanced')
 
+check('legacy low and off spellings select the smallest budget',
+  ['minimal', 'low', 'none', 'off', 'disabled'].map(level => budgetFor(level, MIMO, undefined, DEFAULTS)),
+  [4096, 4096, 4096, 4096, 4096])
+check('legacy medium selects balanced', resolveLevel('medium', MIMO)?.id, 'balanced')
+check('legacy high spellings select the full budget',
+  ['high', 'xhigh', 'max'].map(level => budgetFor(level, MIMO, undefined, DEFAULTS)),
+  [32768, 32768, 32768])
+check('legacy aliases ignore surrounding whitespace and case', resolveLevel('  HIGH ', MIMO)?.id, 'deep')
+check('invalid legacy values keep the default',
+  [null, 42, {}, '', 'turbo'].map(level => resolveLevel(level, MIMO)?.id),
+  ['balanced', 'balanced', 'balanced', 'balanced', 'balanced'])
+check('aliases do not invent a menu for a model without one', resolveLevel('high', UNION), undefined)
+
 // ── what goes on the wire, through the real adapter ─────────────────────────
 const entry = MIMO
 const records = []
@@ -94,6 +107,13 @@ async function sentBudget(options) {
 check('balanced sends the doubled rung ceiling', (await sentBudget({ reasoningEffort: 'balanced' })).max_tokens, 16384)
 check('light sends its doubled rung', (await sentBudget({ reasoningEffort: 'light' })).max_tokens, 4096)
 check('deep sends the whole window', (await sentBudget({ reasoningEffort: 'deep' })).max_tokens, 32768)
+check('legacy aliases reach the actual request budget',
+  [(await sentBudget({ reasoningEffort: 'high' })).max_tokens,
+    (await sentBudget({ reasoningEffort: 'medium' })).max_tokens,
+    (await sentBudget({ reasoningEffort: 'minimal' })).max_tokens],
+  [32768, 16384, 4096])
+await sentBudget({ reasoningEffort: 'high' })
+check('the recorded legacy alias is the rung that ran', records.at(-1).effort, 'deep')
 check('a caller that names no rung gets the default one, not an unbounded call',
   (await sentBudget({})).max_tokens, 16384)
 check('the recorded effort is the rung that ran', records.at(-1).effort, 'balanced')
@@ -115,6 +135,13 @@ check('and the same for glm', GLM.contextWindow, 1048576)
 check('deepseek declares its own level menu', DS.efforts, ['disabled', 'low', 'high', 'max'])
 check('glm declares only the levels it honours — no Off rung', GLM.efforts, ['low', 'high', 'max'])
 check('glm therefore cannot be told to stop thinking', GLM.canDisableThinking, false)
+check('declared menus retain their literal level ids',
+  ['high', 'max', 'low', 'disabled'].map(level => resolveLevel(level, DS)?.id),
+  ['high', 'max', 'low', 'disabled'])
+check('legacy aliases do not change declared-menu fallback',
+  ['light', 'deep', 'none', 'off', '  MAX '].map(level => resolveLevel(level, DS)?.id),
+  ['high', 'high', 'high', 'high', 'high'])
+check('a declared menu without Off keeps its own default', resolveLevel('disabled', GLM)?.id, GLM.effortDefault)
 check('a declared level goes on the wire as reasoning_effort',
   effortPatchFor('max', DS), { reasoning_effort: 'max' })
 check('the off rung maps to the wire value that switches thinking off',
@@ -139,6 +166,8 @@ check('and with no fallback it spends the whole measured capacity', budgetFor('l
   }
   check('the selected level rides the request body', (await sent({ reasoningEffort: 'high' })).reasoning_effort, 'high')
   check('and the recorded effort is that same level', records2.at(-1).effort, 'high')
+  check('a declared max stays max on the wire', (await sent({ reasoningEffort: 'max' })).reasoning_effort, 'max')
+  check('and is recorded without legacy normalization', records2.at(-1).effort, 'max')
   check('the off level sends the wire value, not the word disabled',
     (await sent({ reasoningEffort: 'disabled' })).reasoning_effort, 'none')
 }

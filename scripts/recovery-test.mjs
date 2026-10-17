@@ -41,8 +41,20 @@ const server = http.createServer((req, res) => {
     res.on('close', release)
     const answer = scenario.answers[ordinal] ?? { status: 500, body: '{"error":{"message":"unexpected extra request"}}' }
     if (answer.socket) { req.destroy(); res.destroy(); return }
+    if (answer.holdHeaders) return
     res.writeHead(answer.status ?? 200, { 'content-type': answer.status ? 'application/json' : 'text/event-stream' })
     const send = () => {
+      if (answer.pieces) {
+        for (const [index, piece] of answer.pieces.entries()) {
+          const timer = setTimeout(() => {
+            if (res.destroyed) return
+            res.write(piece)
+            if (index === answer.pieces.length - 1 && !answer.hold) res.end()
+          }, index * answer.intervalMs)
+          scenario.timers.push(timer)
+        }
+        return
+      }
       if (answer.hold) { res.write(answer.body ?? ': waiting\n\n'); return }
       res.end(answer.body ?? '')
     }
@@ -59,6 +71,7 @@ process.env.OUR_FREE_MODEL_BASE = `http://127.0.0.1:${server.address().port}`
 const { FreeModelAdapter, ROUTE_MAIN } = await import('../src/adapter.js')
 const { buildCatalog } = await import('../src/catalog.js')
 const { wireFor } = await import('../src/upstream.js')
+const { recoveryPolicy } = await import('../src/recovery.js')
 
 const MODELS = [
   'mimo-v2.6-flash-free', 'mimo-v2.5-free', 'muse-spark-1.3-contributor-free',
@@ -124,20 +137,25 @@ function terminal(wire, { reason = 'stop', input = 11, output = 7, usage = true 
   })
 }
 
-function setup(model, answers, { settings = {}, options = {}, entryOverrides = {}, onWarn, hideModel = false } = {}) {
+function setup(model, answers, { settings = {}, options = {}, entryOverrides = {}, onWarn, hideModel = false, combo = false } = {}) {
   assert.ok(CATALOG.some(entry => entry.id === model), `目录缺少 ${model}`)
   const scenario = { answers, requests: [], responses: new Set(), timers: [], closed: 0 }
   activeCase = scenario
   const records = []
   const turns = []
   const controller = new AbortController()
+  const catalog = CATALOG.map(entry => entry.id === model ? { ...entry, ...entryOverrides } : entry)
+  const comboEntry = { id: 'combo:progress-deadline', name: 'Progress deadline', channel: 'combo',
+    combo: [model, 'mimo-v2.6-flash-free'], maxOutput: 32768, contextWindow: 131072 }
+  if (combo) catalog.push(comboEntry)
   const adapter = new FreeModelAdapter({
-    state: () => ({ catalog: hideModel ? [] : CATALOG.map(entry => entry.id === model ? { ...entry, ...entryOverrides } : entry), membership: { [ROUTE_MAIN]: MODELS }, settings: { enabled: true, defaultMaxTokens: 32768, ...settings }, attributionUserAgent: 'offline-recovery-test' }),
+    state: () => ({ catalog: hideModel ? [] : catalog, membership: { [ROUTE_MAIN]: MODELS }, settings: { enabled: true, defaultMaxTokens: 32768, ...settings }, attributionUserAgent: 'offline-recovery-test' }),
     recordUsage: row => records.push(row),
     recordTurn: row => turns.push(row),
+    sealedCredential: () => ({ mode: 'direct', base: process.env.OUR_FREE_MODEL_BASE, apiKey: 'fixture' }),
     warn: message => onWarn?.(message, controller),
   })
-  const stream = adapter.stream({ provider: ROUTE_MAIN, model, reasoningEffort: 'deep', maxTokens: 4096,
+  const stream = adapter.stream({ provider: ROUTE_MAIN, model: combo ? comboEntry.id : model, reasoningEffort: 'deep', maxTokens: 4096,
     sessionId: `recovery:${model}`, messages: [{ role: 'user', content: [{ type: 'text', text: TASK }] }],
     tools: [TOOL], signal: controller.signal, ...options })
   return { scenario, records, turns, controller, adapter, stream }
@@ -390,6 +408,80 @@ try {
     ])
     checkCut(run)
     assert.ok(run.records.every(row => row.recovered !== true))
+  })
+
+  for (const model of ['mimo-v2.6-flash-free', 'union-alpha', 'muse-spark-1.3-contributor-free']) {
+    const wire = wireFor(model)
+    await check(`${wire}: partial answer followed by an explicit server error cannot replay the turn`, async () => {
+      const error = { type: 'server_error', message: 'provider failed' }
+      const event = wire === 'responses' ? { type: 'response.failed', response: { status: 'failed', error } } : { type: 'error', error }
+      const run = await drive(model, [{ body: deltas(wire, { text: ANSWER }) + sse(event) }])
+      checkCut(run, 1)
+    })
+  }
+
+  await check('EAC no-progress limit defaults to 60 seconds even when recovery is disabled', () => {
+    for (const value of [undefined, false, { enabled: false }, { progressTimeoutMs: 120000 }]) {
+      assert.equal(recoveryPolicy(value).progressTimeoutMs, 60000)
+    }
+  })
+
+  for (const [label, answer] of [
+    ['held headers', { holdHeaders: true }],
+    ['heartbeats', { pieces: Array(8).fill(': heartbeat\n\n'), intervalMs: 80, hold: true }],
+    ['empty deltas and usage', { pieces: Array(8).fill(sse({ choices: [{ delta: { content: '' } }], usage: { prompt_tokens: 1, completion_tokens: 0 } })), intervalMs: 80, hold: true }],
+  ]) await check(`EAC ${label} cannot extend the no-progress deadline`, async () => {
+    const run = await drive('union-alpha', [answer], { entryOverrides: { channel: 'eac' }, settings: { streamRecovery: { enabled: false, progressTimeoutMs: 200 } } })
+    checkFinal(run, 'error', 1)
+    assert.equal(run.finish.failure.code, 'NO_PROGRESS')
+    assert.match(run.finish.failure.message, /EAC.*0\.2s.*stopped.*will not be retried automatically/)
+    assert.equal(run.adapter.providerRetryPolicy().retryableCodes.includes('NO_PROGRESS'), false)
+    assert.ok(run.elapsedMs < 2000)
+  })
+
+  for (const kind of ['text', 'reasoning', 'tool']) await check(`EAC actual ${kind} progress keeps a longer stream alive`, async () => {
+    const pieces = Array.from({ length: 7 }, (_, index) => kind === 'tool'
+      ? deltas('chat', { ...(index === 0 ? { toolName: 'test_tool' } : {}), toolArgs: index === 0 ? '{"x":"' : index === 6 ? '"}' : 'x' })
+      : deltas('chat', { [kind]: 'progress' }))
+    pieces.push(deltas('chat', { text: ANSWER }) + terminal('chat'))
+    const run = await drive('union-alpha', [{ pieces, intervalMs: 80 }], { entryOverrides: { channel: 'eac' }, settings: { streamRecovery: { progressTimeoutMs: 200 } } })
+    assert.equal(run.scenario.requests.length, 1)
+    assert.notEqual(run.finish.kind, 'error')
+    assert.ok(run.elapsedMs > 200)
+  })
+
+  await check('EAC stops after partial text when only heartbeats follow', async () => {
+    const run = await drive('union-alpha', [{ pieces: [deltas('chat', { text: ANSWER }), ...Array(8).fill(': heartbeat\n\n')], intervalMs: 80, hold: true }], { entryOverrides: { channel: 'eac' }, settings: { streamRecovery: { progressTimeoutMs: 200 } } })
+    checkFinal(run, 'error', 1)
+    assert.equal(run.finish.failure.code, 'NO_PROGRESS')
+    assert.ok(run.chunks.some(chunk => chunk.type === 'text-delta' && chunk.text === ANSWER))
+  })
+
+  await check('EAC no-progress failure stops a combo without advancing or continuing', async () => {
+    const run = await drive('union-alpha', [
+      { pieces: Array(8).fill(': heartbeat\n\n'), intervalMs: 80, hold: true },
+      { body: deltas('chat', { text: ANSWER }) + terminal('chat') },
+    ], { combo: true, entryOverrides: { channel: 'eac' }, settings: { streamRecovery: { enabled: false, progressTimeoutMs: 200 } } })
+    checkFinal(run, 'error', 1)
+    assert.equal(run.finish.failure.code, 'NO_PROGRESS')
+    assert.ok(run.chunks.every(chunk => chunk.type !== 'text-delta'))
+  })
+
+  await check('caller cancellation stops a combo before its next candidate', async () => {
+    const run = await drive('union-alpha', [
+      { hold: true },
+      { body: deltas('chat', { text: ANSWER }) + terminal('chat') },
+    ], { combo: true, entryOverrides: { channel: 'eac' }, options: { signal: AbortSignal.timeout(100) },
+      settings: { streamRecovery: { enabled: false, progressTimeoutMs: 500 } } })
+    checkFinal(run, 'aborted', 1)
+    assert.equal(run.finish.failure.code, 'ABORTED')
+  })
+
+  await check('EAC server errors retain failure and do not replay the native turn', async () => {
+    const run = await drive('union-alpha', [{ status: 500, body: JSON.stringify({ error: { type: 'server_error', message: 'fixture failure' } }) }], { entryOverrides: { channel: 'eac' } })
+    checkFinal(run, 'error', 1)
+    assert.equal(run.finish.failure.code, 'EAC_UPSTREAM_FAILED')
+    assert.equal(run.adapter.providerRetryPolicy().retryableCodes.includes(run.finish.failure.code), false)
   })
 
   for (const phase of ['首段', '续写段']) {

@@ -142,9 +142,11 @@ export function serializeMessages(messages: readonly { role: string; content: un
           typeof block === 'object' && block !== null && (block as { type?: unknown }).type === 'reasoning')
         .map((block) => String(block.text))
         .join('')
+      const text = contentToText(content)
+      if (text.trim().length === 0 && toolCalls.length === 0) continue
       wire.push({
         role: 'assistant',
-        content: contentToText(content),
+        content: text,
         // 后端（deepseek-v4-flash/pro）校验要求 assistant 消息必须包含
         // reasoning_content 字段：历史里的推理块在上一轮被持久化，回传时
         // 若缺失该字段会直接 400（"Missing `reasoning_content` field"）。
@@ -167,7 +169,7 @@ export function serializeMessages(messages: readonly { role: string; content: un
     // 字符串时直接返回，但这里不能用 `content`（非数组时为 []）——否则
     // 字符串 user 消息会被序列化成空串，模型看不到任务指令。
     const text = contentToText(message.content)
-    if (text.length > 0 || toolResults.length === 0) wire.push({ role: 'user', content: text })
+    if (text.trim().length > 0) wire.push({ role: 'user', content: text })
     for (const result of toolResults) {
       // 丢弃孤儿工具结果：没有对应 tool_call 其结果同样会让后端 400。
       if (!keepResultIds.has(String(result.toolCallId))) continue
@@ -1467,6 +1469,7 @@ export class CodeArtsAdapter extends LlmAdapter {
      * 就不发任何 chunk（与「空名字 tool_call」同型修法）。
      */
     const suppressor = createBlankReasoningSuppressor()
+    const proseSuppressor = createBlankReasoningSuppressor()
     // DSML 提取器：从 delta.content 中识别模型以原生 DSML XML 风格
     // 写入的工具调用（deepseek-v4 等模型在工具模式不匹配时会直接
     // 输出 `<｜DSML｜tool_calls>...`），解析为结构化 tool-call，
@@ -1488,7 +1491,8 @@ export class CodeArtsAdapter extends LlmAdapter {
       reasoning: string,
       dsmlCalls: Array<{ name: string; arguments: string }>,
     ): AsyncIterable<StreamChunk> {
-      if (text.length > 0) {
+      const textDelta = text.length > 0 ? proseSuppressor.feed(text) : undefined
+      if (textDelta !== undefined) {
         let block = blocks.find(candidate => candidate.kind === 'text')
         if (block === undefined) {
           block = { index: nextIndex++, kind: 'text', text: '' }
@@ -1498,11 +1502,11 @@ export class CodeArtsAdapter extends LlmAdapter {
         // 正文死循环守卫（见 `proseLoopGuard` 注释）。命中后只停止累积与发射，
         // 绝不 `reader.cancel()`、绝不改 finish reason。
         if (proseLoopGuard !== undefined) {
-          if (proseLoopGuard.observe(text)) proseLoopDetected = true
+          if (proseLoopGuard.observe(textDelta)) proseLoopDetected = true
         }
         if (!proseLoopDetected) {
-          block.text += text
-          yield { type: 'text-delta', index: block.index, text }
+          block.text += textDelta
+          yield { type: 'text-delta', index: block.index, text: textDelta }
         }
       }
       if (reasoning.length > 0) {
@@ -1913,16 +1917,7 @@ export class CodeArtsAdapter extends LlmAdapter {
      * 「零块响应」误判成「有块」，于是静默结束的缺陷原样保留。
      *
      * 故此处**在每个 `block-end` 的发射点自增**，与下面三段发射逻辑逐条对齐。
-     * 本适配器有**两个**容易算错的地方：
-     *
-     * 1. **正文块的条件含 `visible` 回退**：判据是
-     *    `textBlock !== undefined || visible !== ''`（不是只看 `textBlock`）。
-     *    `visible` 在「正文为空且无工具调用」时用推理文本填充 —— 此时
-     *    `textBlock` 可能是 `undefined`（正文一个 delta 都没收到），
-     *    但块**确实会发出**。只数 `textBlock` 会漏掉它、把一个非空响应
-     *    误判成零块。
-     * 2. **reasoning 块是双层条件**：外层 `trim() !== ''`、内层
-     *    `reasoningText !== ''`。只有两层都过才真的发 `block-end`。
+     * 正文按 visible 判空，包含推理文本回填；仅存在 textBlock 不代表有正文。
      */
     let blockCount = 0
     for (const index of toolOrder) {
@@ -1949,17 +1944,13 @@ export class CodeArtsAdapter extends LlmAdapter {
         },
       }
     }
-    // ⚠️ 计数条件必须与上面的**发射**条件逐字一致（含 `|| visible !== ''`）：
-    // `visible` 回退会用推理文本回填正文，只数 `textBlock` 会把「有正文」误判成
-    // 零块、进而错报 EMPTY_RESPONSE。
-    //
-    // 就当前实现而言，`|| visible !== ''` 这一半在**计数**上是冗余的防御
-    // （`visible !== ''` 蕴含 reasoning 那块也非空，下一段的计数必命中，
-    // 故块数不会因此为 0）—— 已用变异测试证实。但在**发射**上它是必需的
-    // （去掉它会让 `llm-adapter.spec.ts` 的 visible 回退用例失败）。
-    if (textBlock !== undefined || visible !== '') {
+    if (visible.trim() !== '') {
       blockCount += 1
-      yield { type: 'block-end', index: textBlock?.index ?? nextIndex, block: { type: 'text', text: visible } }
+      const index = textBlock?.index ?? nextIndex++
+      if (textBlock === undefined) yield { type: 'block-start', index, blockType: 'text' }
+      yield { type: 'block-end', index, block: { type: 'text', text: visible } }
+    } else if (textBlock !== undefined) {
+      yield { type: 'block-end', index: textBlock.index, block: { type: 'text', text: '' } }
     }
     // ⚠️ 判据收紧为 `trim() !== ''`：纯空白思考不得被算作「有 reasoning 产出」。
     // 文本改用上面的 `reasoningText`（源自 `suppressor.text()`，已应用 cutAt

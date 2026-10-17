@@ -38,7 +38,8 @@
 改完代码后——
 
 ```bash
-# 1. 修改 package.json 的 version 与 feed/announcements.json（版本说明）
+# 1. 修改 package.json 的 version、两份 README 的本地 tarball 安装版本号
+#    （catalog 套件校验文件名版本）与 feed/announcements.json（版本说明）
 # 2. 重新生成清单（把每个发布文件的字节数与 SHA-256 写进 feed/manifest.json；
 #    同一份文件清单也会写进 catalog/integrity.json，供生态目录审计用）
 node scripts/build-manifest.mjs --key /安全目录/既有发布私钥.pem

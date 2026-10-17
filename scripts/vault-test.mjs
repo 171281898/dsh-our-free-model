@@ -165,6 +165,10 @@ const { createGatewayServer, resetAnalytics, poolProbe } = await import('../work
   check('the gate refuses one Tauri signal alone (home path only)', partialAio, null)
   const bareHarness = detectSealedHost({ env: {}, profileName: 'desktop' })
   check('the gate admits the desktop profile name alone (kernel-authoritative, Electron scrubs the env marker)', bareHarness, 'harness')
+  check('the kernel-provided DSH Tauri profile is a desktop host (#267)', detectSealedHost({ env: {}, profileName: 'tauri' }), 'harness')
+  check('a Tauri command line without kernel profile context is still refused', detectSealedHost({
+    env: { DSH_HOME: 'D:/dsh' }, execPath: 'D:/node.exe', argv: ['node.exe', '--profile', 'tauri'],
+  }), null)
   const aio = detectSealedHost({
     env: { DSH_HOME: 'C:/Users/u/AppData/Roaming/com.deepseek.dsh.desktop.aio/releases/6.9.3/dsh-home' },
     execPath: 'D:/DSHEAC AIO/resources/node/node.exe',
@@ -960,6 +964,22 @@ const { createGatewayServer, resetAnalytics, poolProbe } = await import('../work
     } finally {
       restore()
     }
+  }
+
+  {
+    const { ctx, api, restore } = await bootWith({ profileName: 'tauri' })
+    try {
+      const adapter = ctx.__captured.adapters[0]?.adapter
+      await until(async () => (await adapter.listModels(ROUTE_MAIN)).some(model => model.id === 'deepseek-ai/deepseek-v4.1-flash'), {
+        what: 'the sealed roster on a DSH Tauri host', timeoutMs: 10000,
+      })
+      const summary = await callRoute(api(), 'GET', '/api/our-free-model/summary')
+      check('a DSH Tauri boot lists the sealed models and opens the lane (#267)', [
+        (summary.json.catalog ?? []).some(entry => entry.id === 'moonshotai/kimi-k3'), summary.json.laneAvailable,
+      ], [true, true])
+      const poolRow = await callRoute(api(), 'GET', '/api/our-free-model/pool')
+      check('the pool route answers on a DSH Tauri host', poolRow.json?.ok, true)
+    } finally { restore() }
   }
 
   {

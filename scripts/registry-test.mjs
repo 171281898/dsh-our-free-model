@@ -5,7 +5,8 @@
  * a record that loses a field (or a whole provider) degrades the picker without
  * erroring, and a composite id that stops round-tripping breaks routing only at
  * the moment a request is sent. So the checks below are shape, uniqueness,
- * round-trip and exact-count assertions — no network, no fixtures.
+ * round-trip and exact-count assertions. Transport regressions use a local
+ * HTTP receiver; no external provider or credential is needed.
  *
  * The three wire formats are pinned to their real suffixes here because that is
  * the contract the aggregate lane sends on: openai-chat -> /chat/completions,
@@ -16,7 +17,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import assert from 'node:assert/strict'
+import http from 'node:http'
 import { fileURLToPath } from 'node:url'
+import { postAggregateStreamed } from '../src/aggregate.js'
 import {
   PROVIDERS,
   PROVIDER_IDS,
@@ -332,6 +335,86 @@ check('filters combine, and the returned rows are the frozen shared records', ()
   assert.equal(rows[0], getProvider(rows[0].id))
   assert.throws(() => { rows[0].notes = 'mutated' }, TypeError)
 })
+
+const received = []
+const receiver = http.createServer((req, res) => {
+  const chunks = []
+  req.on('data', chunk => chunks.push(chunk))
+  req.on('end', () => {
+    const raw = Buffer.concat(chunks).toString('utf8')
+    received.push({ path: req.url, raw, body: JSON.parse(raw) })
+    res.writeHead(200, { 'content-type': 'text/event-stream' })
+    res.end('data: [DONE]\n\n')
+  })
+})
+try {
+  await new Promise((resolve, reject) => {
+    receiver.once('error', reject)
+    receiver.listen(0, '127.0.0.1', resolve)
+  })
+  const baseUrl = `http://127.0.0.1:${receiver.address().port}/v1`
+  const cases = [
+    ['open_router', 'google/gemma-4-31b-it:free', '/v1/chat/completions'],
+    ['openai_api', 'gpt-5.5', '/v1/responses'],
+    ['anthropic', 'claude-sonnet-4-20250514', '/v1/messages'],
+  ]
+  for (const [providerId, modelId, expectedPath] of cases) {
+    const prompt = [{ role: 'user', content: 'local routing audit' }]
+    const body = {
+      model: providerModelId(providerId, modelId),
+      ...(providerId === 'openai_api' ? { input: prompt, max_output_tokens: 64 } : { messages: prompt, max_tokens: 64 }),
+    }
+    for (const encoding of ['object', 'json']) {
+      const input = encoding === 'json' ? JSON.stringify({ ...body, stream: false }) : body
+      const original = structuredClone(input)
+      try {
+        await postAggregateStreamed({
+          config: { providers: { [providerId]: { enabled: true, apiKey: 'synthetic-local-key', baseUrl } } },
+          providerId, modelId, body: input, timeoutMs: 3000, onData: () => {},
+        })
+        check(`aggregate transport sends the bare model id for ${providerId}, ${encoding} (#323)`, () => {
+          const actual = received.at(-1)
+          assert.equal(actual.path, expectedPath)
+          assert.deepEqual(actual.body, { ...body, model: modelId, stream: true })
+          assert.deepEqual(input, original, 'the caller body stays unchanged')
+        })
+      } catch (error) {
+        failures++
+        console.error(`FAIL  aggregate transport for ${providerId}, ${encoding} — ${error.message}`)
+      }
+    }
+  }
+  const compatibilityBody = { model: 'google/gemma-4-31b-it:free', messages: [{ role: 'user', content: 'local audit' }], stream: false }
+  for (const body of [compatibilityBody, JSON.stringify(compatibilityBody, null, 2)]) {
+    await postAggregateStreamed({
+      config: { providers: { open_router: { enabled: true, apiKey: 'synthetic-local-key', baseUrl } } },
+      providerId: 'open_router', body, timeoutMs: 3000, onData: () => {},
+    })
+    check(`omitting modelId preserves the ${typeof body === 'string' ? 'raw JSON' : 'object'} body contract`, () => {
+      if (typeof body === 'string') assert.equal(received.at(-1).raw, body)
+      else assert.deepEqual(received.at(-1).body, { ...body, stream: true })
+      assert.equal(compatibilityBody.stream, false, 'the original object is not mutated')
+    })
+  }
+  for (const body of ['{broken', 'null', '[]', '"text"']) {
+    const before = received.length
+    let failure
+    try {
+      await postAggregateStreamed({
+        config: { providers: { open_router: { enabled: true, apiKey: 'synthetic-local-key', baseUrl } } },
+        providerId: 'open_router', modelId: 'google/gemma-4-31b-it:free', body,
+        timeoutMs: 3000, onData: () => {},
+      })
+    } catch (error) { failure = error }
+    check(`a routed serialized body must be a JSON object: ${body}`, () => {
+      assert.equal(failure?.code, 'CLIENT_ERROR')
+      assert.equal(received.length, before, 'invalid JSON must not reach the provider')
+    })
+  }
+} finally {
+  receiver.closeAllConnections()
+  await new Promise(resolve => receiver.close(resolve))
+}
 
 if (failures > 0) console.error(`registry-test: ${failures} failure(s)`)
 else console.log(`registry-test: ${PROVIDERS.length} providers, ${allModels.length} model ids, every wire path resolves`)

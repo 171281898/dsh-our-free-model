@@ -30,6 +30,7 @@ import { toToolDefs } from '../src/messages.js'
 import { readStream } from '../src/stream.js'
 import { applyFingerprint } from '../src/upstream.js'
 import { fromOpenAiMessages } from '../index.js'
+import { publicModelRows } from '../src/core/completion.js'
 import { until } from './lib/fake-kernel.mjs'
 
 let failures = 0
@@ -114,6 +115,86 @@ function sseFrames(body) {
 
 const toolCallDeltas = body => sseFrames(body)
   .flatMap(frame => frame.choices?.[0]?.delta?.tool_calls ?? [])
+
+for (const endpoint of ['/v1/chat/completions', '/v1/responses', '/v1/messages']) {
+  await checkAsync(endpoint + ' preserves composite and virtual model identities (#323, #379)', async () => {
+    const seen = []
+    const base = await serve({
+      complete: async (request, onChunk) => {
+        seen.push(request)
+        onChunk?.({ type: 'text-delta', index: 0, text: 'local answer' })
+        onChunk?.({ type: 'finish', reason: { kind: 'stop' } })
+        return { text: 'local answer', toolCalls: [] }
+      },
+    })
+    for (const model of ['open_router/google/gemma-4-31b-it:free', 'combo:u-0123456789abcdef']) {
+      const response = await authFetch(base, endpoint, {
+        model, max_tokens: 64,
+        messages: [{ role: 'user', content: 'local audit' }],
+        ...(endpoint === '/v1/responses' ? { input: 'local audit' } : {}),
+      })
+      assert.equal(response.status, 200)
+      assert.equal((await response.json()).model, model)
+      assert.equal(seen.at(-1).model, model, 'the dispatcher receives the complete model identity')
+    }
+  })
+}
+
+for (const endpoint of ['/v1/chat/completions', '/v1/responses']) {
+  await checkAsync(endpoint + ' resolves flat, nested and model-suffix thinking effort (#74)', async () => {
+    const lane = makeLane()
+    const base = await serve(lane)
+    lane.script = () => ({ chunks: [], outcome: { text: 'done', toolCalls: [] } })
+    const model = 'mimo-v2.6-flash-free'
+    for (const stream of [false, true]) {
+      for (const [label, fields, expected] of [
+        ['nested', { reasoning: { effort: ' high ' } }, 'high'],
+        ['flat', { reasoning_effort: ' light ' }, 'light'],
+        ['suffix', { model: `${model} ( deep ) ` }, 'deep'],
+        ['flat priority', { model: `${model} (deep)`, reasoning_effort: ' light ', reasoning: { effort: 'high' } }, 'light'],
+        ['nested priority', { model: `${model} (deep)`, reasoning: { effort: ' balanced ' } }, 'balanced'],
+        ['empty flat', { reasoning_effort: ' \t ', reasoning: { effort: ' high ' } }, 'high'],
+        ['invalid flat', { reasoning_effort: 42, reasoning: { effort: ' low ' } }, 'low'],
+        ['empty fields', { model: `${model} ( balanced )`, reasoning_effort: '', reasoning: { effort: ' ' } }, 'balanced'],
+        ['absent', {}, undefined],
+      ]) {
+        const response = await authFetch(base, endpoint, {
+          model, stream, messages: [{ role: 'user', content: 'hi' }], input: 'hi', ...fields,
+        })
+        assert.equal(response.status, 200, `${label}, stream=${stream}`)
+        await response.text()
+        assert.equal(lane.seen.at(-1).model, model, 'the effort suffix is removed from the dispatched model')
+        assert.equal(lane.seen.at(-1).openAi.reasoning_effort, expected, `${label}, stream=${stream}`)
+      }
+    }
+  })
+}
+
+await checkAsync('the shared model roster advertises each supported effort menu and its default (#74)', async () => {
+  const snapshot = {
+    settings: { defaultMaxTokens: 4096, exposeRegionModels: false },
+    membership: { 'our-free-model': ['free-thinking', 'declared-thinking', 'plain'], 'our-free-model-region': ['regional'] },
+    catalog: [
+      { id: 'free-thinking', reasoning: true, maxOutput: 32768, contextWindow: 131072 },
+      { id: 'declared-thinking', channel: 'eac', reasoning: true, efforts: ['low', 'high'], effortDefault: 'high', maxOutput: 8192 },
+      { id: 'plain', reasoning: false, maxOutput: 8192 },
+      { id: 'regional', reasoning: true, maxOutput: 8192 },
+      { id: 'hidden', reasoning: true, maxOutput: 8192 },
+    ],
+  }
+  const base = await serve(makeLane(), { modelRows: () => publicModelRows(snapshot) })
+  const response = await fetch(`${base}/v1/models`, { headers: { authorization: 'Bearer k-test' } })
+  assert.equal(response.status, 200)
+  const { data } = await response.json()
+  assert.deepEqual(data.map(row => row.id), ['free-thinking', 'declared-thinking', 'plain'])
+  assert.deepEqual(data[0].x_ofm_efforts, ['light', 'balanced', 'deep'])
+  assert.equal(data[0].x_ofm_effort_default, 'balanced')
+  assert.equal(data[0].context_window, 131072)
+  assert.deepEqual(data[1].x_ofm_efforts, ['low', 'high'])
+  assert.equal(data[1].x_ofm_effort_default, 'high')
+  assert.equal(Object.hasOwn(data[2], 'x_ofm_efforts'), false)
+  assert.equal(Object.hasOwn(data[2], 'x_ofm_effort_default'), false)
+})
 
 // ── streaming tool-call wiring (#20) ─────────────────────────────────────────
 await checkAsync('streaming tool_calls renumber from 0 after reasoning blocks', async () => {
@@ -295,21 +376,19 @@ await checkAsync('a JSON null body answers 400 instead of a TypeError 500', asyn
   assert.equal(lane.seen.length, 0, 'a malformed body must not reach the lane')
 })
 
-await checkAsync('a streaming dispatch that throws before its first chunk ends with a protocol error frame', async () => {
+await checkAsync('a dispatch failure before content preserves its HTTP error for streaming callers', async () => {
   const lane = makeLane()
   const base = await serve(lane)
   lane.script = () => { throw Object.assign(new Error('model "m" not found'), { statusCode: 404 }) }
-  const chat = await authFetch(base, '/v1/chat/completions', { model: 'm', stream: true, messages: [{ role: 'user', content: 'hi' }] })
-  assert.equal(chat.status, 200, 'the SSE status line is already spent')
-  const chatBody = await chat.text()
-  assert.match(chatBody, /"error"/, 'a failed turn must not end as a clean empty stream')
-  assert.match(chatBody, /not found/)
-  assert.match(chatBody, /data: \[DONE\]/)
-  const responses = await authFetch(base, '/v1/responses', { model: 'm', stream: true, input: 'hi' })
-  assert.equal(responses.status, 200)
-  const responsesBody = await responses.text()
-  assert.match(responsesBody, /response\.failed/, 'the Responses wire has an event for this')
-  assert.match(responsesBody, /not found/)
+  for (const [path, body] of [
+    ['/v1/chat/completions', { model: 'm', stream: true, messages: [{ role: 'user', content: 'hi' }] }],
+    ['/v1/responses', { model: 'm', stream: true, input: 'hi' }],
+  ]) {
+    const response = await authFetch(base, path, body)
+    assert.equal(response.status, 404)
+    const payload = await response.json()
+    assert.match(payload.error.message, /not found/)
+  }
 })
 
 await checkAsync('the Anthropic endpoint renders dispatch failures in its own error envelope', async () => {
