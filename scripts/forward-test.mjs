@@ -281,6 +281,49 @@ await checkAsync('a non-JSON body answers 400', async () => {
   assert.equal(payload.error.type, 'invalid_request_error')
 })
 
+await checkAsync('a JSON null body answers 400 instead of a TypeError 500', async () => {
+  const lane = makeLane()
+  const base = await serve(lane)
+  for (const path of ['/v1/chat/completions', '/v1/responses', '/v1/messages']) {
+    const response = await authFetch(base, path, 'null')
+    assert.equal(response.status, 400, path)
+    const payload = await response.json()
+    assert.equal(payload.error.type, 'invalid_request_error', path)
+    if (path === '/v1/messages') assert.equal(payload.type, 'error')
+    assert.match(payload.error.message, /JSON object/, path)
+  }
+  assert.equal(lane.seen.length, 0, 'a malformed body must not reach the lane')
+})
+
+await checkAsync('a streaming dispatch that throws before its first chunk ends with a protocol error frame', async () => {
+  const lane = makeLane()
+  const base = await serve(lane)
+  lane.script = () => { throw Object.assign(new Error('model "m" not found'), { statusCode: 404 }) }
+  const chat = await authFetch(base, '/v1/chat/completions', { model: 'm', stream: true, messages: [{ role: 'user', content: 'hi' }] })
+  assert.equal(chat.status, 200, 'the SSE status line is already spent')
+  const chatBody = await chat.text()
+  assert.match(chatBody, /"error"/, 'a failed turn must not end as a clean empty stream')
+  assert.match(chatBody, /not found/)
+  assert.match(chatBody, /data: \[DONE\]/)
+  const responses = await authFetch(base, '/v1/responses', { model: 'm', stream: true, input: 'hi' })
+  assert.equal(responses.status, 200)
+  const responsesBody = await responses.text()
+  assert.match(responsesBody, /response\.failed/, 'the Responses wire has an event for this')
+  assert.match(responsesBody, /not found/)
+})
+
+await checkAsync('the Anthropic endpoint renders dispatch failures in its own error envelope', async () => {
+  const lane = makeLane()
+  const base = await serve(lane)
+  lane.script = () => { throw Object.assign(new Error('model "m" not found'), { statusCode: 404 }) }
+  const response = await authFetch(base, '/v1/messages', { model: 'm', max_tokens: 16, messages: [{ role: 'user', content: 'hi' }] })
+  assert.equal(response.status, 404)
+  const payload = await response.json()
+  assert.equal(payload.type, 'error')
+  assert.equal(typeof payload.error?.type, 'string')
+  assert.match(payload.error.message, /not found/)
+})
+
 // ── the address a peer on this network should dial ───────────────────────────
 // The relay binds every interface, so the address to hand out is a property of
 // the machine right now — and a machine commonly holds two private addresses at

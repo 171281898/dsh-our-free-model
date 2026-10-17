@@ -110,8 +110,8 @@ async function checkBodyLimits(temporary) {
 // Keep local .env files and module state out of both this check and later suites.
 if (process.argv[2] === '--body-limit-child') {
   await checkBodyLimits(process.argv[3])
-  process.exit(failures === 0 ? 0 : 1)
-}
+  process.exitCode = failures === 0 ? 0 : 1
+} else {
 const bodyLimitDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'ofm-body-limit-'))
 try {
   for (const name of ['worker.js', 'gateway-node.mjs', 'auth-github.mjs']) {
@@ -975,4 +975,5 @@ const { createGatewayServer, resetAnalytics, poolProbe } = await import('../work
 }
 
 console.log(failures === 0 ? '\nvault-test: all checks passed' : `\nvault-test: ${failures} check(s) FAILED`)
-process.exit(failures === 0 ? 0 : 1)
+process.exitCode = failures === 0 ? 0 : 1
+}
