@@ -15,7 +15,7 @@ import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import assert from 'node:assert/strict'
-import { parseVersion, compareVersions, parseManifest, fileUrlOf, downloadManifest, parseUploadPackRefs, PluginUpdater, stageRelease, verifyStaged, backupPackage, restoreBackup, installStaged, verifyInstalled, signManifest, verifyManifestSignature, stableStringify, PINNED_MANIFEST_PUBLIC_KEY } from '../src/updater.js'
+import { parseVersion, compareVersions, parseManifest, fileUrlOf, downloadManifest, parseUploadPackRefs, PluginUpdater, stageRelease, verifyStaged, backupPackage, restoreBackup, installStaged, verifyInstalled, signManifest, verifyManifestSignature, stableStringify, DEFAULT_MANIFEST_SOURCES, PINNED_MANIFEST_PUBLIC_KEY } from '../src/updater.js'
 import { selfReload } from '../src/reload.js'
 const CONTROLLED_DEFAULTS = ['http://127.0.0.1:1/never.json']
 
@@ -44,6 +44,10 @@ check('compareVersions ordering', () => {
   assert.equal(compareVersions('1.0.0-rc.2', '1.0.0-rc.1'), 1)
   assert.equal(compareVersions('1.0.0-rc.2', '1.0.0-rc.10'), -1, 'numeric pre parts compare numerically')
   assert.equal(compareVersions('2.0.0', '1.9.9'), 1)
+})
+check('default update sources do not probe the removed master ref', () => {
+  assert.equal(DEFAULT_MANIFEST_SOURCES.some(source => source.includes('/master/')), false)
+  assert.ok(DEFAULT_MANIFEST_SOURCES.some(source => source.includes('/main/')))
 })
 
 // ── manifest validation ──────────────────────────────────────────────────────

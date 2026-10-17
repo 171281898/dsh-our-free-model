@@ -211,6 +211,7 @@ check('owner override is consulted first, {repo} expands', () => {
   const sources = store.sources()
   assert.equal(sources[0], 'https://my.example/Ebony-Vinyl/dsh-our-free-model/feed.json')
   assert.ok(DEFAULT_FEED_SOURCES.every(source => sources.includes(source)), 'defaults stay as fallback')
+  assert.equal(DEFAULT_FEED_SOURCES.some(source => source.includes('/master/')), false, 'defaults do not probe the removed master ref')
   fs.rmSync(dir, { recursive: true, force: true })
 })
 check('a plaintext, non-loopback override is refused (issue #19)', () => {
