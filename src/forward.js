@@ -147,7 +147,7 @@ async function readBody(req) {
 
 function json(res, status, payload) {
   const body = JSON.stringify(payload)
-  res.writeHead(status, { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body), 'cache-control': 'no-store' })
+  res.writeHead(status, { ...corsHeaders(), 'content-type': 'application/json', 'content-length': Buffer.byteLength(body), 'cache-control': 'no-store' })
   res.end(body)
 }
 

@@ -450,6 +450,21 @@ try {
     assert.ok(run.elapsedMs > 200)
   })
 
+  for (const emptyArguments of [false, true]) await check(`EAC named tool start renews progress before ${emptyArguments ? 'zero' : 'delayed'} arguments`, async () => {
+    const pieces = [
+      ': waiting\n\n',
+      deltas('chat', { toolName: TOOL.name }),
+      emptyArguments ? terminal('chat', { reason: 'tool_calls' })
+        : deltas('chat', { toolArgs: '{}' }) + terminal('chat', { reason: 'tool_calls' }),
+    ]
+    const run = await drive('union-alpha', [{ pieces, intervalMs: 250 }], {
+      entryOverrides: { channel: 'eac' }, settings: { streamRecovery: { enabled: false, progressTimeoutMs: 400 } },
+    })
+    assert.equal(run.scenario.requests.length, 1)
+    assert.notEqual(run.finish.kind, 'error')
+    assert.ok(run.chunks.some(chunk => chunk.type === 'block-end' && chunk.block?.type === 'tool-call' && chunk.block.name === TOOL.name))
+  })
+
   await check('EAC stops after partial text when only heartbeats follow', async () => {
     const run = await drive('union-alpha', [{ pieces: [deltas('chat', { text: ANSWER }), ...Array(8).fill(': heartbeat\n\n')], intervalMs: 80, hold: true }], { entryOverrides: { channel: 'eac' }, settings: { streamRecovery: { progressTimeoutMs: 200 } } })
     checkFinal(run, 'error', 1)

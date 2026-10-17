@@ -3996,6 +3996,16 @@ window.__ModuleLoader__.load({
      * does not offer it still renders the free and EAC pages, with this one
      * explaining itself instead of breaking.
      */
+    function sameChannelTransport(left, right) {
+      return left === right || (left !== null && right !== null
+        && typeof left === 'object' && typeof right === 'object'
+        && left.connection === right.connection && left.call === right.call)
+    }
+
+    function channelTransport(rpc) {
+      return typeof rpc?.transport === 'function' ? rpc.transport() : rpc
+    }
+
     function useChannelRpc(ctx) {
       const ctxRef = useRef(ctx)
       ctxRef.current = ctx
@@ -4017,7 +4027,7 @@ window.__ModuleLoader__.load({
         const check = () => {
           if (!alive) return
           const next = readTransport()
-          setTransport(previous => previous?.connection === next?.connection && previous?.call === next?.call ? previous : next)
+          setTransport(previous => sameChannelTransport(previous, next) ? previous : next)
         }
         check()
         const timer = setInterval(check, 500)
@@ -4036,6 +4046,7 @@ window.__ModuleLoader__.load({
           return result
         } finally { clearTimeout(timer) }
       }, [readTransport, transport])
+      rpc.transport = readTransport
       return { available: transport !== null, rpc }
     }
 
@@ -4188,10 +4199,19 @@ window.__ModuleLoader__.load({
           const attempt = loginAttempt.current
           if (attempt) { attempt.cancelled = true; closeLoginPopup(attempt.popup) }
         }
-      }, [channel.id, rpc])
+      }, [channel.id])
+      useEffect(() => {
+        const attempt = loginAttempt.current
+        if (!attempt || sameChannelTransport(attempt.transport, channelTransport(rpc))) return
+        attempt.cancelled = true
+        closeLoginPopup(attempt.popup)
+        loginAttempt.current = null
+        setBusy(value => value === 'add' ? '' : value)
+      }, [rpc])
       const startLogin = async () => {
         if (loginAttempt.current && !loginAttempt.current.cancelled) return
-        const attempt = { popup: null, cancelled: false }
+        const attempt = { popup: null, cancelled: false, transport: channelTransport(rpc) }
+        const current = () => !attempt.cancelled && sameChannelTransport(attempt.transport, channelTransport(rpc))
         loginAttempt.current = attempt
         setBusy('add'); setNotice('')
         // Reserve inside the click; a delayed RPC would lose transient activation.
@@ -4204,7 +4224,7 @@ window.__ModuleLoader__.load({
             provider: channel.id,
             ...channel.id === 'zcode' ? { zcodeProvider } : {},
           }, 90_000)
-          if (attempt.cancelled) return
+          if (!current()) { attempt.cancelled = true; closeLoginPopup(attempt.popup); return }
           const accountId = value?.accountId
           const url = value?.loginUrl
           if (typeof accountId !== 'string' || accountId === '') throw new Error('bad-answer')
@@ -4223,7 +4243,7 @@ window.__ModuleLoader__.load({
             if (!opened) {
               try { opened = (await post('/open-external', { url }, 15_000))?.opened === true } catch { /* manual link remains available */ }
             }
-            if (attempt.cancelled) return
+            if (!current()) { attempt.cancelled = true; return }
             if (!opened) {
               try { window.open(url, '_blank', 'noopener') } catch { /* the modal offers the link too */ }
             }
@@ -4232,7 +4252,7 @@ window.__ModuleLoader__.load({
           setOpen('accounts')
         } catch (error) {
           closeLoginPopup(attempt.popup)
-          if (!attempt.cancelled) onError(channel, error)
+          if (current()) onError(channel, error)
         } finally {
           if (loginAttempt.current === attempt && !attempt.cancelled) {
             loginAttempt.current = null
@@ -4516,22 +4536,35 @@ window.__ModuleLoader__.load({
       // the failure *reason* when the probes never come back.
       const [ready, setReady] = useState(pack.state === 'ready')
 
-      const loadStatus = useCallback(async (attempt = 0) => {
+      const statusGeneration = useRef(0)
+      const statusRetry = useRef(null)
+      const loadStatus = useCallback(async (attempt = 0, generation = ++statusGeneration.current) => {
+        if (attempt === 0) { clearTimeout(statusRetry.current); statusRetry.current = null }
         if (!available) return
+        const transport = channelTransport(rpc)
+        const current = () => generation === statusGeneration.current && sameChannelTransport(transport, channelTransport(rpc))
         try {
           const value = await rpc('provider.status', { providers: CHANNEL_PROVIDERS.map(row => row.id) })
+          if (!current()) return
           setStatuses(value?.statuses ?? {})
           setReady(true)
           setError('')
         } catch (err) {
+          if (!current()) return
           // The pack imports asynchronously on a cold start; retry a bounded
           // few times before believing the failure and surfacing the reason.
-          if (attempt < 4) { setTimeout(() => { void loadStatus(attempt + 1) }, 4000); return }
+          if (attempt < 4) {
+            statusRetry.current = setTimeout(() => { if (current()) void loadStatus(attempt + 1, generation) }, 4000)
+            return
+          }
           setError(String(err?.message ?? err))
         }
       }, [available, rpc])
 
-      useEffect(() => { void loadStatus() }, [loadStatus])
+      useEffect(() => {
+        void loadStatus()
+        return () => { statusGeneration.current++; clearTimeout(statusRetry.current); statusRetry.current = null }
+      }, [loadStatus])
       // A second poll loop, slow: the pack pushes nothing for accounts changed
       // in another window, and a stale count on this page is the kind of quiet
       // wrongness that reads as a bug. Local actions refresh immediately.

@@ -87,6 +87,20 @@ await test('classified stream failures survive every local forwarding protocol',
     await assert.rejects(result, error => error.code === 'ABORTED')
     assert.equal(cancelled, true)
   })
+  for (const wire of ['chat', 'messages', 'responses']) await t.test(`${wire}: named tool metadata reports progress once without argument deltas`, async () => {
+    const event = name => wire === 'chat'
+      ? { choices: [{ delta: { tool_calls: [{ index: 0, id: 'call_progress', function: { ...(name ? { name } : {}) } }] } }] }
+      : wire === 'messages'
+        ? { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 'call_progress', ...(name ? { name } : {}) } }
+        : { type: 'response.output_item.added', output_index: 0, item: { type: 'function_call', call_id: 'call_progress', ...(name ? { name } : {}) } }
+    let progress = 0
+    const output = []
+    async function* frames() { for (const name of ['', 'test_tool', 'test_tool']) yield JSON.stringify(event(name)) }
+    for await (const chunk of readStream(frames(), wire, new Map(), undefined, { onProgress: () => progress++ })) output.push(chunk)
+    assert.equal(progress, 1, 'incomplete and repeated metadata must not keep an idle call alive')
+    assert.equal(output.some(chunk => chunk.type === 'tool-call-delta'), false)
+    assert.ok(output.some(chunk => chunk.type === 'block-end' && chunk.block?.name === 'test_tool'))
+  })
   let chunks = []
   let thrown
   const forward = await startForwardServer({
@@ -111,10 +125,11 @@ await test('classified stream failures survive every local forwarding protocol',
       thrown = Object.assign(new Error('refused'), { code: 'PERMISSION_DENIED' })
       try {
         const response = await fetch(`http://127.0.0.1:${forward.port}${path}`, {
-          method: 'POST', headers: { authorization: 'Bearer fixture', 'content-type': 'application/json' },
+          method: 'POST', headers: { authorization: 'Bearer fixture', 'content-type': 'application/json', origin: 'https://client.example.invalid' },
           body: JSON.stringify({ ...body, input: 'OK', max_tokens: 100, stream }),
         })
         assert.equal(response.status, 403)
+        assert.equal(response.headers.get('access-control-allow-origin'), '*')
         assert.equal((await response.json()).error.code, 'PERMISSION_DENIED')
       } finally { thrown = undefined }
     })
@@ -122,10 +137,11 @@ await test('classified stream failures survive every local forwarding protocol',
       const failure = { message: 'classified fixture', code, ...(code === 'RATE_LIMIT' ? { providerRetryAfterMs: 2300 } : {}), privateField: 'must-not-leak' }
       chunks = [{ type: 'usage', usage: { inputTokens: 0, outputTokens: 0 } }, { type: 'finish', reason: { kind: code === 'ABORTED' ? 'aborted' : 'error', failure } }]
       const response = await fetch(`http://127.0.0.1:${forward.port}${path}`, {
-        method: 'POST', headers: { authorization: 'Bearer fixture', 'content-type': 'application/json' },
+        method: 'POST', headers: { authorization: 'Bearer fixture', 'content-type': 'application/json', origin: 'https://client.example.invalid' },
         body: JSON.stringify({ ...body, input: 'OK', max_tokens: 100, stream }),
       })
       assert.equal(response.status, status)
+      assert.equal(response.headers.get('access-control-allow-origin'), '*', 'browser callers can read classified failures')
       const value = await response.json()
       assert.equal(value.error.code, code)
       assert.equal(value.error.privateField, undefined)

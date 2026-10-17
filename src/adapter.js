@@ -517,6 +517,7 @@ export class FreeModelAdapter {
         const reader = readStream(channel.read(), wire, renameMap, () => Date.now(), {
           startIndex: nextIndex, checkpointLimit: policy.checkpointLimit,
           onState: value => { partialOutcome = value },
+          onProgress: renewProgress,
         })
         let outcome
         try {

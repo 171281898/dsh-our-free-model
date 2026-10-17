@@ -353,3 +353,78 @@ console.log('ok  ZCode defaults, persistence, corrupt and inaccessible storage, 
   assert.equal(app.lateWrites, 0)
 }
 console.log('ok  stable RPC identity, late readiness, latest transport, loss/recovery, envelopes and unmount cleanup')
+
+for (const startedOnLatest of [true, false]) {
+  const pending = deferred(), tab = makePopup(), calls = []
+  const app = harness({ open: () => tab, fetch: () => assert.fail('reserved login must not use the host fallback') })
+  const connection = label => ({ rpc: { async call(_path, _pack, request) {
+    if (request.method === 'account.create') { calls.push(label); return { ok: true, value: await pending.promise } }
+    return { ok: true, value: { accounts: [] } }
+  } } })
+  const context = { connection: connection('old') }
+  const latest = connection('new')
+  const props = { channel: { id: 'buddy', name: 'buddy' }, status: { accounts: { total: 0, enabled: 0 } },
+    t: key => app.api.DICT.en[key], onChanged() {}, onError: (_channel, error) => assert.fail(error.message) }
+  const render = () => app.render(() => {
+    const { rpc } = app.api.useChannelRpc(context)
+    return app.api.ChannelCard({ ...props, rpc })
+  })
+  render()
+  if (startedOnLatest) context.connection = latest
+  const login = nodes(render()).find(node => node.type === 'button' && node.children.includes('Add account')).props.onClick()
+  if (startedOnLatest) {
+    app.advance(500)
+    render()
+    assert.equal(tab.closed, false, 'the readiness tick must retain a login that already used the new transport')
+  } else context.connection = latest
+  pending.resolve({ accountId: 'fixture-account', loginUrl: URL_FIXTURE })
+  await login
+  assert.deepEqual(calls, [startedOnLatest ? 'new' : 'old'])
+  assert.deepEqual(tab.navigations, startedOnLatest ? [URL_FIXTURE] : [], 'old transport results are fenced before the readiness tick too')
+  if (!startedOnLatest) assert.equal(tab.closed, true)
+  app.unmount()
+}
+console.log('ok  login ownership follows the dispatched transport across the readiness window')
+
+for (const completion of ['before-tick', 'after-tick', 'rejection', 'unmount']) {
+  const stale = deferred(), calls = []
+  const app = harness()
+  const connection = (label, status) => ({ rpc: { async call(_path, _pack, request) {
+    if (request.method === 'provider.status') { calls.push(label); return { ok: true, value: await status() } }
+    return { ok: true, value: { autoCheckin: { enabled: false } } }
+  } } })
+  const context = { connection: connection('old', () => stale.promise) }
+  const value = count => ({ statuses: { buddy: { accounts: { total: count, enabled: count } } } })
+  const t = Object.assign(key => app.api.DICT.en[key] ?? key, { locale: 'en' })
+  const render = () => app.render(() => app.api.ChannelsPage({ ctx: context, t, summary: { channels: { state: 'ready' } } }))
+  const count = () => nodes(render()).find(node => node.type === app.api.ChannelCard && node.props.channel.id === 'buddy').props.status?.accounts?.enabled
+  render()
+  await settle()
+  if (completion === 'unmount') {
+    app.unmount()
+    stale.resolve(value(9))
+    await settle()
+    assert.equal(app.lateWrites, 0)
+    continue
+  }
+  context.connection = connection('new', () => value(1))
+  if (completion === 'before-tick') {
+    stale.resolve(value(9))
+    await settle()
+    assert.equal(count(), undefined, 'a stale completion cannot publish during the detection window')
+  }
+  app.advance(500)
+  render()
+  await settle()
+  assert.equal(count(), 1)
+  if (completion === 'rejection') stale.reject(new Error('old connection failed'))
+  else stale.resolve(value(9))
+  await settle()
+  assert.equal(count(), 1, 'old account counts cannot replace the fresh reading')
+  app.advance(4000)
+  await settle()
+  assert.deepEqual(calls, ['old', 'new'], 'an obsolete failure must not schedule another status request')
+  app.unmount()
+  assert.equal(app.timeouts.size, 0)
+}
+console.log('ok  status generations fence old completions, retries and unmounts')
