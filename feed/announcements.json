@@ -2,6 +2,18 @@
   "$schema": "./announcements.schema.md",
   "announcements": [
     {
+      "id": "2026-10-18-v2.5.3-eac-wait",
+      "title": "v2.5.3 紧急修复：移除 EAC 60 秒无输出截止",
+      "level": "update",
+      "pinned": true,
+      "createdAt": "2026-10-18T00:30:00Z",
+      "link": {
+        "url": "https://github.com/Ebony-Vinyl/dsh-our-free-model/releases/tag/v2.5.3",
+        "label": "查看修复说明与下载"
+      },
+      "html": "<p><b>2.5.3 移除了 2.5.2 新增的 EAC 60 秒无有效输出截止。</b>排队、静默思考和只有心跳的等待不再因该规则被提前终止。旧配置中的 <code>progressTimeoutMs</code> 不再生效；用户取消和既有传输断线检测仍然有效。</p><p>本次没有修改 OpenCode 指纹或准入逻辑，匿名渠道的 <code>403 / LANE_LOCKED</code> 仍须与 EAC 等待问题分别排查。</p>"
+    },
+    {
       "id": "2026-10-18-v2.5.2-release",
       "title": "v2.5.2：升级、账号登录与流式错误修复；Windows 安装包更新",
       "level": "update",
