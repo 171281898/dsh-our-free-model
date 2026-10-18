@@ -1,5 +1,5 @@
 {
-  "version": "2.5.2",
+  "version": "2.5.3",
   "algorithm": "sha256",
   "files": [
     {
@@ -50,12 +50,12 @@
     {
       "path": "package.json",
       "size": 2986,
-      "sha256": "d3d65455d636c90a37137977adf53100982f9f7635937b32422b5d69b809ed34"
+      "sha256": "a0a1b5d5f8b51533535d4e67e677098fc80694b5f544a99d6e12a13ca5103cb2"
     },
     {
       "path": "src/adapter.js",
-      "size": 42560,
-      "sha256": "725b51566ded2ac1902ee5a5fca43a3436cb44e29c12d4b19bdf86ad588fe8d7"
+      "size": 41255,
+      "sha256": "061467678f70b62e480ecab23e9612631d8bfabff1cde09fe175d132921f2858"
     },
     {
       "path": "src/aggregate.js",
@@ -209,8 +209,8 @@
     },
     {
       "path": "src/recovery.js",
-      "size": 6584,
-      "sha256": "264fa145f45de55ea6e232db4c5dcf2a1397cb8a8717c3a8c511c3a888896b54"
+      "size": 6438,
+      "sha256": "8284e09f3bd75ade5f3ca62166d6710aaf2e069a879feccdc480568c6e363a50"
     },
     {
       "path": "src/reload.js",
@@ -344,8 +344,8 @@
     },
     {
       "path": "src/updater.js",
-      "size": 49220,
-      "sha256": "89bb77fa3f874f7ea5876dfeabc6475ce7419bef611b4f624fb058097a9a08a7"
+      "size": 49508,
+      "sha256": "825813e80c343e1bf1107f3c18e0b443472e2157da73f9c5a48e6a0ca76355c7"
     },
     {
       "path": "src/upstream.js",
