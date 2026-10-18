@@ -669,8 +669,11 @@ function backupSnapshot(backupDir) {
     || new Set(snapshot.files.map(file => file.path)).size !== snapshot.files.length) {
     throw new Error('invalid rollback receipt')
   }
-  verifySnapshot(backupDir, snapshot)
-  return snapshot
+  // Older development-install receipts also covered standalone products and
+  // compiler caches. Keep those bytes retained, but never restore that tree.
+  const runtimeSnapshot = { files: snapshot.files.filter(file => file.path.split('/')[0] !== 'packages') }
+  verifySnapshot(backupDir, runtimeSnapshot)
+  return runtimeSnapshot
 }
 
 /** Put a backed-up copy back in place (used when a swap or reload fails). */

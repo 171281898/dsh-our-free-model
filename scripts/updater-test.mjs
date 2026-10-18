@@ -754,6 +754,35 @@ for (const rollback of [false, true]) {
   })
 }
 
+await checkAsync('legacy rollback receipts containing Rust caches restore only plugin runtime files', async () => {
+  const pkg = makePackage(OLD)
+  const data = makeDataDir()
+  const backup = path.join(data, 'rollback')
+  const rel = 'packages/desktop/src-tauri/target/debug/legacy-cache.pdb'
+  try {
+    backupPackage(pkg, backup)
+    const cached = Buffer.from('retained historical cache')
+    const backupFile = path.join(backup, ...rel.split('/'))
+    fs.mkdirSync(path.dirname(backupFile), { recursive: true })
+    fs.writeFileSync(backupFile, cached)
+    const receiptFile = path.join(backup, '.ofm-backup.json')
+    const receipt = JSON.parse(fs.readFileSync(receiptFile, 'utf8'))
+    receipt.files.push({ path: rel, size: cached.length, sha256: crypto.createHash('sha256').update(cached).digest('hex') })
+    fs.writeFileSync(receiptFile, JSON.stringify(receipt))
+    const currentCache = path.join(pkg, ...rel.split('/'))
+    fs.mkdirSync(path.dirname(currentCache), { recursive: true })
+    fs.writeFileSync(currentCache, 'current Rust cache must stay untouched')
+    fs.writeFileSync(path.join(pkg, 'index.js'), 'broken candidate')
+    restoreBackup(backup, pkg)
+    assert.equal(fs.readFileSync(path.join(pkg, 'index.js'), 'utf8'), oldFiles['index.js'])
+    assert.equal(fs.readFileSync(currentCache, 'utf8'), 'current Rust cache must stay untouched')
+    assert.deepEqual(fs.readFileSync(backupFile), cached, 'historical cache is retained without deletion or restoration')
+  } finally {
+    fs.rmSync(pkg, { recursive: true, force: true })
+    fs.rmSync(data, { recursive: true, force: true })
+  }
+})
+
 await checkAsync('a failed apply leaves the installed package and history consistent', async () => {
   const pkg = makePackage(OLD)
   const data = makeDataDir()
