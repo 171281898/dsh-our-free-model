@@ -1,7 +1,7 @@
 {
   "version": "2.5.4",
   "base": "../",
-  "publishedAt": "2026-10-19T04:24:47.520Z",
+  "publishedAt": "2026-10-19T08:17:41.012Z",
   "notes": "优化新桌面端，优化插件端 UI 和广告：完善浅色、深色及窄窗口显示，新增赞助广告入口与每日公告，修复宿主设置弹窗中的公告展示和 Esc 收起行为。",
   "files": [
     {
@@ -16,8 +16,8 @@
     },
     {
       "path": "client.js",
-      "size": 602272,
-      "sha256": "e161a2dfb1f5bf30f741104dc986217ef34ea2fe2312944ea5a30ddc9713585c"
+      "size": 601876,
+      "sha256": "299043059f5dc0b00b9453b4a0cb2b4dd7baaf8a97fbddbc8d3eb6e60378ab28"
     },
     {
       "path": "cordis.patch.yml",
@@ -231,8 +231,8 @@
     },
     {
       "path": "src/sponsor.js",
-      "size": 15009,
-      "sha256": "c986e270842448dc798015f717aee73aff7bf580bdbab9ad49feb44a1ec4312f"
+      "size": 14680,
+      "sha256": "57037468b5ecfeff7bbeb9d802f0193d31ab8ba7b80582915bc4d7c4fa8d0266"
     },
     {
       "path": "src/store.js",
@@ -400,5 +400,5 @@
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
   ],
-  "signature": "JneQ6xhA9fTb4qCEnSzArVrCX8aCJJVQzYRIZp45ZBaN3tiUmzd3XSWj/qB5ruz05TSxfcjMSP/srXsWq63WBQ=="
+  "signature": "HWGK0COwB78w4dd1TF+zx1Aec2mYyIVZoS2hNVlk/AoVIaHtxcPlB02iAUF92f89E3aY+WoryO5zQO9JGt4iCA=="
 }
