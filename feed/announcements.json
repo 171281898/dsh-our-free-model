@@ -2,6 +2,18 @@
   "$schema": "./announcements.schema.md",
   "announcements": [
     {
+      "id": "2026-10-20-v2.5.6-plugin-release",
+      "title": "v2.5.6：插件赞助卡片精简，免费模型与 EAC 页面统一展示",
+      "level": "update",
+      "pinned": true,
+      "createdAt": "2026-10-19T16:24:31Z",
+      "link": {
+        "url": "https://github.com/Ebony-Vinyl/dsh-our-free-model/releases/tag/v2.5.6",
+        "label": "查看插件更新说明"
+      },
+      "html": "<p><b>2.5.6 更新 DSH 插件端。</b>免费模型与 EAC 模型页面上方统一展示紧凑的北辰 API 赞助卡片，文案更新为“邀请可获百分之十的返现”。移除“来自赞助商的广告”导航和详情路由，保留卡片及其查看链接；同时修复部分路径下热重载依赖未刷新导致的旧模块继续运行问题。</p>"
+    },
+    {
       "id": "2026-10-19-v2.5.5-plugin-release",
       "title": "v2.5.5：插件端移除交流群区块与开屏赞助广告",
       "level": "update",
