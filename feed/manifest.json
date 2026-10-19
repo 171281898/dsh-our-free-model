@@ -1,8 +1,8 @@
 {
-  "version": "2.5.3",
+  "version": "2.5.4",
   "base": "../",
   "publishedAt": "2026-10-19T04:06:25.909Z",
-  "notes": "",
+  "notes": "优化新桌面端，优化插件端 UI 和广告：完善浅色、深色及窄窗口显示，新增赞助广告入口与每日公告，修复宿主设置弹窗中的公告展示和 Esc 收起行为。",
   "files": [
     {
       "path": "adapter/dsh-llm.d.ts",
@@ -399,6 +399,5 @@
       "size": 298606,
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
-  ],
-  "signature": "bA8IpBXQvg9SUibXfxid/jBmen0xWHKWDoeXSL+0JOhi5Ew9QheqBVjPEHaOLLVU0bnHDMqppWw/CxCH8yVWCw=="
+  ]
 }
