@@ -50,7 +50,7 @@
     {
       "path": "package.json",
       "size": 2986,
-      "sha256": "a0a1b5d5f8b51533535d4e67e677098fc80694b5f544a99d6e12a13ca5103cb2"
+      "sha256": "130d55802fad1fb0ee6a1c7a3edfc79567c87cf33cccd89bff8bebdfb3caf6cc"
     },
     {
       "path": "src/adapter.js",

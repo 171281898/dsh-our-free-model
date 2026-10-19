@@ -1,7 +1,7 @@
 {
   "version": "2.5.4",
   "base": "../",
-  "publishedAt": "2026-10-19T04:06:25.909Z",
+  "publishedAt": "2026-10-19T04:24:47.520Z",
   "notes": "优化新桌面端，优化插件端 UI 和广告：完善浅色、深色及窄窗口显示，新增赞助广告入口与每日公告，修复宿主设置弹窗中的公告展示和 Esc 收起行为。",
   "files": [
     {
@@ -52,7 +52,7 @@
     {
       "path": "package.json",
       "size": 2986,
-      "sha256": "a0a1b5d5f8b51533535d4e67e677098fc80694b5f544a99d6e12a13ca5103cb2"
+      "sha256": "130d55802fad1fb0ee6a1c7a3edfc79567c87cf33cccd89bff8bebdfb3caf6cc"
     },
     {
       "path": "src/adapter.js",
@@ -399,5 +399,6 @@
       "size": 298606,
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
-  ]
+  ],
+  "signature": "JneQ6xhA9fTb4qCEnSzArVrCX8aCJJVQzYRIZp45ZBaN3tiUmzd3XSWj/qB5ruz05TSxfcjMSP/srXsWq63WBQ=="
 }
