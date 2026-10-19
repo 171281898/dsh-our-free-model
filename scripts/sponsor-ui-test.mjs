@@ -21,13 +21,16 @@ const plugin = fs.readFileSync(path.join(root, 'client.js'), 'utf8')
 const pluginHtml = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
 :root { --dsw-alias-label-primary:#283445;--dsw-alias-label-secondary:#566576;--dsw-alias-label-tertiary:#718091;--dsw-alias-bg-base:#f4f7fb;--dsw-alias-bg-layer-1:#ffffff;--dsw-alias-bg-layer-2:#f4f7fb;--dsw-alias-bg-layer-3:#eaf0f7;--dsw-alias-border-l1:#e1e7ef;--dsw-alias-border-l2:#ccd7e4;--dsw-alias-accent-primary:#4264a2;--dsw-alias-state-business-primary:#4264a2;--dsw-alias-state-success-primary:#28785b;--dsw-alias-state-error-primary:#ae4354 }
 body{margin:0;background:#f4f7fb;font:14px 'Segoe UI','Microsoft YaHei',sans-serif}#root{max-width:1120px;margin:auto;padding:24px;}
-</style></head><body><div id="root"></div><script src="/test-react.js"></script><script>
+</style></head><body><div id="plugin-settings" role="dialog" aria-modal="true"><div id="root"></div></div><script src="/test-react.js"></script><script>
 window.__ModuleLoader__={load:r=>window.plugin=r.factory(name=>name==='react'?window.testReact:window.testDOM)};
 </script><script src="/test-client.js"></script><script>
 const React=window.testReact,h=React.createElement,{CSS,Shell,DICT}=window.plugin.__test;
 const sheet=document.createElement('style');sheet.textContent=CSS;document.head.append(sheet);
 localStorage.setItem('ofm.tab','sponsor');const t=key=>DICT.zh[key]??key;t.locale='zh-CN';
-window.testDOM.createRoot(document.getElementById('root')).render(h(Shell,{t,data:{catalog:[],settings:{}},counts:{},summary:{reload(){}},stats:{reload(){}},eacAuth:{},setEacAuth(){},eacLogin:{},busy:false,setBusy(){},apply(){},bench(){},benches:{},ctx:{}}));
+window.testPluginRoot=window.testDOM.createRoot(document.getElementById('root'));
+window.testPluginRoot.render(h(Shell,{t,data:{catalog:[],settings:{}},counts:{},summary:{reload(){}},stats:{reload(){}},eacAuth:{},setEacAuth(){},eacLogin:{},busy:false,setBusy(){},apply(){},bench(){},benches:{},ctx:{}}));
+// 对齐宿主 SettingsPanel 的 document 级 Esc 关闭行为。
+document.addEventListener('keydown',event=>{if(event.key==='Escape'){window.testPluginRoot.unmount();document.getElementById('plugin-settings').remove()}});
 </script></body></html>`
 const management = createManagement({ stores: { settings: { get: () => ({ forwardKey: 'isolated' }) } }, info: () => ({}) })
 const server = http.createServer((req, res) => {
@@ -129,6 +132,32 @@ try {
   await stable(waitingPage)
   check('已有窗口关闭后再正常展示当天公告', await waitingPage.locator('.ofm-sponsor-dialog[open]').count() === 1)
   await waiting.close()
+  const pluginHost = await browser.newContext({ reducedMotion: 'reduce' })
+  await attach(pluginHost)
+  const pluginPage = await pluginHost.newPage(); observe(pluginPage)
+  await pluginPage.goto(origin + '/plugin'); await stable(pluginPage)
+  check('宿主设置弹窗内仍会展示插件每日公告', await pluginPage.locator('#plugin-settings[role="dialog"][aria-modal="true"]').isVisible())
+  await pluginPage.keyboard.press('Escape')
+  await pluginPage.waitForSelector('.ofm-sponsor-dialog[open]', { state: 'hidden' })
+  check('Esc 只收起公告，保留宿主设置页与广告菜单焦点', await pluginPage.locator('#plugin-settings').isVisible() && await pluginPage.evaluate(() => document.activeElement.id === 'ofm-sponsor-menu-plugin'))
+  await pluginPage.keyboard.press('Escape')
+  check('公告关闭后 Esc 仍可关闭宿主设置页', await pluginPage.locator('#plugin-settings').count() === 0)
+  check('设置页卸载后滚动锁已恢复', await pluginPage.evaluate(() => document.body.style.overflow !== 'hidden'))
+  await pluginHost.close()
+  const pluginWaiting = await browser.newContext()
+  await attach(pluginWaiting)
+  await pluginWaiting.addInitScript(() => { document.addEventListener('DOMContentLoaded', () => {
+    const other = document.createElement('div'); other.id = 'plugin-other-dialog'; other.setAttribute('role', 'dialog'); other.setAttribute('aria-modal', 'true'); other.textContent = '其他业务弹窗'
+    document.getElementById('plugin-settings').append(other)
+  }) })
+  const pluginWaitingPage = await pluginWaiting.newPage(); observe(pluginWaitingPage)
+  await pluginWaitingPage.goto(origin + '/plugin'); await pluginWaitingPage.waitForTimeout(1100)
+  check('设置页中另有业务弹窗时继续避让', await pluginWaitingPage.locator('.ofm-sponsor-dialog[open]').count() === 0)
+  check('避让业务弹窗时不消耗当天展示记录', await pluginWaitingPage.evaluate(key => localStorage.getItem(key) === null, SPONSOR_DAY_KEY))
+  await pluginWaitingPage.locator('#plugin-other-dialog').evaluate(e => e.remove())
+  await stable(pluginWaitingPage)
+  check('业务弹窗关闭后在保留设置页的情况下展示公告', await pluginWaitingPage.locator('#plugin-settings').isVisible() && await pluginWaitingPage.locator('.ofm-sponsor-dialog[open]').count() === 1)
+  await pluginWaiting.close()
   const blocked = await browser.newContext()
   await attach(blocked)
   await blocked.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError') } }))

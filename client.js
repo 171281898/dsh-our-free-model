@@ -181,7 +181,12 @@ function createSponsorUI(React, image, createPortal, variant = 'plugin') {
     useEffect(() => {
       mounted.current = true
       let cancelled = false
-      const blockedByDialog = () => [...document.querySelectorAll('dialog[open], [role="dialog"][aria-modal="true"]')].some(node => node !== dialog.current && node.getClientRects().length > 0)
+      const blockedByDialog = () => {
+        const selector = 'dialog[open], [role="dialog"][aria-modal="true"]'
+        // 插件挂在宿主设置弹窗中；菜单所在的这一层不是需要避让的其他弹窗。
+        const hostDialog = variant === 'plugin' ? document.getElementById(targetId)?.closest(selector) : null
+        return [...document.querySelectorAll(selector)].some(node => node !== dialog.current && node !== hostDialog && node.getClientRects().length > 0)
+      }
       const show = () => {
         if (cancelled || document.hidden || !dialog.current || blockedByDialog()) throw new Error('not ready')
         previousFocus.current = document.activeElement
@@ -208,12 +213,21 @@ function createSponsorUI(React, image, createPortal, variant = 'plugin') {
       const observe = () => observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['open', 'aria-hidden'] })
       const timer = setTimeout(tryShow, 700)
       const onVisibility = () => { if (!document.hidden) tryShow() }
+      // 宿主在 document 上用 Esc 关闭设置页；公告打开时先消费按键，保留设置页。
+      const onKeyDown = event => {
+        if (event.key !== 'Escape' || !dialog.current?.open) return
+        event.preventDefault()
+        event.stopPropagation()
+        dismiss()
+      }
       document.addEventListener('visibilitychange', onVisibility)
+      document.addEventListener('keydown', onKeyDown, true)
       return () => {
         cancelled = true; mounted.current = false
         clearTimeout(timer)
         observer.disconnect()
         document.removeEventListener('visibilitychange', onVisibility)
+        document.removeEventListener('keydown', onKeyDown, true)
         animation.current?.cancel()
         dialog.current?.close()
         unlock.current()
