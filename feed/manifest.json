@@ -1,7 +1,7 @@
 {
   "version": "2.5.5",
   "base": "../",
-  "publishedAt": "2026-10-19T08:42:34.724Z",
+  "publishedAt": "2026-10-19T15:52:37.747Z",
   "notes": "",
   "files": [
     {
@@ -16,8 +16,8 @@
     },
     {
       "path": "client.js",
-      "size": 601876,
-      "sha256": "299043059f5dc0b00b9453b4a0cb2b4dd7baaf8a97fbddbc8d3eb6e60378ab28"
+      "size": 501326,
+      "sha256": "d41a692bd409537a3a6ba0bb97a50ba559c7b83c8870898873489d208ed2fe7c"
     },
     {
       "path": "cordis.patch.yml",
@@ -400,5 +400,5 @@
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
   ],
-  "signature": "u3lJU1c4mcQDEdhE5v4WR3oKhdT2OSUF0aPVqsFs+qp5TTuW3LET0GvPohTsUQjt3RrRpg2ZJ2xhNsN71IL4Cw=="
+  "signature": "IIHFrIlXVHgtDFw3KzYR2DndMjhFeTokOeVPcZJdR0de9zZe+QJ91JVdvNL+atEAd81a6OIjw1LAgOXPubFRCg=="
 }
