@@ -36,14 +36,14 @@
 
 ---
 
-## 交流频道
+## 交流群
 
 <div align="center">
-  <img src="docs/images/qq-group-qr.png" alt="AI 技术交流学习频道二维码" width="300">
+  <img src="docs/images/qq-group-qr.png" alt="ai技术交流群3 入群二维码（群号：1073656316）" width="300">
   <br>
-  <b>QQ 频道：pd90484671（ai技术交流学习）</b>
+  <b>QQ 群：1073656316（ai技术交流群3）</b>
   <br>
-  扫码加入频道，一起交流插件使用心得、反馈问题与分享玩法。
+  扫码或搜索群号加入群聊，一起交流插件使用心得、反馈问题与分享玩法。
 </div>
 
 ---
