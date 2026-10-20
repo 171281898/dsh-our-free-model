@@ -40,7 +40,7 @@
 ## Community
 
 <div align="center">
-  <img src="docs/images/qq-group-qr.png" alt="QR code for ai技术交流群3 (QQ group: 1073656316)" width="300">
+  <img src="docs/images/qq-group-1073656316.png" alt="QR code for ai技术交流群3 (QQ group: 1073656316)" width="300">
   <br>
   <b>QQ group: 1073656316 (ai技术交流群3)</b>
   <br>
