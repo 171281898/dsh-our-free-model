@@ -40,11 +40,11 @@
 ## Community
 
 <div align="center">
-  <img src="docs/images/qq-group-qr.png" alt="AI technical discussion QQ channel QR code" width="300">
+  <img src="docs/images/qq-group-qr.png" alt="QR code for ai技术交流群3 (QQ group: 1073656316)" width="300">
   <br>
-  <b>QQ channel: pd90484671（ai技术交流学习）</b>
+  <b>QQ group: 1073656316 (ai技术交流群3)</b>
   <br>
-  Scan the QR code to join the channel, discuss the plugin, report issues and share tips.
+  Scan the QR code or search for the group number to join, discuss the plugin, report issues and share tips.
 </div>
 
 ---
