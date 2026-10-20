@@ -54,8 +54,8 @@
     },
     {
       "path": "src/adapter.js",
-      "size": 41255,
-      "sha256": "061467678f70b62e480ecab23e9612631d8bfabff1cde09fe175d132921f2858"
+      "size": 42603,
+      "sha256": "4d507e95ca2f30879d32795943d5e3074157d5958ba95edf2feae5ddde86c4ee"
     },
     {
       "path": "src/aggregate.js",
@@ -239,8 +239,8 @@
     },
     {
       "path": "src/stream.js",
-      "size": 25625,
-      "sha256": "d9c7ba2157375c21aafa6639c5344669d8c6024bc7970649d966623441c631bf"
+      "size": 27603,
+      "sha256": "4b79472861236d5331ea4f33c83b904470b17e93872f2c2008c51ae1114074b6"
     },
     {
       "path": "src/token-saver/index.js",

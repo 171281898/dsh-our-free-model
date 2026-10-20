@@ -1,7 +1,7 @@
 {
   "version": "2.5.6",
   "base": "../",
-  "publishedAt": "2026-10-20T02:40:33.404Z",
+  "publishedAt": "2026-10-20T03:42:58.218Z",
   "notes": "",
   "files": [
     {
@@ -56,8 +56,8 @@
     },
     {
       "path": "src/adapter.js",
-      "size": 41255,
-      "sha256": "061467678f70b62e480ecab23e9612631d8bfabff1cde09fe175d132921f2858"
+      "size": 42603,
+      "sha256": "4d507e95ca2f30879d32795943d5e3074157d5958ba95edf2feae5ddde86c4ee"
     },
     {
       "path": "src/aggregate.js",
@@ -241,8 +241,8 @@
     },
     {
       "path": "src/stream.js",
-      "size": 25625,
-      "sha256": "d9c7ba2157375c21aafa6639c5344669d8c6024bc7970649d966623441c631bf"
+      "size": 27603,
+      "sha256": "4b79472861236d5331ea4f33c83b904470b17e93872f2c2008c51ae1114074b6"
     },
     {
       "path": "src/token-saver/index.js",
@@ -400,5 +400,5 @@
       "sha256": "6419471effa631519def7797d76d7ede38b9fcfa9a83c2148c8ef5d43355b43d"
     }
   ],
-  "signature": "xAJGjoWLlb8cl7o49RTjFxQXlosNOnoFqmjNF3kY/UT2V7eaJp5T9ftqhsCQVcLIyPjCnoOuCqj4uACR9d+DAQ=="
+  "signature": "a4pMBVjIrvHrKrHolDu0kWkO3ySI6PHth++hvZrXdzV1LDXR2WLgHe1LpQsWtZi71etlHNRmTgHj6IUfEo4+Ag=="
 }
