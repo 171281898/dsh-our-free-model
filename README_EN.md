@@ -86,15 +86,18 @@ A model the gateway names but refuses to route appears in neither group. It stay
 **Not in the picker** in the settings page, with the refusal and the probe time, and returns to
 the picker by itself as soon as a probe gets through.
 
-**Settings page — `Settings → Our Free Model`**, seven sections:
+**A sponsor banner** sits at the top of the free-models page and the EAC-models page (relay tag, blurb, and a *View now* button). The button opens the sponsor's site in a new tab with this project's invite code attached; the plugin calls no sponsor API and the banner changes nothing about inference, accounts, or the gateway. The copy and the link are inlined into `client.js`; the source is `src/sponsor.js` and can be read line by line.
+
+**Settings page — `Settings → Our Free Model`**, nine sections:
 
 1. **Model roster** — per-model availability, vision vs text-only, context window, max output, the output ceiling each effort rung really sends, measured time-to-first-token, and an on-demand single-call benchmark.
 2. **EAC lane authorization** — one-click GitHub sign-in (the browser does the work; nothing to paste), the signed-in name and star verdict, a re-check button and sign-out; model cards carry a lock until authorized. The free lane is unaffected.
-2. **Announcement center** — the owner-pushed feed: unread counter, urgency badges, mark-read (single/all), check-now button, OS-notification toggle. Bodies render HTML through the allowlist.
-3. **Usage board** — headline counters, a 17-week token heatmap, a cumulative curve switchable between tokens and request counts and between total and any single model, speed sparklines, and a per-model table.
-4. **Local forward** — enable/disable, bind host and port, copy base URL, show / copy / rotate the API key, and a ready-to-run `curl` example.
-5. **Plugin settings** — master switch, whether region-limited models are exposed, probe interval, default output ceiling, plus the detected egress IP and country.
-6. **Plugin upgrade** — installed/latest version, check for updates, one-click upgrade with progress and failure reasons, last-upgrade history, hot-reload button and file-watcher switch.
+3. **Announcement center** — the owner-pushed feed: unread counter, urgency badges, mark-read (single/all), check-now button, OS-notification toggle. Bodies render HTML through the allowlist.
+4. **Usage board** — headline counters, a 17-week token heatmap, a cumulative curve switchable between tokens and request counts and between total and any single model, speed sparklines, and a per-model table.
+5. **Local forward** — enable/disable, bind host and port, copy base URL, show / copy / rotate the API key, and a ready-to-run `curl` example.
+6. **Egress proxy** — subscription mode (spawns mihomo locally and picks the fastest node) or single-proxy mode (an `http` / `https` / `socks5` address); optional and off by default. See *Send requests through a proxy outlet* below.
+7. **Plugin settings** — master switch, whether region-limited models are exposed, probe interval, default output ceiling, plus the detected egress IP and country.
+8. **Plugin upgrade** — installed/latest version, check for updates, one-click upgrade with progress and failure reasons, last-upgrade history, hot-reload button and file-watcher switch.
 
 **First-run announcement** — a five-page walkthrough (preamble, model roster, how to use, what it does, news & upgrades) that acknowledges once and never reappears until the copy version is bumped.
 
@@ -710,22 +713,33 @@ it never touches files.
 ## Development
 
 ```bash
-npm test                            # every offline suite below, plus the manifest check
+npm test                            # every offline suite plus the manifest check (76 suites, listed in scripts/test-all.mjs)
 node scripts/client-lint.mjs        # browser half: copy/style key coverage, bundle executes
 node scripts/sanitize-test.mjs      # announcement HTML allowlist renderer vs an XSS corpus
+node scripts/sponsor-test.mjs       # sponsor banner copy, link, invite code and the daily rule
 node scripts/trust-test.mjs         # request trust fence for the plugin's routes
 node scripts/feed-test.mjs          # announcement feed: parsing, failover, cache, arrivals
 node scripts/updater-test.mjs       # in-app upgrade: manifests, SHA-256, backup/rollback
 node scripts/build-manifest.mjs     # release: regenerate feed/manifest.json
 node scripts/retry-safety-test.mjs  # failures, retry policy and usage counts are durable-log safe
 node scripts/speed-stat-test.mjs    # no call can average its way into a fake tok/s
+node scripts/egress-test.mjs        # egress outlet: the subscription URL is a credential; three traffic kinds only
 node scripts/effort-test.mjs        # a rung is the max_tokens that goes out, and is recorded as itself
 node scripts/sniff-test.mjs         # a 2xx body is read by shape: SSE frames, single JSON, empty, split mid-codepoint, abort
+node scripts/stream-failure-test.mjs # failure classes: retryable vs not, truncation after bytes were delivered
+node scripts/usage-sanitize-test.mjs # malformed usage counts cannot accumulate into the dashboard
+node scripts/channel-login-test.mjs  # the thirteen account channels: login, renewal, account pools
 node scripts/release-e2e.mjs        # upgrade against the real manifest, and prove a lying one is refused
 node scripts/picker-test.mjs        # only usable models are advertised, and the picker never goes empty
+node scripts/picks-test.mjs         # pick cards: GitHub counts, and the block disappears when the fetch fails
 node scripts/tui-test.mjs           # the plugin activates and serves with no web server in the composition
 node scripts/host-selftest.mjs      # host half end to end against the live upstream
 ```
+
+Those are the common entry points; the suite table in `scripts/test-all.mjs` is the
+complete list (76 suites, including the 13 `standalone-*` and the `channel-*` /
+`eac-*` families). `host-selftest.mjs` is not part of it — it reaches the live
+upstream and spends free-lane quota, so it stays a deliberate act.
 
 Release manifests must be signed with the release private key (`--key <pem-path>`
 or the `OFM_MANIFEST_KEY` environment variable); the builder refuses to write an
